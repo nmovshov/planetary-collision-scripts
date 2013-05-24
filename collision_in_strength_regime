@@ -39,11 +39,11 @@ vImpact = 3200             # (m/s) initial velocity of impactor
 angle_impact = 30.0       # Impact angle to normal (degrees)
 
 # Node seeding parameters ("resolution")
-nxTarget = 100            # Number of nodes across the diameter of the target
+nxTarget = 20            # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 
 # Times, simulation control, and output
-steps = 12                # None or advance a number of steps rather than to a time
+steps = 2                # None or advance a number of steps rather than to a time
 goalTime = 50.0e-6           # Time to advance to (sec)
 dt = 1.0e-9              # Initial guess for time step (sec)
 dtMin = 1e-11              # Minimum allowed time step (sec)
@@ -291,12 +291,10 @@ hydro = HydroConstructor(WT,
                          nTensile = nTensile)
 
 # Construct a damage model.
-# These terms to help hoke up the damage number so that we pretend the asteroid
-# is actually a cylinder extruded in the z-direction by rOuter.
 if useDamage:
     damageModelTarget = DamageModelConstructor(target,
-                                               kWeibull = kWeibull_Basalt,
-                                               mWeibull = mWeibull_Basalt,
+                                               kWeibull = 5e34,
+                                               mWeibull = 8.5,
                                                kernel = WT,
                                                seed = randomSeed,
                                                volume = 0.0,  # forces internal computation.
