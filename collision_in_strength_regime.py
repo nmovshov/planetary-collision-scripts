@@ -43,7 +43,7 @@ nxTarget = 20            # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 
 # Times, simulation control, and output
-steps = 12                # None or advance a number of steps rather than to a time
+steps = 4                # None or advance a number of steps rather than to a time
 goalTime = 50.0e-6           # Time to advance to (sec)
 dt = 1.0e-9              # Initial guess for time step (sec)
 dtMin = 1e-11              # Minimum allowed time step (sec)
@@ -347,8 +347,8 @@ if useDamage:
 #-------------------------------------------------------------------------------
 # NAV MIDPROCESS Here we set register optional work to be done mid-run
 #-------------------------------------------------------------------------------
-def midprocess():
-	print "mitzi"
+def midprocess(st,t0,dt):
+	pass
 frequency=4
 control.appendPeriodicWork(midprocess,frequency)
 
@@ -367,3 +367,5 @@ else:
 #-------------------------------------------------------------------------------
 # NAV Here we do any post processing
 #-------------------------------------------------------------------------------
+from IPython import embed
+embed() # uncomment to start an interactive session when the run completes
