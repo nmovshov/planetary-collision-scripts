@@ -4,7 +4,7 @@
 # This script can serve as a template for collisions of two, single material
 # spheres, using a Tolliston EOS with elastic strength and a damage model.
 # Copy this file to a separate folder and modify with approriate initial
-# conditions. Make sure the first line includes the full path to the SPHERAL's
+# conditions. Make sure the first line includes the full path to SPHERAL's
 # python. Then run with mpirun.
 #-------------------------------------------------------------------------------
 from math import *
@@ -14,7 +14,6 @@ from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
 from AverageStrain import AverageStrain
-from IPython import embed
 
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
@@ -33,24 +32,24 @@ print jobDesc
 rTarget = 3e-2            # (m) Radius of target
 rhoTarget = 2700          # (kg/m^3) target density
 matTarget = 0             # 0=granite, 1=pumice, 2=nylon, 3=glass
-rImpactor = 1e-2            # (m) Radius of impactor
+rImpactor = 1e-2          # (m) Radius of impactor
 rhoImpactor = 1180        # (kg/m^3) impactor density
 matImpactor = 2           # 0=granite, 1=pumice, 2=nylon, 3=glass
-vImpact = 3200             # (m/s) initial velocity of impactor
+vImpact = 3200            # (m/s) initial velocity of impactor
 angle_impact = 30.0       # Impact angle to normal (degrees)
 
 # Node seeding parameters ("resolution")
-nxTarget = 20            # Number of nodes across the diameter of the target
+nxTarget = 20             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 
 # Times, simulation control, and output
-steps = 4                # None or advance a number of steps rather than to a time
-goalTime = 50.0e-6           # Time to advance to (sec)
-dt = 1.0e-9              # Initial guess for time step (sec)
-dtMin = 1e-11              # Minimum allowed time step (sec)
-dtMax = 10.0e-6              # Maximum allowed time step (sec)
-vizTime = 10.e-6             # Time frequency for dropping viz files (sec)
-vizCycle = 1           # Cycle frequency for dropping viz files
+steps = 4                 # None or advance a number of steps rather than to a time
+goalTime = 50.0e-6        # Time to advance to (sec)
+dt = 1.0e-9               # Initial guess for time step (sec)
+dtMin = 1e-11             # Minimum allowed time step (sec)
+dtMax = 10.0e-6           # Maximum allowed time step (sec)
+vizTime = 10.e-6          # Time frequency for dropping viz files (sec)
+vizCycle = 1              # Cycle frequency for dropping viz files
 strainFrequency = 10      # Cycle frequency for measuring strain in the target
 baseDir = jobName         # Base name for directory to store output in
 
@@ -368,4 +367,5 @@ else:
 #-------------------------------------------------------------------------------
 # NAV Here we do any post processing
 #-------------------------------------------------------------------------------
-embed() # uncomment to start an interactive session when the run completes
+#from IPython import embed
+#embed() # uncomment to start an interactive session when the run completes
