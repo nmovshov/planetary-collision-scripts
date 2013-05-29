@@ -14,6 +14,7 @@ from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
 from AverageStrain import AverageStrain
+from IPython import embed
 
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
@@ -347,9 +348,9 @@ if useDamage:
 #-------------------------------------------------------------------------------
 # NAV MIDPROCESS Here we set register optional work to be done mid-run
 #-------------------------------------------------------------------------------
-def midprocess(st,t0,dt):
+def midprocess(stepsSoFar,timeNow,dt):
 	pass
-frequency=4
+frequency=4000
 control.appendPeriodicWork(midprocess,frequency)
 
 #-------------------------------------------------------------------------------
@@ -367,5 +368,4 @@ else:
 #-------------------------------------------------------------------------------
 # NAV Here we do any post processing
 #-------------------------------------------------------------------------------
-from IPython import embed
 embed() # uncomment to start an interactive session when the run completes
