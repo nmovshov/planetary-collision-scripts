@@ -18,7 +18,7 @@ from AverageStrain import AverageStrain
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
 #-------------------------------------------------------------------------------
-jobName = "strenghCollision"
+jobName = "strengthCollision"
 jobDesc = "Two spheres colliding in the strength regime"
 print jobDesc
 
@@ -142,7 +142,7 @@ else:
 #-------------------------------------------------------------------------------
 # Determine the impactor resolution based on mass matching the target resolution.
 m_per_point_Target = (2.0*rTarget/nxTarget)**3 * rhoTarget
-nxImpactor = max(2, int((8.0*rImpactor**3 * rhoImpactor/m_per_point_Target)**(1.0/3.0)*sqrt(2.0) + 0.5))
+nxImpactor = max(2, int(2.0*rImpactor * (rhoImpactor/m_per_point_Target)**(1.0/3.0)))
 print "Selected %i nodes across diameter of impactor of radius %g for target point mass of %g." % (nxImpactor, rImpactor, m_per_point_Target)
 
 #-------------------------------------------------------------------------------
