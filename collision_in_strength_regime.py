@@ -109,7 +109,7 @@ compatibleEnergyEvolution = True    # Energy update choice (compatibleEnergyEvol
 rigorousBoundaries = False          # Do we re-compute ghost nodes during a timestep (more expensive if true)
 
 #-------------------------------------------------------------------------------
-# NAV Build EOS's for common materials and select for target and impactor
+# NAV Build EOSes for target and impactor
 #-------------------------------------------------------------------------------
 units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
