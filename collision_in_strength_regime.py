@@ -31,10 +31,10 @@ print jobDesc
 # Experiment geometry
 rTarget = 3e-2            # (m) Radius of target
 rhoTarget = 2700          # (kg/m^3) target density
-matTarget = 0             # 0=granite, 1=pumice, 2=nylon, 3=glass
+matTarget = "granite"     # granite, basalt, nylon, pure ice, water
 rImpactor = 1e-2          # (m) Radius of impactor
 rhoImpactor = 1180        # (kg/m^3) impactor density
-matImpactor = 2           # 0=granite, 1=pumice, 2=nylon, 3=glass
+matImpactor = "nylon"     # granite, basalt, nylon, pure ice, water
 vImpact = 3200            # (m/s) initial velocity of impactor
 angle_impact = 30.0       # Impact angle to normal (degrees)
 
@@ -111,14 +111,12 @@ rigorousBoundaries = False          # Do we re-compute ghost nodes during a time
 #-------------------------------------------------------------------------------
 # NAV Build EOS's for common materials and select for target and impactor
 #-------------------------------------------------------------------------------
-mats = ["Granite", "Pumice", "Nylon", "Glass"]
 units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
                           1.0)   # Unit time in seconds
-etamin, etamax = 0.01, 100.0
-EOSes = [TillotsonEquationOfState(mat, etamin, etamax, units) for mat in mats]
-eosTarget   = EOSes[matTarget]
-eosImpactor = EOSes[matImpactor]
+etamin, etamax = 0.01, 100.0     # bounds of rho/rho0
+eosTarget   = TillotsonEquationOfState(matTarget,etamin,etamax,units)
+eosImpactor = TillotsonEquationOfState(matImpactor,etamin,etamax,units)
 
 #-------------------------------------------------------------------------------
 # NAV Prepare strength and damage models for target and impactor
