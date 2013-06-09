@@ -37,24 +37,9 @@ for rhok in rho:
 Pplot = Gnuplot.Gnuplot()
 Pplot.xlabel("rho (kg/m^3)")
 Pplot.ylabel("T (K)")
+Pplot(" set grid")
 Pdata = Gnuplot.Data(P)
 Pplot.splot(Pdata, title="Pressure (Pa)")
-
-#-------------------------------------------------------------------------------
-# NAV Plot a P-T curve for water at reference density
-#-------------------------------------------------------------------------------
-eos = EOSes[5]
-rho0 = eos.referenceDensity
-T = range(200,401)
-P = []
-for Tj in T:
-	P.append( (Tj,eos.pressure(rho0,eos.specificThermalEnergy(rho0,Tj))) )
-
-PTplot = Gnuplot.Gnuplot()
-PTplot.xlabel("Temperature (K)")
-PTplot.ylabel("Pressure (Pa)")
-PTdata = Gnuplot.Data(P)
-PTplot.plot(PTdata)
 
 #-------------------------------------------------------------------------------
 # NAV Plot a P-rho curve for water at reference temperature
@@ -70,5 +55,6 @@ for rhoj in rho:
 Prplot = Gnuplot.Gnuplot()
 Prplot.xlabel("density (kg/m^3)")
 Prplot.ylabel("Pressure (Pa)")
+Prplot(" set grid")
 Prdata = Gnuplot.Data(P)
 Prplot.plot(Prdata)
