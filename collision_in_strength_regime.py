@@ -30,10 +30,10 @@ print jobDesc
 
 # Experiment geometry
 rTarget = 3e-2            # (m) Radius of target
-rhoTarget = 2700          # (kg/m^3) target density
+rhoTarget = 2680          # (kg/m^3) target density
 matTarget = "granite"     # granite, basalt, nylon, pure ice, water
 rImpactor = 1e-2          # (m) Radius of impactor
-rhoImpactor = 1180        # (kg/m^3) impactor density
+rhoImpactor = 1185        # (kg/m^3) impactor density
 matImpactor = "nylon"     # granite, basalt, nylon, pure ice, water
 vImpact = 3200            # (m/s) initial velocity of impactor
 angle_impact = 30.0       # Impact angle to normal (degrees)
