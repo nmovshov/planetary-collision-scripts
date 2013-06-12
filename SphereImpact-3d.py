@@ -272,7 +272,7 @@ if restoreCycle is None:
                                                  rmax = rTarget,
                                                  nNodePerh = nPerh)
     impactorGenerator = GenerateNodeDistribution3d(nxImpactor, nxImpactor, nxImpactor,
-                                                 rho0_Basalt,
+                                                 rho0_Nylon,
                                                  distributionType = "lattice",
                                                  xmin = (-rImpactor, -rImpactor, -rImpactor),
                                                  xmax = ( rImpactor,  rImpactor,  rImpactor),
