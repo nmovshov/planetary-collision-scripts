@@ -30,19 +30,19 @@ print jobDesc
 
 # Experiment geometry
 rTarget = 3e-2            # (m) Radius of target
-rhoTarget = 2680          # (kg/m^3) target density
-matTarget = "granite"     # granite, basalt, nylon, pure ice, water
-rImpactor = 1e-2          # (m) Radius of impactor
+rhoTarget = 2700          # (kg/m^3) target density
+matTarget = "basalt"      # granite, basalt, nylon, pure ice, water
+rImpactor = 3.5e-3        # (m) Radius of impactor
 rhoImpactor = 1185        # (kg/m^3) impactor density
 matImpactor = "nylon"     # granite, basalt, nylon, pure ice, water
 vImpact = 3200            # (m/s) initial velocity of impactor
 angle_impact = 30.0       # Impact angle to normal (degrees)
 
 # Strength and damage parameters
-muTarget   = 2.27e10
-Y0Target   = 3.5e9
-muImpactor = 7.3e5
-Y0Impactor = 1.0e5
+muTarget   = 2.27e10      # shear modulus (Pa)
+Y0Target   = 3.5e9        # plastic yield stress (Pa)
+muImpactor = 7.3e5        # shear modulus (Pa)
+Y0Impactor = 1.0e5        # plastic yield stress (Pa)
 kWeibull   = 5.0e34
 mWeibull   = 8.5
 
