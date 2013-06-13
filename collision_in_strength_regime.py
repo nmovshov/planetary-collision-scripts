@@ -38,6 +38,14 @@ matImpactor = "nylon"     # granite, basalt, nylon, pure ice, water
 vImpact = 3200            # (m/s) initial velocity of impactor
 angle_impact = 30.0       # Impact angle to normal (degrees)
 
+# Strength and damage parameters
+muTarget   = 2.27e10
+Y0Target   = 3.5e9
+muImpactor = 7.3e5
+Y0Impactor = 1.0e5
+kWeibull   = 5.0e34
+mWeibull   = 8.5
+
 # Node seeding parameters ("resolution")
 nxTarget = 20             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
@@ -121,13 +129,11 @@ eosImpactor = TillotsonEquationOfState(matImpactor,etamin,etamax,units)
 #-------------------------------------------------------------------------------
 # NAV Prepare strength and damage models for target and impactor
 #-------------------------------------------------------------------------------
-mu = 2.27e-1             # Shear modulus (Pa)
-Y0 = 3.5e-2              # Plastic yield stress (Pa)
 if useStrength:
-    strengthTarget =   ConstantStrength(mu,   # shear modulus (Pa)
-                                        Y0)   # plastic yield stress (Pa)
-    strengthImpactor = ConstantStrength(mu,   # shear modulus (Pa)
-                                        Y0)   # plastic yield stress (Pa)
+    strengthTarget =   ConstantStrength(muTarget, 
+                                        Y0Target)
+    strengthImpactor = ConstantStrength(muImpactor, 
+                                        Y0Impactor)
 else:
     strengthTarget   = NullStrength()
     strengthImpactor = NullStrength()
@@ -293,8 +299,8 @@ hydro = HydroConstructor(WT,
 # Construct a damage model.
 if useDamage:
     damageModelTarget = DamageModelConstructor(target,
-                                               kWeibull = 5e34,
-                                               mWeibull = 8.5,
+                                               kWeibull = kWeibull,
+                                               mWeibull = mWeibull,
                                                kernel = WT,
                                                seed = randomSeed,
                                                volume = 0.0,  # forces internal computation.

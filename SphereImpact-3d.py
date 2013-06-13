@@ -231,8 +231,8 @@ eosNylon = GruneisenEquationOfState(rho0_Nylon,        # Ref density
                                     )
 
 if useStrength:
-    strengthNylon = ConstantStrength(mu_Basalt,   # shear modulus (Pa)
-                                     Y0_Basalt)   # plastic yield stress (Pa)
+    strengthNylon = ConstantStrength(mu_Nylon,   # shear modulus (Pa)
+                                     Y0_Nylon)   # plastic yield stress (Pa)
 else:
     strengthNylon = NullStrength()
 
