@@ -35,14 +35,14 @@ commandLine(
     angle_impactor = 30.0,           # Impact angle to normal (degrees)
     
     # Node seeding parameters.
-    nxTarget = 200,                   # Number of nodes across the diameter of the target
+    nxTarget = 40,                   # Number of nodes across the diameter of the target
     nPerh = 1.51,                    # Nominal number of nodes per smoothing scale
 
     # Material properties
     # Given here as cm-gm-usec units.
 
     # Gruneisen parameters for Lucite (used as a stand-in for Nylon).
-    rho0_Nylon = 1.18,               # (g/cm^3)
+    rho0_Nylon = 1.185,               # (g/cm^3)
     C0_Nylon = 0.218,                # (cm/usec)
     S1_Nylon = 2.08,                 # (dimensionless)
     S2_Nylon = -1.124,               # (dimensionless)
@@ -55,12 +55,12 @@ commandLine(
     etaMin_Nylon = 0.5,              # min rho/rho0 (dimensionless)
     etaMax_Nylon = 5.0,              # max rho/rho0 (dimensionless)
 
-    # Basalt (Using our Granite Tillotson here actually)
+    # Basalt 
     rho0_Basalt = 2.70,              # (g/cm^3)
     a_Basalt = 0.5,                  # Tillotson, dimensionless
     b_Basalt = 1.5,                  # Tillotson, dimensionless
-    A_Basalt = 0.710,                # Tillotson  (pressure = g/(cm usec^2))
-    B_Basalt = 0.750,                # Tillotson, (pressure = g/(cm usec^2))
+    A_Basalt = 0.267,                # Tillotson  (pressure = g/(cm usec^2))
+    B_Basalt = 0.267,                # Tillotson, (pressure = g/(cm usec^2))
     alpha_Basalt = 5.0,              # Tillotson, dimensionless
     beta_Basalt = 5.0,               # Tillotson, dimensionless
     eps0_Basalt = 4.87,              # Tillotson, ( (cm/usec)^2 )
@@ -116,7 +116,7 @@ commandLine(
 
     # Times, and simulation control.
     steps = None,              # Optionally advance a number of steps rather than to a time
-    goalTime = 50.0,           # Time to advance to (usec)
+    goalTime = 100.0,           # Time to advance to (usec)
     dt = 1.0e-3,               # Initial guess for time step (usec)
     dtMin = 1e-5,              # Minimum allowed time step (usec)
     dtMax = 10.0,              # Maximum allowed time step (usec)
@@ -142,11 +142,10 @@ commandLine(
 units = PhysicalConstants(0.01,    # Unit length in meters
                           0.001,   # Unit mass in kilograms
                           1.0e-6)  # Unit time in sec
-
 # Determine the impactor resolution based on mass matching the target resolution.
 m_per_point_Target = (2.0*rTarget/nxTarget)**3 * rho0_Basalt
 rImpactor = (mImpactor/(4.0/3.0*pi*rho0_Nylon))**(1.0/3.0)
-nxImpactor = max(2, int((8.0*rImpactor**3 * rho0_Nylon/m_per_point_Target)**(1.0/3.0)*sqrt(2.0) + 0.5))
+nxImpactor = max(2, int((8.0*rImpactor**3 * rho0_Nylon/m_per_point_Target)**(1.0/3.0)*sqrt(1.0) + 0.5))
 print "Selected %i nodes across diameter of impactor of radius %g for target point mass of %g." % (nxImpactor, rImpactor, m_per_point_Target)
 
 # You have to use strength if you're applying damage.
