@@ -51,13 +51,13 @@ nxTarget = 20             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 
 # Times, simulation control, and output
-steps = 4                 # None or advance a number of steps rather than to a time
+steps = None              # None or advance a number of steps rather than to a time
 goalTime = 50.0e-6        # Time to advance to (sec)
 dt = 1.0e-9               # Initial guess for time step (sec)
 dtMin = 1e-11             # Minimum allowed time step (sec)
 dtMax = 10.0e-6           # Maximum allowed time step (sec)
 vizTime = 10.e-6          # Time frequency for dropping viz files (sec)
-vizCycle = 1              # Cycle frequency for dropping viz files
+vizCycle = 800            # Cycle frequency for dropping viz files
 strainFrequency = 10      # Cycle frequency for measuring strain in the target
 baseDir = jobName         # Base name for directory to store output in
 
@@ -100,8 +100,8 @@ balsaraCorrection = False
 epsilon2 = 1e-2
 negligibleSoundSpeed = 1e-1 #TODO make depend on physics
 csMultiplier = 1e-4
-hmin = 1.0e-6 #TODO make depend on geometry
-hmax = 1e2 #TODO make depend on geometry
+hmin = 1.0e-3*rImpactor
+hmax = 1.0e-1*rTarget
 hminratio = 0.1
 limitIdealH = False
 cfl = 0.5
