@@ -3,8 +3,9 @@
 #-------------------------------------------------------------------------------
 from math import *
 import sys, mpi
-from SolidSpheral3d import *
-from findLastRestart import *
-from VoronoiDistributeNodes import distributeNodes3d
-from NodeHistory import NodeHistory
-from AverageStrain import AverageStrain
+import SolidSpheral3d 
+import Spheral3d 
+import findLastRestart 
+import VoronoiDistributeNodes 
+import NodeHistory 
+import AverageStrain 
