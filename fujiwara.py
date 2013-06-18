@@ -57,7 +57,7 @@ dtMax = 10.0e-6           # Maximum allowed time step (sec)
 vizTime = 20.e-6          # Time frequency for dropping viz files (sec)
 vizCycle = 500            # Cycle frequency for dropping viz files
 strainFrequency = 10      # Cycle frequency for measuring strain in the target
-baseDir = jobName         # Base name for directory to store output in
+baseDir = "nakamura"      # Base name for directory to store output in
 
 #-------------------------------------------------------------------------------
 # NAV Additional global paremeters that are rarely changed
