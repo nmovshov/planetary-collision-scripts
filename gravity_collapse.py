@@ -9,11 +9,9 @@
 #-------------------------------------------------------------------------------
 from math import *
 import sys, mpi
-from SolidSpheral3d import *
 from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
-from AverageStrain import AverageStrain
 
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
@@ -29,10 +27,17 @@ print jobDesc
 #-------------------------------------------------------------------------------
 
 # Experiment geometry
-rPlanet = 3e-2            # (m) initial radius of planet
+rPlanet = 0.5             # (earth radii) initial radius of planet
 mPlanet = 0.2             # (earth masses) initial mass of planet
 matPlanet = "basalt"      # granite, basalt, nylon, pure ice, water
 mPlanet *= 5.972e24
+rPlanet *= 6371.0e3
+
+# Gravity parameters
+softLength = 1.0e-5       # (fraction of planet radius) softening length
+opening = 1.0             # (dimensionless) opening parameter for gravity tree walk
+fdt = 0.1                 # (dimensionless) gravity timestep multiplier
+softLength *= rPlanet
 
 # Node seeding parameters ("resolution")
 nxTarget = 20             # Number of nodes across the diameter of the target
@@ -40,11 +45,11 @@ nPerh = 1.51              # Nominal number of nodes per smoothing scale
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 50.0e-6        # Time to advance to (sec)
-dt = 1.0e-9               # Initial guess for time step (sec)
-dtMin = 1e-11             # Minimum allowed time step (sec)
-dtMax = 10.0e-6           # Maximum allowed time step (sec)
-vizTime = 10.e-6          # Time frequency for dropping viz files (sec)
+goalTime = 5000           # Time to advance to (sec)
+dt = 100                  # Initial guess for time step (sec)
+dtMin = 0.1               # Minimum allowed time step (sec)
+dtMax = 10.0              # Maximum allowed time step (sec)
+vizTime = 180             # Time frequency for dropping viz files (sec)
 vizCycle = 800            # Cycle frequency for dropping viz files
 baseDir = jobName         # Base name for directory to store output in
 
@@ -54,7 +59,7 @@ baseDir = jobName         # Base name for directory to store output in
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-verbosedt = False         # Verbose reporting of the time step criteria per cycle
+verbosedt = True          # Verbose reporting of the time step criteria per cycle
 maxSteps = None           # Maximum allowed steps for simulation advance
 statsStep = 10            # Frequency for sampling conservation statistics and such
 redistributeStep = 1000   # Frequency to load balance problem from scratch
