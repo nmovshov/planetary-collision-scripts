@@ -1,6 +1,6 @@
 #! /auto/proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Simulation of one sphere collapsing under self gravity.
+# Simulation of one sphere collapsing under its own gravity.
 # This script can serve as a template for equilibrating fluid planets using
 # various equations of state.
 # Copy this file to a separate folder and modify with appropriate initial
