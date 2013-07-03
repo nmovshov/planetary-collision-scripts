@@ -45,6 +45,8 @@ G = MKS().G
 # Node seeding parameters ("resolution")
 nxPlanet = 20             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
+hmin = 1.0e-3*rPlanet     # Lower bound on smoothing length
+hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
@@ -56,21 +58,17 @@ vizTime = goalTime/20     # Time frequency for dropping viz files (sec)
 vizCycle = 800            # Cycle frequency for dropping viz files
 baseDir = jobName         # Base name for directory to store output in
 
-#-------------------------------------------------------------------------------
-# NAV Additional global paremeters that are rarely changed
-#-------------------------------------------------------------------------------
-
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-verbosedt = True          # Verbose reporting of the time step criteria per cycle
+verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = None           # Maximum allowed steps for simulation advance
 statsStep = 10            # Frequency for sampling conservation statistics and such
 redistributeStep = 400    # Frequency to load balance problem from scratch
 restartStep = 600         # Frequency to drop restart files
-restoreCycle = None       # If restarting, cycle to start from (if None, latest available restart cycle is selected)
+restoreCycle = None       # Cycle to start from (if None, latest available restart cycle is selected)
 
 #-------------------------------------------------------------------------------
-# NAV The spheral hydro mechanism (pretty obtuse)
+# NAV Options for spheral's hydro mechanism (normally left alone)
 #-------------------------------------------------------------------------------
 HydroConstructor = ASPHHydro
 Qconstructor = MonaghanGingoldViscosity
@@ -79,10 +77,8 @@ Cq = 1.0
 Qlimiter = False
 balsaraCorrection = False
 epsilon2 = 1e-2
-negligibleSoundSpeed = 1e-1 #TODO make depend on physics
+negligibleSoundSpeed = 1e-4
 csMultiplier = 1e-4
-hmin = 1.0e-3*rPlanet
-hmax = 1.0e-1*rPlanet
 hminratio = 0.1
 limitIdealH = False
 cfl = 0.5
@@ -90,10 +86,10 @@ useVelocityMagnitudeForDt = False
 XSPH = True
 epsilonTensile = 0.3
 nTensile = 4
-HEvolution = IdealH                 # Algorithm for updating the H (smoothing scale) tensor
-densityUpdate = IntegrateDensity    # Algorithm for updating mass density
-compatibleEnergyEvolution = True    # Energy update choice (compatibleEnergyEvolution results in machine precision energy conservation)
-rigorousBoundaries = False          # Do we re-compute ghost nodes during a timestep (more expensive if true)
+HEvolution = IdealH
+densityUpdate = IntegrateDensity
+compatibleEnergyEvolution = True
+rigorousBoundaries = False
 
 #-------------------------------------------------------------------------------
 # NAV Build EOS object
@@ -152,7 +148,7 @@ planet = makeFluidNodeList("planet", eosPlanet,
 			   xmax =  10.0*rPlanet*Vector.one,
 			   hmin = hmin,
 			   hmax = hmax,
-			   )#TODO: use xmin,max based on geometry and include hmin,max
+			   )
 nodeSet = [planet]
 
 #-------------------------------------------------------------------------------
