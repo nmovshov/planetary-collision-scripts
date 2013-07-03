@@ -69,27 +69,27 @@ redistributeStep = 400    # Frequency to load balance problem from scratch
 restartStep = 600         # Frequency to drop restart files
 restoreCycle = None       # If restarting, cycle to start from (if None, latest available restart cycle is selected)
 
-# Artificial viscosity (and other numerical crap).
-# HydroConstructor = SolidASPHHydro
-# Qconstructor = MonaghanGingoldViscosity
-# Cl = 1.0
-# Cq = 1.0
-# Qlimiter = False
-# balsaraCorrection = False
-# epsilon2 = 1e-2
-# negligibleSoundSpeed = 1e-1 #TODO make depend on physics
-# csMultiplier = 1e-4
-# hmin = 1.0e-3*rImpactor
-# hmax = 1.0e-1*rTarget
-# hminratio = 0.1
-# limitIdealH = False
-# cfl = 0.5
-# useVelocityMagnitudeForDt = False
-# XSPH = True
-# epsilonTensile = 0.3
-# nTensile = 4
-
-# Hydro parameters.
+#-------------------------------------------------------------------------------
+# NAV The spheral hydro mechanism (pretty obtuse)
+#-------------------------------------------------------------------------------
+HydroConstructor = ASPHHydro
+Qconstructor = MonaghanGingoldViscosity
+Cl = 1.0
+Cq = 1.0
+Qlimiter = False
+balsaraCorrection = False
+epsilon2 = 1e-2
+negligibleSoundSpeed = 1e-1 #TODO make depend on physics
+csMultiplier = 1e-4
+hmin = 1.0e-3*rPlanet
+hmax = 1.0e-1*rPlanet
+hminratio = 0.1
+limitIdealH = False
+cfl = 0.5
+useVelocityMagnitudeForDt = False
+XSPH = True
+epsilonTensile = 0.3
+nTensile = 4
 HEvolution = IdealH                 # Algorithm for updating the H (smoothing scale) tensor
 densityUpdate = IntegrateDensity    # Algorithm for updating mass density
 compatibleEnergyEvolution = True    # Energy update choice (compatibleEnergyEvolution results in machine precision energy conservation)
@@ -102,8 +102,8 @@ units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
                           1.0)   # Unit time in seconds
 etamin, etamax = 0.01, 100.0     # bounds of rho/rho0
-eosPlanet = TillotsonEquationOfState(matTarget,etamin,etamax,units)
-#eosPlanet = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
+#eosPlanet = TillotsonEquationOfState(matTarget,etamin,etamax,units)
+eosPlanet = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
 
 #-------------------------------------------------------------------------------
 # NAV Here we compute some derived problem parameters
@@ -148,8 +148,10 @@ if restoreCycle is None:
 # Create the NodeList.
 planet = makeFluidNodeList("planet", eosPlanet, 
                            nPerh = nPerh, 
-			   xmin = -100.0*rPlanet*Vector.one,
-			   xmax =  100.0*rPlanet*Vector.one,
+			   xmin = -10.0*rPlanet*Vector.one,
+			   xmax =  10.0*rPlanet*Vector.one,
+			   hmin = hmin,
+			   hmax = hmax,
 			   )#TODO: use xmin,max based on geometry and include hmin,max
 nodeSet = [planet]
 
@@ -223,23 +225,23 @@ q.negligibleSoundSpeed = negligibleSoundSpeed
 q.csMultiplier = csMultiplier
 
 # Construct the hydro physics object.
-#hydro = HydroConstructor(WT,
- #                        WTPi,
-  #                       q,
-   #                      cfl = cfl,
-    #                     useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-     #                    compatibleEnergyEvolution = compatibleEnergyEvolution,
-      #                   gradhCorrection = False,
-       #                  densityUpdate = densityUpdate,
-        #                 HUpdate = HEvolution,
-         #                XSPH = XSPH,
-          #               epsTensile = epsilonTensile,
-           #              nTensile = nTensile)
+hydro = HydroConstructor(WT,
+                         WTPi,
+                         q,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         gradhCorrection = False,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HEvolution,
+                         XSPH = XSPH,
+                         epsTensile = epsilonTensile,
+                         nTensile = nTensile)
 
 # Construct a time integrator.
 integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(gravity)
-#integrator.appendPhysicsPackage(hydro)
+integrator.appendPhysicsPackage(hydro)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
