@@ -5,6 +5,7 @@
 #-------------------------------------------------------------------------------
 from SolidSpheral3d import *
 import Gnuplot
+import os
 
 #-------------------------------------------------------------------------------
 # NAV Show signs of life
@@ -29,6 +30,21 @@ water    = EOSes[5]
 del EOSes
 
 #-------------------------------------------------------------------------------
+# NAV Build the M/ANEOS improved SiO2
+#-------------------------------------------------------------------------------
+izetl = vector_of_int(1, -1)
+initializeANEOS("/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT", "ANEOS.barf", izetl)
+SiO2 = ANEOS(0,          # Material number
+             1000,       # num rho vals
+             1000,       # num T vals
+             480.0,      # minimum density (kg/m^3)
+             1480.0,     # maximum density (kg/m^3)
+             1.0,        # minimum temperature (K)
+             1.0e8,      # maximum temperature (K)
+             units)
+os.system('rm -f ANEOS.barf')
+
+#-------------------------------------------------------------------------------
 # NAV Print available materials table
 #-------------------------------------------------------------------------------
 Materials = {'granite':'Granite solid (Tillotson)',
@@ -36,7 +52,8 @@ Materials = {'granite':'Granite solid (Tillotson)',
 	     'nylon':'Nylon solid (Tillotson)',
 	     'h2oice':'Water ice solid (Tillotson)',
 	     'dirtyice':'30% silicate in water ice (Tillotson)',
-	     'water':'Liquid water (Tillotson',
+	     'water':'Liquid water (Tillotson)',
+	     'SiO2':'Multi phase SiO2 (M/ANEOS)',
 	     }
 print
 print "Available materials:"
