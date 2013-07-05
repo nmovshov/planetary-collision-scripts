@@ -31,4 +31,16 @@ del EOSes
 #-------------------------------------------------------------------------------
 # NAV Print available materials table
 #-------------------------------------------------------------------------------
-print "options"
+Materials = {'granite':'Granite solid (Tillotson)',
+             'basalt':'Basalt solid (Tillotson)',
+	     'nylon':'Nylon solid (Tillotson)',
+	     'h2oice':'Water ice solid (Tillotson)',
+	     'dirtyice':'30% silicate in water ice (Tillotson)',
+	     'water':'Liquid water (Tillotson',
+	     }
+print
+print "Available materials:"
+for k,v in Materials.iteritems():
+	print k.ljust(20), v
+
+
