@@ -65,7 +65,7 @@ maxSteps = None           # Maximum allowed steps for simulation advance
 statsStep = 10            # Frequency for sampling conservation statistics and such
 redistributeStep = 400    # Frequency to load balance problem from scratch
 restartStep = 600         # Frequency to drop restart files
-restoreCycle = None       # Cycle to start from (if None, latest available restart cycle is selected)
+restoreCycle = None       # If None, latest available restart cycle is selected
 
 #-------------------------------------------------------------------------------
 # NAV Options for spheral's hydro mechanism (normally left alone)
