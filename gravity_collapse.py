@@ -144,11 +144,11 @@ if restoreCycle is None:
 # Create the NodeList.
 planet = makeFluidNodeList("planet", eosPlanet, 
                            nPerh = nPerh, 
-			   xmin = -10.0*rPlanet*Vector.one,
-			   xmax =  10.0*rPlanet*Vector.one,
-			   hmin = hmin,
-			   hmax = hmax,
-			   )
+                           xmin = -10.0*rPlanet*Vector.one,
+                           xmax =  10.0*rPlanet*Vector.one,
+                           hmin = hmin,
+                           hmax = hmax,
+                           )
 nodeSet = [planet]
 
 #-------------------------------------------------------------------------------
@@ -261,7 +261,7 @@ control = SpheralController(integrator, WT,
 # NAV MIDPROCESS Here we set register optional work to be done mid-run
 #-------------------------------------------------------------------------------
 def midprocess(stepsSoFar,timeNow,dt):
-	pass
+    pass
 frequency=4000
 control.appendPeriodicWork(midprocess,frequency)
 
