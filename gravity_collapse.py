@@ -1,6 +1,6 @@
 #! /auto/proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Simulation of one sphere collapsing under its own gravity.
+# Quasi static collapse of a spherical planet.
 # This script can serve as a template for equilibrating fluid planets using
 # various equations of state.
 # Copy this file to a separate folder and modify with appropriate initial
@@ -18,7 +18,7 @@ from NodeHistory import NodeHistory
 # NAV Identify job name here
 #-------------------------------------------------------------------------------
 jobName = "gravityCollapse"
-jobDesc = "a uniform (initially) planet collapsing under self gravity"
+jobDesc = "Quasi-static collapse of a uniform density (initially) planet."
 print jobDesc
 
 #-------------------------------------------------------------------------------
