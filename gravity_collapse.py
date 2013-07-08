@@ -168,10 +168,10 @@ if restoreCycle is None:
 
     # The above logic generates node positions centered on (0,0,0). Modify 
     # positions if necessary below.
-    for i in xrange(planetGenerator.localNumNodes()):
-        planetGenerator.x[i] += 0.0
-        planetGenerator.y[i] += 0.0
-        planetGenerator.z[i] += 0.0
+    for k in range(planetGenerator.localNumNodes()):
+        planetGenerator.x[k] += 0.0
+        planetGenerator.y[k] += 0.0
+        planetGenerator.z[k] += 0.0
 
     # Distribute nodes across ranks
     print "Starting node distribution..."
@@ -188,8 +188,8 @@ if restoreCycle is None:
     
     # Give initial velocity if desired.
     vel = planet.velocity()
-    for i in xrange(planet.numInternalNodes):
-        vel[i].x = 0.0
+    for k in range(planet.numInternalNodes):
+        vel[k].x = 0.0
 
 # Construct a DataBase to hold our node list.
 db = DataBase()
