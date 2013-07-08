@@ -50,7 +50,7 @@ hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 5000.0         # Time to advance to (sec)
+goalTime = 2000.0         # Time to advance to (sec)
 dt = goalTime/200         # Initial guess for time step (sec)
 dtMin = 0.001*dt          # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
@@ -190,6 +190,8 @@ if restoreCycle is None:
     vel = planet.velocity()
     for k in range(planet.numInternalNodes):
         vel[k].x = 0.0
+        vel[k].y = 0.0
+        vel[k].z = 0.0
 
 # Construct a DataBase to hold our node list.
 db = DataBase()
@@ -258,11 +260,14 @@ control = SpheralController(integrator, WT,
                             vizTime = vizTime)
 
 #-------------------------------------------------------------------------------
-# NAV MIDPROCESS Here we set register optional work to be done mid-run
+# NAV MIDPROCESS Here we register optional work to be done mid-run
 #-------------------------------------------------------------------------------
 def midprocess(stepsSoFar,timeNow,dt):
+    # stop and cool all nodes
+    planet.velocity().Zero()
+    planet.specificThermalEnergy().Zero()
     pass
-frequency=4000
+frequency=4
 control.appendPeriodicWork(midprocess,frequency)
 
 #-------------------------------------------------------------------------------
