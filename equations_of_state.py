@@ -13,12 +13,16 @@ import os
 print "Loading spheral equations of state..."
 
 #-------------------------------------------------------------------------------
-# NAV Build a Tillotson EOS for common materials
+# NAV We will always work in MKS units
 #-------------------------------------------------------------------------------
-mats = ["Granite", "Basalt", "Nylon", "Pure Ice", "30% Silicate Ice", "Water"]
 units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
                           1.0)   # Unit time in seconds
+
+#-------------------------------------------------------------------------------
+# NAV Build a Tillotson EOS for common materials
+#-------------------------------------------------------------------------------
+mats = ["Granite", "Basalt", "Nylon", "Pure Ice", "30% Silicate Ice", "Water"]
 etamin, etamax = 0.01, 100.0
 EOSes = [TillotsonEquationOfState(mat, etamin, etamax, units) for mat in mats]
 granite  = EOSes[0]
@@ -27,7 +31,7 @@ nylon    = EOSes[2]
 h2oice   = EOSes[3]
 dirtyice = EOSes[4]
 water    = EOSes[5]
-del EOSes
+del EOSes, mats, etamin, etamax
 
 #-------------------------------------------------------------------------------
 # NAV Build the M/ANEOS improved SiO2
@@ -43,21 +47,32 @@ SiO2 = ANEOS(0,          # Material number
              1.0e8,      # maximum temperature (K)
              units)
 os.system('rm -f ANEOS.barf')
+del izetl
+
+#-------------------------------------------------------------------------------
+# NAV Build an eos for a polytropic fluid
+#-------------------------------------------------------------------------------
+K  = 2e5       # polytropic constant
+n  = 1         # polytropic index
+mu = 2.2e-3    # mean molecular weight
+poly = PolytropicEquationOfStateMKS3d(K,n,mu)
+del K, n, mu
 
 #-------------------------------------------------------------------------------
 # NAV Print available materials table
 #-------------------------------------------------------------------------------
 Materials = {'granite':'Granite solid (Tillotson)',
              'basalt':'Basalt solid (Tillotson)',
-	     'nylon':'Nylon solid (Tillotson)',
-	     'h2oice':'Water ice solid (Tillotson)',
-	     'dirtyice':'30% silicate in water ice (Tillotson)',
-	     'water':'Liquid water (Tillotson)',
-	     'SiO2':'Multi phase SiO2 (M/ANEOS)',
-	     }
+             'nylon':'Nylon solid (Tillotson)',
+             'h2oice':'Water ice solid (Tillotson)',
+             'dirtyice':'30% silicate in water ice (Tillotson)',
+             'water':'Liquid water (Tillotson)',
+             'SiO2':'Multi phase SiO2 (M/ANEOS)',
+             'poly':'Polytrope (n=1 K=2e5)',
+            }
 print
 print "Available materials:"
 for k,v in Materials.iteritems():
-	print k.ljust(20), v
+    print k.ljust(20), v
 
 
