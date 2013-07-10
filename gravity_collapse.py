@@ -9,7 +9,7 @@
 #-------------------------------------------------------------------------------
 from math import *
 import sys, mpi
-from Spheral3d import *
+from SolidSpheral3d import *
 from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
@@ -30,7 +30,7 @@ print jobDesc
 # Experiment geometry
 rPlanet = 0.5             # (earth radii) initial radius of planet
 mPlanet = 0.2             # (earth masses) initial mass of planet
-matPlanet = "basalt"      # granite, basalt, nylon, pure ice, water
+matPlanet = "Basalt"      # see README.md for options
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3*mPlanet/(4*pi*rPlanet**3)
@@ -92,14 +92,32 @@ compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
 #-------------------------------------------------------------------------------
-# NAV Build EOS object
+# NAV Build EOS object choosing between several options based on material name
 #-------------------------------------------------------------------------------
+# We will always work in MKS units
 units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
                           1.0)   # Unit time in seconds
-etamin, etamax = 0.01, 100.0     # bounds of rho/rho0
-#eosPlanet = TillotsonEquationOfState(matTarget,etamin,etamax,units)
-eosPlanet = GammaLawGasMKS3d(gamma = 5.0/3.0, mu = 1.0)
+
+# Tillotson eos for many geologic materials
+mats = ["Granite", "Basalt", "Nylon", "Pure Ice", "30% Silicate Ice", "Water"]
+if matPlanet in mats:
+    etamin, etamax = 0.01, 100.0
+    eosPlanet = TillotsonEquationOfState(matPlanet,etamin,etamax,units)
+# M/ANEOS modified SiO2 (Melosh 2007)
+elif matPlanet is "SiO2":
+    izetl = vector_of_int(1, -1)
+    initializeANEOS("/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT", "ANEOS.barf", izetl)
+    eosPlanet = ANEOS(0,          # Material number
+                     1000,       # num rho vals
+                     1000,       # num T vals
+                     480.0,      # minimum density (kg/m^3)
+                     1480.0,     # maximum density (kg/m^3)
+                     1.0,        # minimum temperature (K)
+                     1.0e8,      # maximum temperature (K)
+                     units)
+    os.system('rm -f ANEOS.barf')
+    del izetl
 
 #-------------------------------------------------------------------------------
 # NAV Here we compute some derived problem parameters
