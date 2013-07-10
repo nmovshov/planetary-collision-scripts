@@ -28,9 +28,9 @@ print jobDesc
 #-------------------------------------------------------------------------------
 
 # Experiment geometry
-rPlanet = 0.5             # (earth radii) initial radius of planet
-mPlanet = 0.2             # (earth masses) initial mass of planet
-matPlanet = "Basalt"      # see README.md for options
+rPlanet = 20.0            # (earth radii) initial radius of planet
+mPlanet = 318             # (earth masses) initial mass of planet
+matPlanet = "Polytrope"   # see README.md for options
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3*mPlanet/(4*pi*rPlanet**3)
@@ -50,7 +50,7 @@ hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 2000.0         # Time to advance to (sec)
+goalTime = 2.0/sqrt(rhoPlanet*G)            # Time to advance to (sec)
 dt = goalTime/200         # Initial guess for time step (sec)
 dtMin = 0.001*dt          # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
@@ -104,6 +104,7 @@ mats = ["Granite", "Basalt", "Nylon", "Pure Ice", "30% Silicate Ice", "Water"]
 if matPlanet in mats:
     etamin, etamax = 0.01, 100.0
     eosPlanet = TillotsonEquationOfState(matPlanet,etamin,etamax,units)
+    del mats, etamin, etamax
 # M/ANEOS modified SiO2 (Melosh 2007)
 elif matPlanet is "SiO2":
     izetl = vector_of_int(1, -1)
@@ -118,6 +119,13 @@ elif matPlanet is "SiO2":
                      units)
     os.system('rm -f ANEOS.barf')
     del izetl
+# A polytropic eos, for gas giants TODO: config constants at bof
+elif matPlanet is "Polytrope":
+    K  = 2e5       # polytropic constant
+    n  = 1         # polytropic index
+    mu = 2.2e-3    # mean molecular weight
+    eosPlanet = PolytropicEquationOfStateMKS3d(K,n,mu)
+    del K, n, mu
 
 #-------------------------------------------------------------------------------
 # NAV Here we compute some derived problem parameters
@@ -285,7 +293,7 @@ def midprocess(stepsSoFar,timeNow,dt):
     planet.velocity().Zero()
     planet.specificThermalEnergy().Zero()
     pass
-frequency=4
+frequency=1
 control.appendPeriodicWork(midprocess,frequency)
 
 #-------------------------------------------------------------------------------
