@@ -50,7 +50,7 @@ hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 2.0/sqrt(rhoPlanet*G)            # Time to advance to (sec)
+goalTime = 6.0/sqrt(rhoPlanet*G)            # Time to advance to (sec)
 dt = goalTime/200         # Initial guess for time step (sec)
 dtMin = 0.001*dt          # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
