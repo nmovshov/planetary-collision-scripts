@@ -1,11 +1,14 @@
 #! /auto/proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Quasi static collapse of a spherical planet.
-# This script can serve as a template for equilibrating fluid planets using
+# Quasi static collapse of a spherical, single material planet, towards
+# hydrostatic equilibrium.
+# This script can serve as a template for equilibrating a fluid planet using
 # various equations of state.
 # Copy this file to a separate folder and modify with appropriate initial
-# conditions. Make sure the first line includes the full path to SPHERAL's
-# python. Then run with mpirun.
+# conditions. You will need to consider the expected time scale to run, and you
+# may need to tweak the cooldown frequency as the planet approcahes equilibrium.
+# Make sure the first line includes the full path to SPHERAL's python, then run
+# with mpirun.
 #-------------------------------------------------------------------------------
 from math import *
 import sys, mpi
@@ -50,7 +53,7 @@ hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 8000           # Time to advance to (sec)
+goalTime = 800           # Time to advance to (sec)
 dt = goalTime/200         # Initial guess for time step (sec)
 dtMin = 0.001*dt          # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
@@ -65,7 +68,7 @@ maxSteps = 1000           # Maximum allowed steps for simulation advance
 statsStep = None          # Frequency for sampling conservation statistics and such
 redistributeStep = 200    # Frequency to load balance problem from scratch
 restartStep = 100         # Frequency to drop restart files
-restoreCycle = None       # If None, latest available restart cycle is selected
+restoreCycle = 800       # If None, latest available restart cycle is selected
 
 #-------------------------------------------------------------------------------
 # NAV Options for spheral's hydro mechanism (normally left alone)
