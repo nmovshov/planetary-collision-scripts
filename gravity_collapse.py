@@ -50,21 +50,21 @@ hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 6.0/sqrt(rhoPlanet*G)            # Time to advance to (sec)
+goalTime = 8000           # Time to advance to (sec)
 dt = goalTime/200         # Initial guess for time step (sec)
 dtMin = 0.001*dt          # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
 vizTime = goalTime/20     # Time frequency for dropping viz files (sec)
-vizCycle = 800            # Cycle frequency for dropping viz files
+vizCycle = None           # Cycle frequency for dropping viz files
 baseDir = jobName         # Base name for directory to store output in
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
-maxSteps = None           # Maximum allowed steps for simulation advance
-statsStep = 10            # Frequency for sampling conservation statistics and such
-redistributeStep = 400    # Frequency to load balance problem from scratch
-restartStep = 600         # Frequency to drop restart files
+maxSteps = 1000           # Maximum allowed steps for simulation advance
+statsStep = None          # Frequency for sampling conservation statistics and such
+redistributeStep = 200    # Frequency to load balance problem from scratch
+restartStep = 100         # Frequency to drop restart files
 restoreCycle = None       # If None, latest available restart cycle is selected
 
 #-------------------------------------------------------------------------------
@@ -293,7 +293,7 @@ def midprocess(stepsSoFar,timeNow,dt):
     planet.velocity().Zero()
     planet.specificThermalEnergy().Zero()
     pass
-frequency=1
+frequency=2
 control.appendPeriodicWork(midprocess,frequency)
 
 #-------------------------------------------------------------------------------
@@ -306,7 +306,7 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
-    control.step() # One more step to ensure we get the final viz dump.
+    #control.step() # One more step to ensure we get the final viz dump.
 
 #-------------------------------------------------------------------------------
 # NAV Here we do any post processing
