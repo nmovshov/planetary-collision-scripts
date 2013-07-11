@@ -20,8 +20,8 @@ from NodeHistory import NodeHistory
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
 #-------------------------------------------------------------------------------
-jobName = "gravityCollapse"
-jobDesc = "Quasi-static collapse of a uniform density (initially) planet."
+jobName = "SingleHydro"
+jobDesc = "Quasi-static collapse of a single material planet."
 print jobDesc
 
 #-------------------------------------------------------------------------------
@@ -30,13 +30,27 @@ print jobDesc
 # Modify these to suit your specific problem.
 #-------------------------------------------------------------------------------
 
-# Experiment geometry
-rPlanet = 20.0            # (earth radii) initial radius of planet
-mPlanet = 318             # (earth masses) initial mass of planet
+# Planet properties
+rPlanet = 12.0            # (earth radii) initial radius of planet
+mPlanet = 318             # (earth masses) mass of planet
 matPlanet = "Polytrope"   # see README.md for options
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3*mPlanet/(4*pi*rPlanet**3)
+
+# Times, simulation control, and output
+steps = None              # None or advance a number of steps rather than to a time
+goalTime = 800            # Time to advance to (sec)
+dt = goalTime/200         # Initial guess for time step (sec)
+vizTime = goalTime/20     # Time frequency for dropping viz files (sec)
+vizCycle = None           # Cycle frequency for dropping viz files
+cooldownFrequency = 2     # None or cycles between "cooldowns" (v=0, U=0)
+
+# Node seeding parameters ("resolution")
+nxPlanet = 20             # Number of nodes across the diameter of the target
+nPerh = 1.51              # Nominal number of nodes per smoothing scale
+hmin = 1.0e-3*rPlanet     # Lower bound on smoothing length
+hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Gravity parameters
 softLength = 1.0e-5       # (fraction of planet radius) softening length
@@ -45,30 +59,17 @@ fdt = 0.1                 # (dimensionless) gravity timestep multiplier
 softLength *= rPlanet
 G = MKS().G
 
-# Node seeding parameters ("resolution")
-nxPlanet = 20             # Number of nodes across the diameter of the target
-nPerh = 1.51              # Nominal number of nodes per smoothing scale
-hmin = 1.0e-3*rPlanet     # Lower bound on smoothing length
-hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
-
-# Times, simulation control, and output
-steps = None              # None or advance a number of steps rather than to a time
-goalTime = 800           # Time to advance to (sec)
-dt = goalTime/200         # Initial guess for time step (sec)
-dtMin = 0.001*dt          # Minimum allowed time step (sec)
-dtMax = 1000.0*dt         # Maximum allowed time step (sec)
-vizTime = goalTime/20     # Time frequency for dropping viz files (sec)
-vizCycle = None           # Cycle frequency for dropping viz files
-baseDir = jobName         # Base name for directory to store output in
-
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
+dtMin = 0.001*dt          # Minimum allowed time step (sec)
+dtMax = 1000.0*dt         # Maximum allowed time step (sec)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
 statsStep = None          # Frequency for sampling conservation statistics and such
 redistributeStep = 200    # Frequency to load balance problem from scratch
 restartStep = 100         # Frequency to drop restart files
-restoreCycle = 800       # If None, latest available restart cycle is selected
+restoreCycle = None       # If None, latest available restart cycle is selected
+baseDir = jobName         # Base name for directory to store output in
 
 #-------------------------------------------------------------------------------
 # NAV Options for spheral's hydro mechanism (normally left alone)
@@ -112,7 +113,7 @@ if matPlanet in mats:
 elif matPlanet is "SiO2":
     izetl = vector_of_int(1, -1)
     initializeANEOS("/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT", "ANEOS.barf", izetl)
-    eosPlanet = ANEOS(0,          # Material number
+    eosPlanet = ANEOS(0,         # Material number
                      1000,       # num rho vals
                      1000,       # num T vals
                      480.0,      # minimum density (kg/m^3)
@@ -180,9 +181,7 @@ planet = makeFluidNodeList("planet", eosPlanet,
                            )
 nodeSet = [planet]
 
-#-------------------------------------------------------------------------------
-# NAV PREPROCESS Here we set node properties (positions, velocites, etc.)
-#-------------------------------------------------------------------------------
+# Generate nodes
 if restoreCycle is None:
     print "Generating node distribution."
     from GenerateNodeDistribution3d import GenerateNodeDistribution3d
@@ -195,14 +194,14 @@ if restoreCycle is None:
                                                  rmax = rPlanet,
                                                  nNodePerh = nPerh)
 
-    # The above logic generates node positions centered on (0,0,0). Modify 
-    # positions if necessary below.
+# The above logic generates node positions centered on (0,0,0). Modify 
+# positions if necessary below.
     for k in range(planetGenerator.localNumNodes()):
         planetGenerator.x[k] += 0.0
         planetGenerator.y[k] += 0.0
         planetGenerator.z[k] += 0.0
 
-    # Distribute nodes across ranks
+# Distribute nodes across ranks
     print "Starting node distribution..."
     distributeNodes3d((planet, planetGenerator))
     nGlobalNodes = 0
@@ -215,7 +214,7 @@ if restoreCycle is None:
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
-    # Give initial velocity if desired.
+# Give initial velocity if desired.
     vel = planet.velocity()
     for k in range(planet.numInternalNodes):
         vel[k].x = 0.0
@@ -296,7 +295,7 @@ def midprocess(stepsSoFar,timeNow,dt):
     planet.velocity().Zero()
     planet.specificThermalEnergy().Zero()
     pass
-frequency=2
+frequency=cooldownFrequency
 control.appendPeriodicWork(midprocess,frequency)
 
 #-------------------------------------------------------------------------------
