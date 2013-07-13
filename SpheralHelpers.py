@@ -3,7 +3,8 @@
 #
 #       * pickle_node_list - saves the field variables of a node list
 #------------------------------------------------------------------------------
-import pickle
+import sys, mpi
+import cPickle as pickle
 from SolidSpheral3d import *
 
 def pickle_node_list(nl,filename=None):
