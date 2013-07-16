@@ -1,24 +1,42 @@
 #------------------------------------------------------------------------------
-#   Spheral Helpers - A module containing some convenience methods
+#   Spheral Helpers - A module containing some convenience methods.
 #
-#       * pickle_node_list - saves the field variables of a node list
 #------------------------------------------------------------------------------
 import sys, mpi
 import cPickle as pickle
-from SolidSpheral3d import *
+import SolidSpheral3d as sph
 
-def pickle_node_list(nl,filename=None):
-    """Flatten a node list, saving the physical field variables in a dict.
+def spickle_node_list(nl,filename=None):
+    """Flatten physical field variables from a node list and return in a dict.
 
-    (This is not a true pickler class.)
+    (Note: This is not a real pickler class.)
 
-    pickle_node_list(nl,filename) extracts field variables from nl which must
-    be a valid node list, packs them in a dict, and attempts to pickle it to a
-    file filename. The file will be overwritten if it exists. Dict is returned
-    to caller.
+    spickle_node_list(nl,filename) extracts field variables from ALL nodes of nl,
+    which must be a valid node list, and packs them in a dict that is returned
+    to the caller. If the optional argument filename is a string the dict will
+    also be pickled to a file of that name in the current directory. The file
+    will be overwritten if it exists.
+
+    The s in spickle is for 'serial' because this method collects ALL nodes of
+    the node list (not just local nodes) in a single process. Thus this method
+    is useful mostly for interactive work with small node lists. It is the user's
+    responsibility to make sure her process has enough memory to hold the returned
+    dict.
+
+    See also: ppickle_node_list
     """
 
     print 'Pickling', nl.label(), nl.name, '...'
+
+    # estimate memory usage and give user a chance to avoid crash
+    nbFields = 11 # pos and vel count as 3 each
+    bytesPerNode = 8*nbFields
+    bytes = bytesPerNode*nl.numNodes
+    if bytes > 2e2:
+        abort = raw_input('It looks like this will require a dangerous amount of memory.' +
+                          '\nContinue anyway (%d bytes needed)? y/[n] '%bytes)
+        if abort in ('n', 'no', 'N', 'No', 'NO', ''):
+            return
 
     # get references to field variables stored in node list
     xref = nl.positions()
@@ -29,8 +47,8 @@ def pickle_node_list(nl,filename=None):
 
     # pressure and temperature are stored in the eos object
     eos = nl.equationOfState()
-    pref = ScalarField('pref',nl)
-    Tref = ScalarField('Tref',nl)
+    pref = sph.ScalarField('pref',nl)
+    Tref = sph.ScalarField('Tref',nl)
     eos.setPressure(pref,rref,uref)
     eos.setTemperature(Tref,rref,uref)
 
