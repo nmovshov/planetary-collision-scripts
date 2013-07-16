@@ -27,7 +27,7 @@ def spickle_node_list(nl,filename=None):
     See also: ppickle_node_list
     """
 
-    print 'Pickling', nl.label(), nl.name, '...'
+    print 'Pickling', nl.label(), nl.name, '........'
 
     # Estimate memory usage and give user a chance to avoid crash
     nbFields = 11 # pos and vel count as 3 each
@@ -52,39 +52,48 @@ def spickle_node_list(nl,filename=None):
     eos.setPressure(ploc,rref,uref)
     eos.setTemperature(Tloc,rref,uref)
 
-    # Zip fields so that we have all fields for each node in the same tuple. We
-    # do this so we can concatenate everything in a single reduction operation,
-    # to ensure that all fields in one record in the final list belong to the same
-    # node.
+    # Zip fields so that we have all fields for each node in the same tuple
+    #  We do this so we can concatenate everything in a single reduction operation,
+    #  to ensure that all fields in one record in the final list belong to the same
+    #  node.
     localFields = zip(xref, vref, mref, rref, uref, ploc, Tloc)
 
-    # Do a SUM reduction on all ranks. This works because the + operator for python
-    # lists is a concatenation!
-    globalFields = mpi.allreduce(localFields,mpi.SUM)
-    return globalFields
-#TODO continue here
+    # Do a SUM reduction on all ranks
+    #  This works because the + operator for python lists is a concatenation!
+    globalFields = mpi.allreduce(localFields, mpi.SUM)
 
-    # create a dictionary to hold field variables
-    nlfields = dict(x=[],   # position vector
-                    v=[],   # velocity vector
-                    m=[],   # mass
-                    rho=[], # mass density
-                    P=[],   # pressure
-                    T=[],   # temperature
-                    U=[],   # specific thermal energy
-                    )
+    # Create a dictionary to hold field variables
+    nlFieldDict = dict(x=[],   # position vector
+                       v=[],   # velocity vector
+                       m=[],   # mass
+                       rho=[], # mass density
+                       p=[],   # pressure
+                       T=[],   # temperature
+                       U=[],   # specific thermal energy
+                      )
 
-    # loop over nodes to fill field values
-    for k in range(nl.numInternalNodes):
-        nlfields['x'].append((xref[k].x, xref[k].y, xref[k].z))
-        nlfields['v'].append((vref[k].x, vref[k].y, vref[k].z))
-        nlfields['m'].append(mref[k])
-        nlfields['rho'].append(rref[k])
-        nlfields['P'].append(pref[k])
-        nlfields['T'].append(Tref[k])
-        nlfields['U'].append(uref[k])
+    # Loop over nodes to fill field values
+    nbGlobalNodes = mpi.allreduce(nl.numInternalNodes, mpi.SUM)
+    for k in range(nbGlobalNodes):
+        nlFieldDict[  'x'].append((globalFields[k][0].x, globalFields[k][0].y, globalFields[k][0].z))
+        nlFieldDict[  'v'].append((globalFields[k][1].x, globalFields[k][1].y, globalFields[k][1].z))
+        nlFieldDict[  'm'].append( globalFields[k][2])
+        nlFieldDict['rho'].append( globalFields[k][3])
+        nlFieldDict[  'U'].append( globalFields[k][4])
+        nlFieldDict[  'p'].append( globalFields[k][5])
+        nlFieldDict[  'T'].append( globalFields[k][6])
 
+    # Optionally, pickle the dict to a file
+    if filename is not None:
+        if isinstance(filename, str):
+            with open(filename, 'wb') as fid:
+                pickle.dump(nlFieldDict, fid)
+        else:
+            raise UserWarning('Dict NOT pickled to file because argument 2 is %s instead of %s' % 
+                              (type(filename), type('x')))
+
+    # And Bob's our uncle
     print 'Done.'
-    return nlfields
-
+    return nlFieldDict
+    # End function spickle_node_list
 
