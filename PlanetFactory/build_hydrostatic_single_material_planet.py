@@ -314,4 +314,6 @@ else:
 # NAV Here we do any post processing
 #-------------------------------------------------------------------------------
 #from IPython import embed
-#embed() # uncomment to start an interactive session when the run completes
+#if mpi.rank == 0:
+#    embed() # uncomment to start an interactive session when the run completes
+
