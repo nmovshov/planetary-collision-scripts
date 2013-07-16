@@ -2,7 +2,8 @@
 #   Spheral Helpers - A module containing some convenience methods.
 #
 #------------------------------------------------------------------------------
-import sys, mpi
+import sys
+import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
 import SolidSpheral3d as sph
 
@@ -28,29 +29,40 @@ def spickle_node_list(nl,filename=None):
 
     print 'Pickling', nl.label(), nl.name, '...'
 
-    # estimate memory usage and give user a chance to avoid crash
+    # Estimate memory usage and give user a chance to avoid crash
     nbFields = 11 # pos and vel count as 3 each
     bytesPerNode = 8*nbFields
     bytes = bytesPerNode*nl.numNodes
-    if bytes > 2e2:
+    if bytes > 1e9:
         abort = raw_input('It looks like this will require a dangerous amount of memory.' +
                           '\nContinue anyway (%d bytes needed)? y/[n] '%bytes)
         if abort in ('n', 'no', 'N', 'No', 'NO', ''):
             return
 
-    # get references to field variables stored in node list
+    # Get references to field variables stored in local nodes
     xref = nl.positions()
     vref = nl.velocity()
     mref = nl.mass()
     rref = nl.massDensity()
     uref = nl.specificThermalEnergy()
-
-    # pressure and temperature are stored in the eos object
+    #(pressure and temperature are stored in the eos object and accessed differently)
     eos = nl.equationOfState()
-    pref = sph.ScalarField('pref',nl)
-    Tref = sph.ScalarField('Tref',nl)
-    eos.setPressure(pref,rref,uref)
-    eos.setTemperature(Tref,rref,uref)
+    ploc = sph.ScalarField('ploc',nl)
+    Tloc = sph.ScalarField('loc',nl)
+    eos.setPressure(ploc,rref,uref)
+    eos.setTemperature(Tloc,rref,uref)
+
+    # Zip fields so that we have all fields for each node in the same tuple. We
+    # do this so we can concatenate everything in a single reduction operation,
+    # to ensure that all fields in one record in the final list belong to the same
+    # node.
+    localFields = zip(xref, vref, mref, rref, uref, ploc, Tloc)
+
+    # Do a SUM reduction on all ranks. This works because the + operator for python
+    # lists is a concatenation!
+    globalFields = mpi.allreduce(localFields,mpi.SUM)
+    return globalFields
+#TODO continue here
 
     # create a dictionary to hold field variables
     nlfields = dict(x=[],   # position vector
