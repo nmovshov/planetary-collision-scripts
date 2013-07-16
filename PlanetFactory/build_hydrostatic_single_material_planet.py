@@ -11,7 +11,8 @@
 # with mpirun.
 #-------------------------------------------------------------------------------
 from math import *
-import sys, mpi
+import sys
+import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
