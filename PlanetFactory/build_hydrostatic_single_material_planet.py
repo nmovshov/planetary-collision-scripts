@@ -13,6 +13,7 @@
 from math import *
 import sys
 import mpi # Mike's simplified mpi wrapper
+import shelpers # My module of some helper functions
 from SolidSpheral3d import *
 from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
