@@ -1,5 +1,6 @@
 ucsc-spheral-scripts
 ======================
+(WARNING: work in progress, updated often!)
 
 Naor's Python scripts for driving spheral simulations.  
 
@@ -13,7 +14,7 @@ This collection of scripts is an attempt to provide 'templates' to generic plane
 
 Maintainer: Naor Movshovitz (nmovshov@gmail.com)
 
-Directory: 
+Directory: (WARNING: work in progress, updated often!)  
   * `Benchmarks` - Tests of accuracy and performance.  
     * `NakamuraFujiwara.py` - Collision of two spheres with strength and damage, no gravity. Try to reproduce Nakamura and Fujiwara (1991).  
   * `PlanetFactory` - Scripts for setting up and saving sph node lists modeling generic and custom planets.
