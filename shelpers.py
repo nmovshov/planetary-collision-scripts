@@ -32,23 +32,25 @@ def spickle_node_list(nl,filename=None):
     # Estimate memory usage and give user a chance to avoid crash
     nbFields = 11 # pos and vel count as 3 each
     bytesPerNode = 8*nbFields
-    bytes = bytesPerNode*nl.numNodes
+    bytes = 2*bytesPerNode*nl.numNodes # times 2 b/c of temporary vars
     if bytes > 1e9:
         abort = raw_input('It looks like this will require a dangerous amount of memory.' +
                           '\nContinue anyway (%d bytes needed)? y/[n] '%bytes)
         if abort in ('n', 'no', 'N', 'No', 'NO', ''):
             return
 
-    # Get references to field variables stored in local nodes
-    xref = nl.positions()
-    vref = nl.velocity()
-    mref = nl.mass()
-    rref = nl.massDensity()
-    uref = nl.specificThermalEnergy()
+    # Get values of field variables stored in internal nodes
+    xloc = nl.positions().internalValues()
+    vloc = nl.velocity().internalValues()
+    mloc = nl.mass().internalValues()
+    rloc = nl.massDensity().internalValues()
+    uloc = nl.specificThermalEnergy().internalValues()
     #(pressure and temperature are stored in the eos object and accessed differently)
     eos = nl.equationOfState()
     ploc = sph.ScalarField('ploc',nl)
     Tloc = sph.ScalarField('loc',nl)
+    rref = nl.massDensity()
+    uref = nl.specificThermalEnergy()
     eos.setPressure(ploc,rref,uref)
     eos.setTemperature(Tloc,rref,uref)
 
@@ -56,7 +58,7 @@ def spickle_node_list(nl,filename=None):
     #  We do this so we can concatenate everything in a single reduction operation,
     #  to ensure that all fields in one record in the final list belong to the same
     #  node.
-    localFields = zip(xref, vref, mref, rref, uref, ploc, Tloc)
+    localFields = zip(xloc, vloc, mloc, rloc, uloc, ploc, Tloc)
 
     # Do a SUM reduction on all ranks
     #  This works because the + operator for python lists is a concatenation!
