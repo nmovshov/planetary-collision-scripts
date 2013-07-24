@@ -102,7 +102,20 @@ def spickle_node_list(nl,filename=None):
 def pflatten_node_list(nl,filename):
     """Flatten physical field values from a node list to a rectangular ascii file.
 
-    pflatten_node_list(nl,filename)
+    pflatten_node_list(nl,filename) extracts field variables from all nodes of nl,
+    which must be a valid node list, and writes them as a rectangular table into
+    the text file filename. (A short header is also written, using the # comment
+    character so the resulting file can be easily read with, e.g., numpy.loadtext.)
+    The file will be overwritten if it exists.
+
+    The format of the output table is (one line per node):
+      x y z vx vy vz m rho p T U
+
+    The p in pflatten is for 'parallel', a reminder that the all nodes will be
+    processed in their local rank, without ever being communicated or collected
+    in a single process. Each mpi rank will wait its turn to access the output file,
+    so the writing is in fact serial, but avoids bandwidth and memory waste and
+    is thus suitable for large node lists from high-res runs.
 
     See also: spickle_node_list
     """
