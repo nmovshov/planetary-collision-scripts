@@ -8,23 +8,23 @@ import cPickle as pickle
 import SolidSpheral3d as sph
 
 def spickle_node_list(nl,filename=None):
-    """Flatten physical field variables from a node list and return in a dict.
+    """Pack physical field variables from a node list in a dict and pickle.
 
-    (Note: This is not a real pickler class.)
+    (Note: This is not a true pickler class.)
 
-    spickle_node_list(nl,filename) extracts field variables from ALL nodes of nl,
+    spickle_node_list(nl,filename) extracts field variables from all nodes of nl,
     which must be a valid node list, and packs them in a dict that is returned
-    to the caller. If the optional argument filename is a string the dict will
-    also be pickled to a file of that name in the current directory. The file
-    will be overwritten if it exists.
+    to the caller. If the optional argument filename is a string then dict will
+    also be pickled to a file of that name. The file will be overwritten if it
+    exists.
 
-    The s in spickle is for 'serial' because this method collects ALL nodes of
-    the node list (not just local nodes) in a single process. Thus this method
-    is useful mostly for interactive work with small node lists. It is the user's
-    responsibility to make sure her process has enough memory to hold the returned
-    dict.
+    The s in spickle is for 'serial', a reminder that this method collects ALL
+    nodes of the node list (not just local nodes) in a single process. Thus this
+    method is mainly useful for interactive work with small node lists. It is the
+    user's responsibility to make sure her process has enough memory to hold the
+    returned dict.
 
-    See also: ppickle_node_list
+    See also: pflatten_node_list
     """
 
     print 'Pickling', nl.label(), nl.name, '........'
@@ -98,4 +98,17 @@ def spickle_node_list(nl,filename=None):
     print 'Done.'
     return nlFieldDict
     # End function spickle_node_list
+
+def pflatten_node_list(nl,filename):
+    """Flatten physical field values from a node list to a rectangular ascii file.
+
+    pflatten_node_list(nl,filename)
+
+    See also: spickle_node_list
+    """
+
+    # And Bob's our uncle
+    print 'alo world'
+    return 0
+    # End function pflatten_node_list
 
