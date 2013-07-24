@@ -315,6 +315,7 @@ else:
 #-------------------------------------------------------------------------------
 # NAV Here we do any post processing
 #-------------------------------------------------------------------------------
+#shelpers.spickle_node_list(planet, jobName+'.dat')
 #from IPython import embed
 #if mpi.rank == 0:
 #    embed() # uncomment to start an interactive session when the run completes
