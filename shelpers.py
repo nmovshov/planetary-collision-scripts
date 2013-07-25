@@ -1,6 +1,8 @@
 #------------------------------------------------------------------------------
-#   Spheral Helpers - A module containing some convenience methods.
+#   Spheral Helpers - A collection of some convenience functions for reuse in
+#                     the planetary collision scripts.
 #
+# Author: nmovshov@gmail.com
 #------------------------------------------------------------------------------
 import sys
 import mpi # Mike's simplified mpi wrapper
