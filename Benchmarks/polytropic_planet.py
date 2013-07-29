@@ -17,8 +17,8 @@ from NodeHistory import NodeHistory
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
 #-------------------------------------------------------------------------------
-jobName = "SingleHydro"
-jobDesc = "Quasi-static collapse of a single material planet."
+jobName = "polyPlanet"
+jobDesc = "Hydrostatic equilibrium of a polytropic planet."
 print jobDesc
 
 #-------------------------------------------------------------------------------
@@ -28,9 +28,11 @@ print jobDesc
 #-------------------------------------------------------------------------------
 
 # Planet properties
-rPlanet = 12.0            # (earth radii) initial radius of planet
+rPlanet = 12.0            # (earth radii) initial guess for radius of planet
 mPlanet = 318             # (earth masses) mass of planet
-matPlanet = "Polytrope"   # see README.md for options
+polytrope_K  = 2e5        # (varies) polytropic constant
+polytrope_n  = 1          # n=1 polytropic index
+polytrope_mu = 2.2e-3     # (kg/mole) mean molecular weight
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3*mPlanet/(4*pi*rPlanet**3)
@@ -42,11 +44,12 @@ dt = goalTime/200         # Initial guess for time step (sec)
 vizTime = goalTime/20     # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 2     # None or cycles between "cooldowns" (v=0, U=0)
+cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
 nxPlanet = 20             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
-hmin = 1.0e-3*rPlanet     # Lower bound on smoothing length
+hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 
 # Gravity parameters
@@ -78,7 +81,7 @@ Cq = 1.0
 Qlimiter = False
 balsaraCorrection = False
 epsilon2 = 1e-2
-negligibleSoundSpeed = 1e-4
+negligibleSoundSpeed = 1e-4 #TODO make physics based
 csMultiplier = 1e-4
 hminratio = 0.1
 limitIdealH = False
@@ -88,58 +91,24 @@ XSPH = True
 epsilonTensile = 0.3
 nTensile = 4
 HEvolution = IdealH
-densityUpdate = IntegrateDensity
+densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids
 compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
 #-------------------------------------------------------------------------------
-# NAV Build EOS object choosing between several options based on material name
+# NAV Build polytropic EOS object
 #-------------------------------------------------------------------------------
-# We will always work in MKS units
-units = PhysicalConstants(1.0,   # Unit length in meters
-                          1.0,   # Unit mass in kg
-                          1.0)   # Unit time in seconds
-
-# Tillotson eos for many geologic materials
-mats = ["Granite", "Basalt", "Nylon", "Pure Ice", "30% Silicate Ice", "Water"]
-if matPlanet in mats:
-    etamin, etamax = 0.01, 100.0
-    eosPlanet = TillotsonEquationOfState(matPlanet,etamin,etamax,units)
-    del mats, etamin, etamax
-# M/ANEOS modified SiO2 (Melosh 2007)
-elif matPlanet is "SiO2":
-    izetl = vector_of_int(1, -1)
-    initializeANEOS("/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT", "ANEOS.barf", izetl)
-    eosPlanet = ANEOS(0,         # Material number
-                     1000,       # num rho vals
-                     1000,       # num T vals
-                     480.0,      # minimum density (kg/m^3)
-                     1480.0,     # maximum density (kg/m^3)
-                     1.0,        # minimum temperature (K)
-                     1.0e8,      # maximum temperature (K)
-                     units)
-    os.system('rm -f ANEOS.barf')
-    del izetl
-# A polytropic eos, for gas giants TODO: config constants at bof
-elif matPlanet is "Polytrope":
-    K  = 2e5       # polytropic constant
-    n  = 1         # polytropic index
-    mu = 2.2e-3    # mean molecular weight
-    eosPlanet = PolytropicEquationOfStateMKS3d(K,n,mu)
-    del K, n, mu
-
-#-------------------------------------------------------------------------------
-# NAV Here we compute some derived problem parameters
-#-------------------------------------------------------------------------------
-pass
+eosPlanet = PolytropicEquationOfStateMKS3d(polytrope_K,
+                                           polytrope_n,
+                                           polytrope_mu)
 
 #-------------------------------------------------------------------------------
 # NAV Here we determine if, and deal with, restarted runs
 #-------------------------------------------------------------------------------
 # Restart and output files.
 dataDir = os.path.join(baseDir, 
-                       "rPlanet=%g_m" % rPlanet,
-                       "mPlanet=%g_kg" % mPlanet,
+                       "index=%g" % polytrope_n,
+                       "const=%g" % polytrope_K,
                        "nxPlanet=%i" % nxPlanet,
                        )
 restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
@@ -164,7 +133,7 @@ mpi.barrier()
 # If we're restarting, find the set of most recent restart files.
 if restoreCycle is None:
     restoreCycle = findLastRestart(restartName)
-
+sys.exit(0)
 #-------------------------------------------------------------------------------
 # NAV Here we construct a node list based on our problem's geometry and IC
 #-------------------------------------------------------------------------------
