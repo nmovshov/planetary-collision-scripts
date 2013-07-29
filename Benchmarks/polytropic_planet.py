@@ -17,7 +17,7 @@ from NodeHistory import NodeHistory
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
 #-------------------------------------------------------------------------------
-jobName = "polyPlanet"
+jobName = "poly_planet"
 jobDesc = "Hydrostatic equilibrium of a polytropic planet."
 print jobDesc
 
@@ -43,7 +43,7 @@ goalTime = 800            # Time to advance to (sec)
 dt = goalTime/200         # Initial guess for time step (sec)
 vizTime = goalTime/20     # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
-cooldownFrequency = 2     # None or cycles between "cooldowns" (v=0, U=0)
+cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
 cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
@@ -133,9 +133,9 @@ mpi.barrier()
 # If we're restarting, find the set of most recent restart files.
 if restoreCycle is None:
     restoreCycle = findLastRestart(restartName)
-sys.exit(0)
+
 #-------------------------------------------------------------------------------
-# NAV Here we construct a node list based on our problem's geometry and IC
+# NAV Here we construct a node list for a spherical stationary planet
 #-------------------------------------------------------------------------------
 # Create the NodeList.
 planet = makeFluidNodeList("planet", eosPlanet, 
@@ -160,33 +160,22 @@ if restoreCycle is None:
                                                  rmax = rPlanet,
                                                  nNodePerh = nPerh)
 
-# The above logic generates node positions centered on (0,0,0). Modify 
-# positions if necessary below.
-    for k in range(planetGenerator.localNumNodes()):
-        planetGenerator.x[k] += 0.0
-        planetGenerator.y[k] += 0.0
-        planetGenerator.z[k] += 0.0
-
 # Distribute nodes across ranks
     print "Starting node distribution..."
     distributeNodes3d((planet, planetGenerator))
     nGlobalNodes = 0
     for n in nodeSet:
         print "Generator info for %s" % n.name
-        print "   Minimum number of nodes per domain : ", mpi.allreduce(n.numInternalNodes, mpi.MIN)
-        print "   Maximum number of nodes per domain : ", mpi.allreduce(n.numInternalNodes, mpi.MAX)
-        print "               Global number of nodes : ", mpi.allreduce(n.numInternalNodes, mpi.SUM)
+        print "   Minimum number of nodes per domain : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.MIN)
+        print "   Maximum number of nodes per domain : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.MAX)
+        print "               Global number of nodes : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.SUM)
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
-# Give initial velocity if desired.
-    vel = planet.velocity()
-    for k in range(planet.numInternalNodes):
-        vel[k].x = 0.0
-        vel[k].y = 0.0
-        vel[k].z = 0.0
-
 # Construct a DataBase to hold our node list.
 db = DataBase()
 for n in nodeSet:
@@ -258,11 +247,15 @@ control = SpheralController(integrator, WT,
 #-------------------------------------------------------------------------------
 def midprocess(stepsSoFar,timeNow,dt):
     # stop and cool all nodes
-    planet.velocity().Zero()
-    planet.specificThermalEnergy().Zero()
+    vref = planet.velocity()
+    uref = planet.specificThermalEnergy()
+    for k in range(planet.numInternalNodes):
+        vref[k] *= cooldownFactor
+        uref[k] *= cooldownFactor
     pass
 frequency=cooldownFrequency
 control.appendPeriodicWork(midprocess,frequency)
+sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # NAV Here we launch the simulation
@@ -279,7 +272,7 @@ else:
 #-------------------------------------------------------------------------------
 # NAV Here we do any post processing
 #-------------------------------------------------------------------------------
-#shelpers.spickle_node_list(planet, jobName+'.dat')
+shelpers.spickle_node_list(planet, jobName+'.dat')
 #from IPython import embed
 #if mpi.rank == 0:
 #    embed() # uncomment to start an interactive session when the run completes
