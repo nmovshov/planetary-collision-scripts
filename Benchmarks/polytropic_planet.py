@@ -39,9 +39,9 @@ rhoPlanet = 3*mPlanet/(4*pi*rPlanet**3)
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 800            # Time to advance to (sec)
+goalTime = 8000           # Time to advance to (sec)
 dt = goalTime/200         # Initial guess for time step (sec)
-vizTime = goalTime/20     # Time frequency for dropping viz files (sec)
+vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
 cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
