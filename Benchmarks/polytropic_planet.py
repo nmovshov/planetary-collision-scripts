@@ -35,22 +35,24 @@ polytrope_n  = 1          # n=1 polytropic index
 polytrope_mu = 2.2e-3     # (kg/mole) mean molecular weight
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
-rhoPlanet = 3*mPlanet/(4*pi*rPlanet**3)
+rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 8000           # Time to advance to (sec)
-dt = goalTime/200         # Initial guess for time step (sec)
-vizTime = 600             # Time frequency for dropping viz files (sec)
+goalTime = 24000          # Time to advance to (sec)
+dt = 200                  # Initial guess for time step (sec)
+vizTime = 800             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
 cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
-nxPlanet = 20             # Number of nodes across the diameter of the target
+nxPlanet = 40             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
+rhomin = 0.01*rhoPlanet   # Lower bound on node density
+rhomax = 10.0*rhoPlanet   # Upper bound on node density
 
 # Gravity parameters
 softLength = 1.0e-5       # (fraction of planet radius) softening length
@@ -144,6 +146,8 @@ planet = makeFluidNodeList("planet", eosPlanet,
                            xmax =  10.0*rPlanet*Vector.one,
                            hmin = hmin,
                            hmax = hmax,
+                           rhoMin = rhomin,
+                           rhoMax = rhomax,
                            )
 nodeSet = [planet]
 
