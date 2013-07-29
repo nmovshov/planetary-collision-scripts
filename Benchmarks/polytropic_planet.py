@@ -17,7 +17,7 @@ from NodeHistory import NodeHistory
 #-------------------------------------------------------------------------------
 # NAV Identify job name here
 #-------------------------------------------------------------------------------
-jobName = "poly_planet"
+jobName = "polystatic"
 jobDesc = "Hydrostatic equilibrium of a polytropic planet."
 print jobDesc
 
@@ -255,7 +255,6 @@ def midprocess(stepsSoFar,timeNow,dt):
     pass
 frequency=cooldownFrequency
 control.appendPeriodicWork(midprocess,frequency)
-sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # NAV Here we launch the simulation
