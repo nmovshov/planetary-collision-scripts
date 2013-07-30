@@ -52,7 +52,7 @@ nPerh = 1.51              # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
 rhomin = 0.01*rhoPlanet   # Lower bound on node density
-rhomax = 10.0*rhoPlanet   # Upper bound on node density
+rhomax = 4.0*rhoPlanet    # Upper bound on node density
 
 # Gravity parameters
 softLength = 1.0e-5       # (fraction of planet radius) softening length
@@ -63,7 +63,7 @@ G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-dtMin = 0.001*dt          # Minimum allowed time step (sec)
+dtMin = max(0.01*dt,10)   # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
