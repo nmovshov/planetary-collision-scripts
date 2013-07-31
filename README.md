@@ -20,7 +20,8 @@ Directory: **(WARNING: work in progress, updated often!)**
     + `NakamuraFujiwara.py` - Collision of two spheres with strength and damage, no gravity. Try to reproduce Nakamura and Fujiwara (1991). [MF] 
     + `polytropic_planet.py` - Hydrostatic equilibrium of a fluid polytropic planet, compared with known analytic solution. [ID]  
   - `PlanetFactory` - Scripts for setting up and saving sph node lists modeling generic and custom planets.
-    + `build_hydrostatic_single_material_planet.py` - Quasi static collapse of a spherical, fluid, single material planet, towards hydrostatic equilibrium. No strength or damage model. [ID]
+    + `build_hydrostatic_single_material_planet.py` - Set up a spherical, single material, fluid planet and run to hydrostatic equilibrium. No strength or damage model. [ID]
+    + `build_hydrostatic_core_mantle_planet.py` - Set up a two-layer, fluid planet and run to hydrostatic equilibrium. No strength or damage model. [ID]
   - `GenericCollisions` - The basic planetary collision scenarios, to be customized with problem specific requirements.  
     + `strength_collision.py` - Two spheres colliding in the strength regime. Hydro, strength, damage models. No gravity. [BV] 
   - `Analysis` -  Scripts and interactive modules to load and visualize simulation data.  
@@ -29,3 +30,4 @@ Directory: **(WARNING: work in progress, updated often!)**
     + `equations_of_state.py` - Demonstrating the use of spheral's equation-of-state objects. [BV]
     + `load_interactive_spheral.py` - Just the `import` commands that bring spheral classes to the local namespace, for interactive exploration. Works best with iPython. [MF]
   - `shelpers.py` - A module containing some convenience methods used by the other scripts. This is a true python module, not an executable. [ID]
+  - `MATERILAS.md` - Table of material and eos selection for use in many of above scripts. [PH]
