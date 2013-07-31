@@ -7,6 +7,7 @@
 #-------------------------------------------------------------------------------
 from math import *
 import sys
+import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
 from SolidSpheral3d import *
@@ -40,11 +41,11 @@ rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
 goalTime = 24000          # Time to advance to (sec)
-dt = 200                  # Initial guess for time step (sec)
-vizTime = 800             # Time frequency for dropping viz files (sec)
+dt = 20                   # Initial guess for time step (sec)
+vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
-cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
+cooldownFactor = 0.2      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
 nxPlanet = 40             # Number of nodes across the diameter of the target
@@ -63,12 +64,12 @@ G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-dtMin = max(0.01*dt,10)   # Minimum allowed time step (sec)
+dtMin = 2                 # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
 statsStep = None          # Frequency for sampling conservation statistics and such
-redistributeStep = 200    # Frequency to load balance problem from scratch
+redistributeStep = 2000   # Frequency to load balance problem from scratch
 restartStep = 100         # Frequency to drop restart files
 restoreCycle = None       # If None, latest available restart cycle is selected
 baseDir = jobName         # Base name for directory to store output in
@@ -163,6 +164,12 @@ if restoreCycle is None:
                                                  xmax = ( rPlanet,  rPlanet,  rPlanet),
                                                  rmax = rPlanet,
                                                  nNodePerh = nPerh)
+
+# Disturb the symmetry with some random noise to avoid artificial waves
+    for k in range(planetGenerator.localNumNodes()):
+        planetGenerator.x[k] *= 1.0 + 0.04*random.random()
+        planetGenerator.y[k] *= 1.0 + 0.04*random.random()
+        planetGenerator.z[k] *= 1.0 + 0.04*random.random()
 
 # Distribute nodes across ranks
     print "Starting node distribution..."
