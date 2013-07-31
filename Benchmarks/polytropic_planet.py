@@ -45,7 +45,7 @@ dt = 20                   # Initial guess for time step (sec)
 vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
-cooldownFactor = 0.2      # 0.0-1.0 multiplier of velocity and energy during cooldown
+cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
 nxPlanet = 40             # Number of nodes across the diameter of the target
@@ -260,7 +260,7 @@ def midprocess(stepsSoFar,timeNow,dt):
     # stop and cool all nodes
     vref = planet.velocity()
     uref = planet.specificThermalEnergy()
-    for k in range(planet.numInternalNodes):
+    for k in range(planet.numNodes):
         vref[k] *= cooldownFactor
         uref[k] *= cooldownFactor
     pass
