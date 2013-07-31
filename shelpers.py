@@ -123,7 +123,7 @@ def pflatten_node_list(nl,filename):
     """
 
     # And Bob's our uncle
-    print 'alo world'
+    print 'place holder for pflatten_node_list'
     return 0
     # End function pflatten_node_list
 
