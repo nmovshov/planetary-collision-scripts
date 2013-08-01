@@ -28,9 +28,9 @@ print jobName, '-', jobDesc
 rPlanet = 500e3           # (m) initial guess for outer radius of planet
 rCore   = 250e3           # (m) initial guess for radius of inner core
 matMantle = 'h2oice'      # mantle material, see ../MATERIALS.md for options
-matCore   = 'SiO2'        # core material, see ../MATERIALS.md for options
-rhoMantle = 3200          # (kg/m^3) initial mantle mean density
-rhoCore = 3200            # (kg/m^3) initial core mean density
+matCore   = 'basalt'      # core material, see ../MATERIALS.md for options
+rhoMantle = 917           # (kg/m^3) initial mantle mean density
+rhoCore = 2700            # (kg/m^3) initial core mean density
 mPlanet = (4.0/3.0*pi) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3 - rCore**3))
 
 # Times, simulation control, and output

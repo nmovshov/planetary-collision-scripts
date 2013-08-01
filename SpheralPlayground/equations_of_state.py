@@ -42,9 +42,9 @@ SiO2 = ANEOS(0,          # Material number
              1000,       # num rho vals
              1000,       # num T vals
              480.0,      # minimum density (kg/m^3)
-             1480.0,     # maximum density (kg/m^3)
+             14800.0,    # maximum density (kg/m^3)
              1.0,        # minimum temperature (K)
-             1.0e8,      # maximum temperature (K)
+             1.0e6,      # maximum temperature (K)
              units)
 os.system('rm -f ANEOS.barf')
 del izetl
