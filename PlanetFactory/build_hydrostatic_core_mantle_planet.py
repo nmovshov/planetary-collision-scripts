@@ -47,8 +47,8 @@ nxPlanet = 40             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
-rhomin = 0.01*rhoPlanet   # Lower bound on node density
-rhomax = 4.0*rhoPlanet    # Upper bound on node density
+rhomin = 0.01*rhoMantle   # Lower bound on node density
+rhomax = 4.0*rhoCore      # Upper bound on node density
 
 # Gravity parameters
 softLength = 1.0e-5       # Fraction of planet radius as softening length
@@ -80,7 +80,7 @@ Cq = 1.0
 Qlimiter = False
 balsaraCorrection = False
 epsilon2 = 1e-2
-negligibleSoundSpeed = 1e-4 #TODO make physics based
+negligibleSoundSpeed = 1e-4 
 csMultiplier = 1e-4
 hminratio = 0.1
 limitIdealH = False
@@ -97,9 +97,28 @@ rigorousBoundaries = False
 #-------------------------------------------------------------------------------
 # NAV Equations of state
 #-------------------------------------------------------------------------------
-eosPlanet = PolytropicEquationOfStateMKS3d(polytrope_K,
-                                           polytrope_n,
-                                           polytrope_mu)
+eosCore, eosMantle = None, None
+# Most eos constructors take a units object, we usually use MKS
+units = PhysicalConstants(1.0,   # Unit length in meters
+                          1.0,   # Unit mass in kg
+                          1.0)   # Unit time in seconds
+
+# Tillotson EOS for many geologic materials
+mats = ["granite", "basalt", "nylon", "pure ice", "30% silicate ice", "water"]
+etamin, etamax = 0.01, 100.0
+if matMantle.lower() in mats:
+    eosMantle = TillotsonEquationOfState(matMantle,etamin,etamax,units)
+if matCore.lower() in mats:
+    eosCore = TillotsonEquationOfState(matCore,etamin,etamax,units)
+
+# Verify valid EOSs (currently only tillotson works)
+if eosCore is None or eosMantle is None:
+    raise ValueError('invalid material selection for core and/or mantle')
+if not (eosCore.valid() and eosMantle.valid()):
+    raise ValueError('core and/or mantle eos construction failed')
+
+sys.exit(0)
+
 
 #-------------------------------------------------------------------------------
 # NAV Here we determine if, and deal with, restarted runs
