@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------------------------------------
 from math import *
-import sys
+import sys, os
 import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
@@ -22,7 +22,7 @@ from NodeHistory import NodeHistory
 # Job name and description
 jobName = "coremantle"
 jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
-print jobName, '-', jobDesc
+print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet properties
 rPlanet = 500e3           # Initial guess for outer radius of planet (m)
@@ -71,7 +71,7 @@ baseDir = jobName         # Base name for directory to store output in
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
-# These options for spheral's hydro mechanism are normally left alone
+# These options for spheral's hydro mechanism are normally left alone.
 #-------------------------------------------------------------------------------
 HydroConstructor = ASPHHydro
 Qconstructor = MonaghanGingoldViscosity
@@ -96,6 +96,10 @@ rigorousBoundaries = False
 
 #-------------------------------------------------------------------------------
 # NAV Equations of state
+# Here we construct an eos object for each node list. In this case, one fore core,
+# one for mantle. The choice of eos is determined by the material string. See
+# ../MATERIALS.md for the available options.
+# TODO: fix ANEOS, currently only tillotson works.
 #-------------------------------------------------------------------------------
 eosCore, eosMantle = None, None
 # Most eos constructors take a units object, we usually use MKS
@@ -117,28 +121,25 @@ if eosCore is None or eosMantle is None:
 if not (eosCore.valid() and eosMantle.valid()):
     raise ValueError('core and/or mantle eos construction failed')
 
-sys.exit(0)
-
-
 #-------------------------------------------------------------------------------
-# NAV Here we determine if, and deal with, restarted runs
+# NAV Restarts and output directories
+# Here we create the output directories, and deal with restarted runs if any.
 #-------------------------------------------------------------------------------
 # Restart and output files.
-dataDir = os.path.join(baseDir, 
-                       "index=%g" % polytrope_n,
-                       "const=%g" % polytrope_K,
-                       "nxPlanet=%i" % nxPlanet,
+jobDir = os.path.join(baseDir, 
+                       'core=%s' % polytrope_n,
+                       'mantle=%s' % polytrope_K,
+                       'nxPlanet=%d' % nxPlanet,
                        )
-restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
-vizDir = os.path.join(dataDir, "viz")
+restartDir = os.path.join(jobDir, 'restarts', 'proc-%04d' % mpi.rank)
+vizDir = os.path.join(jobDir, 'viz')
 baseName = jobName
 restartName = os.path.join(restartDir, baseName)
 
 # Check if the necessary output directories exist.  If not, create them.
-import os, sys
 if mpi.rank == 0:
-    if not os.path.exists(dataDir):
-        os.makedirs(dataDir)
+    if not os.path.exists(jobDir):
+        os.makedirs(jobDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
     if not os.path.exists(restartDir):
