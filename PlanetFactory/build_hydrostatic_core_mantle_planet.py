@@ -127,16 +127,16 @@ if not (eosCore.valid() and eosMantle.valid()):
 #-------------------------------------------------------------------------------
 # Restart and output files.
 jobDir = os.path.join(baseDir, 
-                       'core=%s' % polytrope_n,
-                       'mantle=%s' % polytrope_K,
+                       'core=%s' % matCore,
+                       'mantle=%s' % matMantle,
                        'nxPlanet=%d' % nxPlanet,
                        )
 restartDir = os.path.join(jobDir, 'restarts', 'proc-%04d' % mpi.rank)
 vizDir = os.path.join(jobDir, 'viz')
-baseName = jobName
-restartName = os.path.join(restartDir, baseName)
+outDir = os.path.join(jobDir, 'output')
+restartName = os.path.join(restartDir, jobName)
 
-# Check if the necessary output directories exist.  If not, create them.
+# Check if the necessary directories exist.  If not, create them.
 if mpi.rank == 0:
     if not os.path.exists(jobDir):
         os.makedirs(jobDir)
@@ -144,6 +144,8 @@ if mpi.rank == 0:
         os.makedirs(vizDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
+    if not os.path.exists(outDir):
+        os.makedirs(outDir)
 mpi.barrier()
 if not os.path.exists(restartDir):
     os.makedirs(restartDir)
@@ -153,6 +155,7 @@ mpi.barrier()
 if restoreCycle is None:
     restoreCycle = findLastRestart(restartName)
 
+sys.exit()
 #-------------------------------------------------------------------------------
 # NAV Here we construct a node list for a spherical stationary planet
 #-------------------------------------------------------------------------------
@@ -264,7 +267,7 @@ control = SpheralController(integrator, WT,
                             redistributeStep = redistributeStep,
                             restartBaseName = restartName,
                             restoreCycle = restoreCycle,
-                            vizBaseName = baseName,
+                            vizBaseName = jobName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
