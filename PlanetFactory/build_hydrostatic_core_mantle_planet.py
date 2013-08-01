@@ -25,17 +25,17 @@ jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
 print jobName, '-', jobDesc
 
 # Planet properties
-rPlanet = 500e3           # (m) initial guess for outer radius of planet
-rCore   = 250e3           # (m) initial guess for radius of inner core
-matMantle = 'h2oice'      # mantle material, see ../MATERIALS.md for options
-matCore   = 'basalt'      # core material, see ../MATERIALS.md for options
-rhoMantle = 917           # (kg/m^3) initial mantle mean density
-rhoCore = 2700            # (kg/m^3) initial core mean density
-mPlanet = (4.0/3.0*pi) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3 - rCore**3))
+rPlanet = 500e3           # Initial guess for outer radius of planet (m)
+rCore   = 250e3           # Initial guess for radius of inner core (m)
+matMantle = 'pure ice'    # Mantle material, see ../MATERIALS.md for options
+matCore   = 'basalt'      # Core material, see ../MATERIALS.md for options
+rhoMantle = 917           # Initial mantle mean density (kg/m^3)
+rhoCore = 2700            # Initial core mean density (kg/m^3)
+mPlanet = (4.0*pi/3.0) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3 - rCore**3))
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 24000          # Time to advance to (sec)
+goalTime = 12000          # Time to advance to (sec)
 dt = 20                   # Initial guess for time step (sec)
 vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
@@ -51,15 +51,15 @@ rhomin = 0.01*rhoPlanet   # Lower bound on node density
 rhomax = 4.0*rhoPlanet    # Upper bound on node density
 
 # Gravity parameters
-softLength = 1.0e-5       # (fraction of planet radius) softening length
-opening = 1.0             # (dimensionless) opening parameter for gravity tree walk
-fdt = 0.1                 # (dimensionless) gravity timestep multiplier
+softLength = 1.0e-5       # Fraction of planet radius as softening length
+opening = 1.0             # Dimensionless opening parameter for gravity tree walk
+fdt = 0.1                 # Gravity timestep multiplier
 softLength *= rPlanet
 G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-dtMin = 2                 # Minimum allowed time step (sec)
+dtMin = 20                # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
@@ -70,7 +70,8 @@ restoreCycle = None       # If None, latest available restart cycle is selected
 baseDir = jobName         # Base name for directory to store output in
 
 #-------------------------------------------------------------------------------
-# NAV Options for spheral's hydro mechanism (normally left alone)
+# NAV Spheral hydro solver options
+# These options for spheral's hydro mechanism are normally left alone
 #-------------------------------------------------------------------------------
 HydroConstructor = ASPHHydro
 Qconstructor = MonaghanGingoldViscosity
@@ -94,7 +95,7 @@ compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
 #-------------------------------------------------------------------------------
-# NAV Build polytropic EOS object
+# NAV Equations of state
 #-------------------------------------------------------------------------------
 eosPlanet = PolytropicEquationOfStateMKS3d(polytrope_K,
                                            polytrope_n,
