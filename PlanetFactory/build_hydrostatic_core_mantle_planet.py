@@ -45,7 +45,7 @@ mPlanet = (4.0*pi/3.0) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3 - rCore**3))
 steps = None              # None or advance a number of steps rather than to a time
 goalTime = 1800           # Time to advance to (sec)
 dt = 2                    # Initial guess for time step (sec)
-vizTime = 100             # Time frequency for dropping viz files (sec)
+vizTime = 200             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
 cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
@@ -217,7 +217,16 @@ if restoreCycle is None:
                                                  rmax = rPlanet,
                                                  nNodePerh = nPerh)
      
-    # Modify geometry.
+    # Modify geometry. 
+    # We disturb the lattice symmetry to avoid artificial singularities.
+    for k in range(coreGenerator.localNumNodes()):
+        coreGenerator.x[k]   *= 1.0 + random.uniform(-0.02, 0.02)
+        coreGenerator.y[k]   *= 1.0 + random.uniform(-0.02, 0.02)
+        coreGenerator.z[k]   *= 1.0 + random.uniform(-0.02, 0.02)
+    for k in range(mantleGenerator.localNumNodes()):
+        mantleGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        mantleGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        mantleGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
     pass
 
     # Modify density.
