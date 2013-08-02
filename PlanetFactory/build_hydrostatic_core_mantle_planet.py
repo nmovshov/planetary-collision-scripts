@@ -12,6 +12,7 @@ from SolidSpheral3d import *
 from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
+from GenerateNodeDistribution3d import GenerateNodeDistribution3d
 
 #-------------------------------------------------------------------------------
 # NAV SETUP
@@ -20,7 +21,7 @@ from NodeHistory import NodeHistory
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = "coremantle"
+jobName = 'coremantle'
 jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
@@ -108,7 +109,7 @@ units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0)   # Unit time in seconds
 
 # Tillotson EOS for many geologic materials
-mats = ["granite", "basalt", "nylon", "pure ice", "30% silicate ice", "water"]
+mats = ['granite', 'basalt', 'nylon', 'pure ice', '30% silicate ice', 'water']
 etamin, etamax = 0.01, 100.0
 if matMantle.lower() in mats:
     eosMantle = TillotsonEquationOfState(matMantle,etamin,etamax,units)
@@ -117,9 +118,9 @@ if matCore.lower() in mats:
 
 # Verify valid EOSs (currently only tillotson works)
 if eosCore is None or eosMantle is None:
-    raise ValueError('invalid material selection for core and/or mantle')
+    raise ValueError("invalid material selection for core and/or mantle")
 if not (eosCore.valid() and eosMantle.valid()):
-    raise ValueError('core and/or mantle eos construction failed')
+    raise ValueError("core and/or mantle eos construction failed")
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -191,28 +192,38 @@ nodeSet = [core, mantle]
 
 # Unless restarting, create the generators and set initial field values.
 if restoreCycle is None:
-    print "Generating node distribution."
-    from GenerateNodeDistribution3d import GenerateNodeDistribution3d
-     
     # Start with the stock generator.
     coreGenerator   = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
                                                  rhoCore,
-                                                 distributionType = "lattice",
+                                                 distributionType = 'lattice',
                                                  xmin = (-rCore, -rCore, -rCore),
                                                  xmax = ( rCore,  rCore,  rCore),
+                                                 rmin = 0.0,
                                                  rmax = rCore,
                                                  nNodePerh = nPerh)
-    sys.exit()
+    mantleGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
+                                                 rhoMantle,
+                                                 distributionType = 'lattice',
+                                                 xmin = (-rPlanet, -rPlanet, -rPlanet),
+                                                 xmax = ( rPlanet,  rPlanet,  rPlanet),
+                                                 rmin = rCore + rPlanet/nxPlanet,
+                                                 rmax = rPlanet,
+                                                 nNodePerh = nPerh)
+     
+    # Modify geometry.
+    pass
 
-# Disturb the symmetry with some random noise to avoid artificial waves
-    for k in range(planetGenerator.localNumNodes()):
-        planetGenerator.x[k] *= 1.0 + 0.04*random.random()
-        planetGenerator.y[k] *= 1.0 + 0.04*random.random()
-        planetGenerator.z[k] *= 1.0 + 0.04*random.random()
+    # Modify density.
+    pass
 
-# Distribute nodes across ranks
+    # Modify velocity.
+    pass
+
+   # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."
-    distributeNodes3d((planet, planetGenerator))
+    distributeNodes3d((core, coreGenerator),
+                      (mantle, mantleGenerator))
+     
     nGlobalNodes = 0
     for n in nodeSet:
         print "Generator info for %s" % n.name
@@ -226,11 +237,12 @@ if restoreCycle is None:
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
-# Construct a DataBase to hold our node list.
+# The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
 for n in nodeSet:
     db.appendNodeList(n)
 del n
+sys.exit()
 
 #-------------------------------------------------------------------------------
 # NAV Here we create the various physics objects
