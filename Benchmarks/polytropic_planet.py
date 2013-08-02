@@ -42,7 +42,7 @@ rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 steps = None              # None or advance a number of steps rather than to a time
 goalTime = 24000          # Time to advance to (sec)
 dt = 20                   # Initial guess for time step (sec)
-vizTime = 600             # Time frequency for dropping viz files (sec)
+vizTime = 1200            # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
 cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
@@ -64,13 +64,13 @@ G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-dtMin = 2                 # Minimum allowed time step (sec)
+dtMin = 20                 # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
 statsStep = None          # Frequency for sampling conservation statistics and such
 redistributeStep = 2000   # Frequency to load balance problem from scratch
-restartStep = 100         # Frequency to drop restart files
+restartStep = 200         # Frequency to drop restart files
 restoreCycle = None       # If None, latest available restart cycle is selected
 baseDir = jobName         # Base name for directory to store output in
 
