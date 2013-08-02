@@ -242,24 +242,27 @@ db = DataBase()
 for n in nodeSet:
     db.appendNodeList(n)
 del n
-sys.exit()
 
 #-------------------------------------------------------------------------------
-# NAV Here we create the various physics objects
+# NAV Spheral's simulation structure
+# Here we construct the objects that compose spheral's simulation hierarchy.
+# These are:
+#  * One or more physics packages (hydro, gravity, strength, damage)
+#  * A time integrator of some flavor (usually a Runge-Kutta 2)
+#  * The simulation controller
 #-------------------------------------------------------------------------------
 
-# Create our interpolation kernels -- one for normal hydro interactions, and
-# one for use with the artificial viscosity
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
-
-# Create the gravity object
+# Create the gravity package.
 gravity = OctTreeGravity(G = G, 
                          softeningLength = softLength, 
                          opening = opening, 
                          ftimestep = fdt)
 
-# Construct the artificial viscosity.
+# Create the kernel functions for SPH.
+WT = TableKernel(BSplineKernel(), 1000) # one for normal hydro
+WTPi = WT                               # one for artificial viscosity
+
+# Create the artificial viscosity object.
 q = Qconstructor(Cl, Cq)
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -267,7 +270,7 @@ q.epsilon2 = epsilon2
 q.negligibleSoundSpeed = negligibleSoundSpeed
 q.csMultiplier = csMultiplier
 
-# Construct the hydro physics object.
+# Create the hydro package.
 hydro = HydroConstructor(WT,
                          WTPi,
                          q,
@@ -281,7 +284,7 @@ hydro = HydroConstructor(WT,
                          epsTensile = epsilonTensile,
                          nTensile = nTensile)
 
-# Construct a time integrator.
+# Create the time integrator and attach the physics packages to it.
 integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(gravity)
 integrator.appendPhysicsPackage(hydro)
@@ -292,7 +295,7 @@ integrator.dtGrowth = dtGrowth
 integrator.verbose = verbosedt
 integrator.rigorousBoundaries = rigorousBoundaries
 
-# Build the controller.
+# Create the controller.
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -304,6 +307,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime)
 
+sys.exit()
 #-------------------------------------------------------------------------------
 # NAV MIDPROCESS Here we register optional work to be done mid-run
 #-------------------------------------------------------------------------------
