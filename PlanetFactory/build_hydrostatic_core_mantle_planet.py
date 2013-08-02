@@ -155,34 +155,54 @@ mpi.barrier()
 if restoreCycle is None:
     restoreCycle = findLastRestart(restartName)
 
-sys.exit()
 #-------------------------------------------------------------------------------
-# NAV Here we construct a node list for a spherical stationary planet
+# NAV Node construction
+# Here we create and populate the node lists for the core and mantle. In spheral,
+# the construction order is as follows:
+# 1. Create an empty node list with fields that match the size and type of problem.
+# 2. Create a "generator" that will decide what values to give to all field variables
+#    of node i. Normally we start with one of the  simple, stock generators, and
+#    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
+# 3. Create a "distributer" from a (nodeList, generator) pair. The generator will
+#    be used to fill values in the node list, and then discarded. The distributer
+#    persists so it can work to domain decompose the problem periodically.
 #-------------------------------------------------------------------------------
-# Create the NodeList.
-planet = makeFluidNodeList("planet", eosPlanet, 
+# Create the node lists.
+core   = makeFluidNodeList('core', eosCore, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rPlanet*Vector.one,
-                           xmax =  10.0*rPlanet*Vector.one,
+                           xmin = -10.0*rCore*Vector.one, # probably unnecessary
+                           xmax =  10.0*rCore*Vector.one, # probably unnecessary
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
                            )
-nodeSet = [planet]
 
-# Generate nodes
+mantle = makeFluidNodeList('mantle', eosMantle, 
+                           nPerh = nPerh, 
+                           xmin = -10.0*rPlanet*Vector.one, # probably unnecessary
+                           xmax =  10.0*rPlanet*Vector.one, # probably unnecessary
+                           hmin = hmin,
+                           hmax = hmax,
+                           rhoMin = rhomin,
+                           rhoMax = rhomax,
+                           )
+nodeSet = [core, mantle]
+
+# Unless restarting, create the generators and set initial field values.
 if restoreCycle is None:
     print "Generating node distribution."
     from GenerateNodeDistribution3d import GenerateNodeDistribution3d
-
-    planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                                                 rhoPlanet,
+     
+    # Start with the stock generator.
+    coreGenerator   = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
+                                                 rhoCore,
                                                  distributionType = "lattice",
-                                                 xmin = (-rPlanet, -rPlanet, -rPlanet),
-                                                 xmax = ( rPlanet,  rPlanet,  rPlanet),
-                                                 rmax = rPlanet,
+                                                 xmin = (-rCore, -rCore, -rCore),
+                                                 xmax = ( rCore,  rCore,  rCore),
+                                                 rmax = rCore,
                                                  nNodePerh = nPerh)
+    sys.exit()
 
 # Disturb the symmetry with some random noise to avoid artificial waves
     for k in range(planetGenerator.localNumNodes()):
