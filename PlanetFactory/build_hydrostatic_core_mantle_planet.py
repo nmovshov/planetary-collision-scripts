@@ -37,14 +37,14 @@ mPlanet = (4.0*pi/3.0) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3 - rCore**3))
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
 goalTime = 12000          # Time to advance to (sec)
-dt = 20                   # Initial guess for time step (sec)
+dt = 2                    # Initial guess for time step (sec)
 vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
-cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
+cooldownFactor = 0.2      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
-nxPlanet = 40             # Number of nodes across the diameter of the target
+nxPlanet = 20             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
@@ -60,9 +60,9 @@ G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-dtMin = 20                # Minimum allowed time step (sec)
+dtMin = 2                 # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
-verbosedt = False         # Verbose reporting of the time step criteria per cycle
+verbosedt = True          # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
 statsStep = None          # Frequency for sampling conservation statistics and such
 redistributeStep = 2000   # Frequency to load balance problem from scratch
@@ -307,39 +307,45 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime)
 
-sys.exit()
 #-------------------------------------------------------------------------------
-# NAV MIDPROCESS Here we register optional work to be done mid-run
+# NAV Periodic, mid-run actions
+# Here we register optional work to be done mid-run. Mid-run processes can be time
+# or cycle based. Here we use:
+#  * cooldown() - slow and cool all nodes (including ghost!) [cycle based]
 #-------------------------------------------------------------------------------
-def midprocess(stepsSoFar,timeNow,dt):
-    # stop and cool all nodes
-    vref = planet.velocity()
-    uref = planet.specificThermalEnergy()
-    for k in range(planet.numNodes):
-        vref[k] *= cooldownFactor
-        uref[k] *= cooldownFactor
+def cooldown(stepsSoFar,timeNow,dt):
+    # stop and cool all(!) nodes
+    v_core = core.velocity()
+    u_core = core.specificThermalEnergy()
+    for k in range(core.numNodes):
+        v_core[k] *= cooldownFactor
+        u_core[k] *= cooldownFactor
+    v_mantle = mantle.velocity()
+    u_mantle = mantle.specificThermalEnergy()
+    for k in range(mantle.numNodes):
+        v_mantle[k] *= cooldownFactor
+        u_mantle[k] *= cooldownFactor
     pass
+    # end cooldown()
+
 frequency=cooldownFrequency
-control.appendPeriodicWork(midprocess,frequency)
+control.appendPeriodicWork(cooldown,frequency)
 
 #-------------------------------------------------------------------------------
-# NAV Here we launch the simulation
+# NAV Launch simulation
+# The simulation can be run for a specified number of steps, or a specified time
+# in seconds.
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
-    #raise ValueError, ("Completed %i steps." % steps)
-
 else:
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
-    #control.step() # One more step to ensure we get the final viz dump.
+    control.dropViz()
 
 #-------------------------------------------------------------------------------
-# NAV Here we do any post processing
+# NAV Post processing tasks
+# Here we can include tasks that will happen once, if and when the run is completed
+# successfully. Things like saving flattened node lists and/or computed quantities.
 #-------------------------------------------------------------------------------
-shelpers.spickle_node_list(planet, jobName+'.dat')
-#from IPython import embed
-#if mpi.rank == 0:
-#    embed() # uncomment to start an interactive session when the run completes
-
-
+pass
