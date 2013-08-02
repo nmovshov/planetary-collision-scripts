@@ -2,6 +2,13 @@
 #-------------------------------------------------------------------------------
 # Set up a two-layer, fluid planet and run to hydrostatic equilibrium.
 #
+# This script can serve as a template for equilibrating a fluid, two layer planet,
+# with various core/mantle materials and size ratios.
+# Copy this file to a separate folder and modify with your initial conditions. You
+# will need to consider the expected time scale to run, and you may need to tweak
+# the cooldown frequency and strength as the planet approcahes equilibrium.
+# To run as an executable script, check that the first line includes the full path
+# to SPHERAL's python.
 #-------------------------------------------------------------------------------
 from math import *
 import sys, os
@@ -36,12 +43,12 @@ mPlanet = (4.0*pi/3.0) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3 - rCore**3))
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 12000          # Time to advance to (sec)
+goalTime = 1800           # Time to advance to (sec)
 dt = 2                    # Initial guess for time step (sec)
-vizTime = 600             # Time frequency for dropping viz files (sec)
+vizTime = 100             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
-cooldownFactor = 0.2      # 0.0-1.0 multiplier of velocity and energy during cooldown
+cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
 nxPlanet = 20             # Number of nodes across the diameter of the target
@@ -62,7 +69,7 @@ G = MKS().G
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
 dtMin = 2                 # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
-verbosedt = True          # Verbose reporting of the time step criteria per cycle
+verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
 statsStep = None          # Frequency for sampling conservation statistics and such
 redistributeStep = 2000   # Frequency to load balance problem from scratch
