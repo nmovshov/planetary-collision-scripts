@@ -28,6 +28,6 @@ Directory: **(WARNING: work in progress, updated often!)**
   - `SpheralPlayground` -Various python code chunks for demonstrating usage of spheral classes. Usually invoked for interactive work, these should be run with iPython if possible.   
     + `gnu_plot.py` - Demonstrating the use the gnuplot python package. [MF]
     + `equations_of_state.py` - Demonstrating the use of spheral's equation-of-state objects. [BV]
-    + `load_interactive_spheral.py` - Just the `import` commands that bring spheral classes to the local namespace, for interactive exploration. Works best with iPython. [MF]
+    + `load_interactive_spheral.py` - Set up interactive python session with spheral modules loaded and basic objects initiated. Works best with iPython. [MF]
   - `shelpers.py` - A module containing some convenience methods used by the other scripts. This is a true python module, not an executable. [ID]
   - `MATERILAS.md` - Table of material and eos selection for use in many of above scripts. [PH]
