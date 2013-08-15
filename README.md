@@ -12,7 +12,7 @@ Spheral++ (http://sourceforge.net/projects/spheral/) is a Lagrangian, ASPH based
 
 This collection of python scripts is an attempt to provide 'templates' to generic planetary collision simulations, including setting up, running, and analyzing simulation data, so that users can quickly start production runs without the need to learn the spheral api. For this reason I chose a script-like style of python modules (where all the action happens in the init section). These scripts are meant to be used from the shell so they are documented with comments rather than doc strings. Users typically set a small number of parameters in (a copy of) the .py files, ideally in no more than the first 20 or so commented lines. I also made most files executable to simplify the mpirun command. But note that they need to be executed by the python interpreter built by spheral, not the system python!
 
-Mentained by: Naor Movshovitz (nmovshov@gmail.com)
+Maintained by: Naor Movshovitz (nmovshov@gmail.com)
 
 Directory: **(WARNING: work in progress, updated often!)**  
   [MF=mostly functional; BV=beta version (use with care); ID=in development (do not use); PH=place holder]
