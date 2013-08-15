@@ -88,13 +88,21 @@ def spickle_node_list(nl,filename=None):
         nlFieldDict[  'T'].append( globalFields[k][6])
 
     # Optionally, pickle the dict to a file
-    if filename is not None:
-        if isinstance(filename, str):
-            with open(filename, 'wb') as fid:
-                pickle.dump(nlFieldDict, fid)
-        else:
-            raise UserWarning('Dict NOT pickled to file because argument 2 is %s instead of %s' % 
+    if mpi.rank == 0:
+        if filename is not None:
+            if isinstance(filename, str):
+                with open(filename, 'wb') as fid:
+                    pickle.dump(nlFieldDict, fid)
+                    pass
+                pass
+            else:
+                raise UserWarning('Dict NOT pickled to file because argument 2 is %s instead of %s' % 
                               (type(filename), type('x')))
+                pass
+            pass
+        pass
+        
+    mpi.barrier()
 
     # And Bob's our uncle
     print 'Done.'
@@ -121,6 +129,8 @@ def pflatten_node_list(nl,filename):
 
     See also: spickle_node_list
     """
+
+    print 'Flattening', nl.label(), nl.name, '........'
 
     # And Bob's our uncle
     print 'place holder for pflatten_node_list'
