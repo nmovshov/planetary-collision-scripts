@@ -30,19 +30,32 @@ def spickle_node_list(nl,filename=None):
     See also: pflatten_node_list
     """
 
+    # Make sure we are not wasting our time.
+    if mpi.rank == 0:
+        assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
+                              sph.Spheral.SolidMaterial.SolidNodeList3d)
+                         ), "argument 1 must be a node list"
+    mpi.barrier()
+
+    # Estimate memory usage and give user a chance to avoid a crash.
+    if mpi.rank == 0:
+        nbFields = 11 # pos and vel count as 3 each
+        bytesPerNode = 8*nbFields
+        bytes = 2*bytesPerNode*nl.numNodes # times 2 b/c of temporary vars
+        if bytes > 1e9:
+            msg = "It looks like this will require a dangerous amount of memory." + \
+                  "\nContinue anyway (%d bytes needed)? y/[n] " % bytes
+            abort = raw_input(msg)
+            if abort in ('n', 'no', 'N', 'No', 'NO', ''):
+                return
+            pass
+        pass
+    mpi.barrier()
+
+    # Start collecting data.
     print 'Pickling', nl.label(), nl.name, '........'
 
-    # Estimate memory usage and give user a chance to avoid crash
-    nbFields = 11 # pos and vel count as 3 each
-    bytesPerNode = 8*nbFields
-    bytes = 2*bytesPerNode*nl.numNodes # times 2 b/c of temporary vars
-    if bytes > 1e9:
-        abort = raw_input('It looks like this will require a dangerous amount of memory.' +
-                          '\nContinue anyway (%d bytes needed)? y/[n] '%bytes)
-        if abort in ('n', 'no', 'N', 'No', 'NO', ''):
-            return
-
-    # Get values of field variables stored in internal nodes
+    # Get values of field variables stored in internal nodes.
     xloc = nl.positions().internalValues()
     vloc = nl.velocity().internalValues()
     mloc = nl.mass().internalValues()
@@ -57,17 +70,17 @@ def spickle_node_list(nl,filename=None):
     eos.setPressure(ploc,rref,uref)
     eos.setTemperature(Tloc,rref,uref)
 
-    # Zip fields so that we have all fields for each node in the same tuple
+    # Zip fields so that we have all fields for each node in the same tuple.
     #  We do this so we can concatenate everything in a single reduction operation,
     #  to ensure that all fields in one record in the final list belong to the same
     #  node.
     localFields = zip(xloc, vloc, mloc, rloc, uloc, ploc, Tloc)
 
-    # Do a SUM reduction on all ranks
+    # Do a SUM reduction on all ranks.
     #  This works because the + operator for python lists is a concatenation!
     globalFields = mpi.allreduce(localFields, mpi.SUM)
 
-    # Create a dictionary to hold field variables
+    # Create a dictionary to hold field variables.
     nlFieldDict = dict(x=[],   # position vector
                        v=[],   # velocity vector
                        m=[],   # mass
@@ -77,7 +90,7 @@ def spickle_node_list(nl,filename=None):
                        U=[],   # specific thermal energy
                       )
 
-    # Loop over nodes to fill field values
+    # Loop over nodes to fill field values.
     nbGlobalNodes = mpi.allreduce(nl.numInternalNodes, mpi.SUM)
     for k in range(nbGlobalNodes):
         nlFieldDict[  'x'].append((globalFields[k][0].x, globalFields[k][0].y, globalFields[k][0].z))
@@ -88,7 +101,7 @@ def spickle_node_list(nl,filename=None):
         nlFieldDict[  'p'].append( globalFields[k][5])
         nlFieldDict[  'T'].append( globalFields[k][6])
 
-    # Optionally, pickle the dict to a file
+    # Optionally, pickle the dict to a file.
     if mpi.rank == 0:
         if filename is not None:
             if isinstance(filename, str):
@@ -106,7 +119,7 @@ def spickle_node_list(nl,filename=None):
         
     mpi.barrier()
 
-    # And Bob's our uncle
+    # And Bob's our uncle.
     print 'Done.'
     return nlFieldDict
     # End function spickle_node_list
@@ -132,8 +145,17 @@ def pflatten_node_list(nl,filename):
     See also: spickle_node_list
     """
 
-    assert isinstance(filename,str), "argument filename must be a simple string"
     print 'Flattening', nl.label(), nl.name, '........'
+
+    # Write the header
+    if mpi.rank == 0:
+        assert isinstance(filename,str), "argument filename must be a simple string"
+        with open(filename,'w') as fid:
+            header = "mitzi da pooch"
+            fid.write(header)
+        pass
+
+    #
 
     # Get values of field variables stored in internal nodes
     xloc = nl.positions().internalValues()
