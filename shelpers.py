@@ -145,18 +145,27 @@ def pflatten_node_list(nl,filename):
     See also: spickle_node_list
     """
 
-    print 'Flattening', nl.label(), nl.name, '........'
+    # Make sure we are not wasting our time.
+    if mpi.rank == 0:
+        assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
+                              sph.Spheral.SolidMaterial.SolidNodeList3d)
+                         ), "argument 1 must be a node list"
+
+        assert isinstance(filename, str), "argument 2 must be a simple string"
+        pass
+    mpi.barrier()
 
     # Write the header
     if mpi.rank == 0:
-        assert isinstance(filename,str), "argument filename must be a simple string"
         with open(filename,'w') as fid:
             header = "mitzi da pooch"
             fid.write(header)
+            pass
         pass
 
-    #
-
+    # Start collecting data.
+    print 'Flattening', nl.label(), nl.name, '........'
+    
     # Get values of field variables stored in internal nodes
     xloc = nl.positions().internalValues()
     vloc = nl.velocity().internalValues()
@@ -176,4 +185,5 @@ def pflatten_node_list(nl,filename):
     print 'place holder for pflatten_node_list'
     return 0
     # End function pflatten_node_list
+    
 
