@@ -4,7 +4,8 @@
 #
 # Author: nmovshov@gmail.com
 #------------------------------------------------------------------------------
-import sys
+import sys, os
+import warnings
 import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
 import SolidSpheral3d as sph
@@ -96,8 +97,9 @@ def spickle_node_list(nl,filename=None):
                     pass
                 pass
             else:
-                raise UserWarning('Dict NOT pickled to file because argument 2 is %s instead of %s' % 
-                              (type(filename), type('x')))
+                msg = "Dict NOT pickled to file because " + \
+                      "argument 2 is {} instead of {}".format(type(filename), type('x'))
+                sys.stderr.write(msg+'\n')
                 pass
             pass
         pass
@@ -130,7 +132,23 @@ def pflatten_node_list(nl,filename):
     See also: spickle_node_list
     """
 
+    assert isinstance(filename,str), "argument filename must be a simple string"
     print 'Flattening', nl.label(), nl.name, '........'
+
+    # Get values of field variables stored in internal nodes
+    xloc = nl.positions().internalValues()
+    vloc = nl.velocity().internalValues()
+    mloc = nl.mass().internalValues()
+    rloc = nl.massDensity().internalValues()
+    uloc = nl.specificThermalEnergy().internalValues()
+    #(pressure and temperature are stored in the eos object and accessed differently)
+    eos = nl.equationOfState()
+    ploc = sph.ScalarField('ploc',nl)
+    Tloc = sph.ScalarField('loc',nl)
+    rref = nl.massDensity()
+    uref = nl.specificThermalEnergy()
+    eos.setPressure(ploc,rref,uref)
+    eos.setTemperature(Tloc,rref,uref)
 
     # And Bob's our uncle
     print 'place holder for pflatten_node_list'
