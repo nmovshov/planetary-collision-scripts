@@ -31,12 +31,10 @@ def spickle_node_list(nl,filename=None):
     """
 
     # Make sure we are not wasting our time.
-    if mpi.rank == 0:
-        assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
-                              sph.Spheral.SolidMaterial.SolidNodeList3d)
-                         ), "argument 1 must be a node list"
-    mpi.barrier()
-
+    assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
+                          sph.Spheral.SolidMaterial.SolidNodeList3d)
+                     ), "argument 1 must be a node list"
+    
     # Estimate memory usage and give user a chance to avoid a crash.
     if mpi.rank == 0:
         nbFields = 11 # pos and vel count as 3 each
@@ -117,8 +115,6 @@ def spickle_node_list(nl,filename=None):
             pass
         pass
         
-    mpi.barrier()
-
     # And Bob's our uncle.
     print 'Done.'
     return nlFieldDict
@@ -146,14 +142,10 @@ def pflatten_node_list(nl,filename):
     """
 
     # Make sure we are not wasting our time.
-    if mpi.rank == 0:
-        assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
-                              sph.Spheral.SolidMaterial.SolidNodeList3d)
-                         ), "argument 1 must be a node list"
-
-        assert isinstance(filename, str), "argument 2 must be a simple string"
-        pass
-    mpi.barrier()
+    assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
+                          sph.Spheral.SolidMaterial.SolidNodeList3d)
+                     ), "argument 1 must be a node list"
+    assert isinstance(filename, str), "argument 2 must be a simple string"
 
     # Write the header
     if mpi.rank == 0:
