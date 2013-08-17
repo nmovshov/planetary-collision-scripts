@@ -116,7 +116,7 @@ def spickle_node_list(nl,filename=None):
         pass
         
     # And Bob's our uncle.
-    print 'Done.'
+    print "Done."
     return nlFieldDict
     # End function spickle_node_list
 
