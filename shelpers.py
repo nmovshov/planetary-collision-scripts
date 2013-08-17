@@ -162,7 +162,7 @@ def pflatten_node_list(nl,filename):
             fid.write(header)
             pass
         pass
-
+    
     # Start collecting data.
     print 'Flattening', nl.label(), nl.name, '........'
     
