@@ -36,6 +36,7 @@ def spickle_node_list(nl,filename=None):
                      ), "argument 1 must be a node list"
     
     # Estimate memory usage and give user a chance to avoid a crash.
+    # TODO fix this block
     if mpi.rank == 0:
         nbFields = 11 # pos and vel count as 3 each
         bytesPerNode = 8*nbFields
