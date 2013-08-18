@@ -151,7 +151,7 @@ def pflatten_node_list(nl,filename):
     # Write the header
     if mpi.rank == 0:
         with open(filename,'w') as fid:
-            header = "mitzi da pooch"
+            header = "mitzi da pooch\n"
             fid.write(header)
             pass
         pass
@@ -174,9 +174,20 @@ def pflatten_node_list(nl,filename):
     eos.setPressure(ploc,rref,uref)
     eos.setTemperature(Tloc,rref,uref)
 
+    # Procs take turns writing internal node values to file.
+    for proc in range(mpi.procs):
+        if proc == mpi.rank:
+            fid = open(filename,'a')
+            sys.stderr.write("hi i am proc {}\n".format(proc))
+            fid.write("hi i am proc {}\n".format(proc))
+            fid.close()
+            pass
+        mpi.barrier()
+        pass
+     
     # And Bob's our uncle
     print 'place holder for pflatten_node_list'
     return 0
     # End function pflatten_node_list
-    
+     
 
