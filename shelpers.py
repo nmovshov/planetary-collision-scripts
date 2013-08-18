@@ -156,15 +156,20 @@ def pflatten_node_list(nl,filename,do_header=True,nl_idx=None):
                           sph.Spheral.SolidMaterial.SolidNodeList3d)
                      ), "argument 1 must be a node list"
     assert isinstance(filename, str), "argument 2 must be a simple string"
+    assert isinstance(do_header, bool), "true or false"
+    assert isinstance(nl_idx, int), "int only indices"
+    assert not isinstance(nl_idx, bool), "int only indices"
 
     # Write the header
-    if mpi.rank == 0:
-        with open(filename,'w') as fid:
+    if do_header:
+        if mpi.rank == 0:
+            fid = open(filename,'w')
             header = "mitzi da pooch\n"
             fid.write(header)
+            fid.close()
             pass
         pass
-    
+     
     # Start collecting data.
     print 'Flattening', nl.label(), nl.name, '........'
     
