@@ -122,7 +122,7 @@ def spickle_node_list(nl,filename=None):
     # End function spickle_node_list
 
 
-def pflatten_node_list(nl,filename,do_header=True,nl_idx=None):
+def pflatten_node_list(nl,filename,do_header=True,nl_idx=0):
     """Flatten physical field values from a node list to a rectangular ascii file.
 
     pflatten_node_list(nl,filename) extracts field variables from all nodes of nl,
@@ -164,7 +164,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_idx=None):
     if do_header:
         if mpi.rank == 0:
             fid = open(filename,'w')
-            header = "mitzi da pooch\n"
+            header = "Place holder for real header\n"
             fid.write(header)
             fid.close()
             pass
@@ -192,10 +192,9 @@ def pflatten_node_list(nl,filename,do_header=True,nl_idx=None):
     for proc in range(mpi.procs):
         if proc == mpi.rank:
             fid = open(filename,'a')
-            sys.stderr.write("hi i am proc {}\n".format(proc))
-            fid.write("hi i am proc {}\n".format(proc))
             for nk in range(nl.numInternalNodes):
-                fid.write("    i am node {} from proc {}\n".format(nk,proc))
+                line = "place holder for node fields"
+                fid.write(line+'\n')
                 pass
             fid.close()
             pass
@@ -203,8 +202,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_idx=None):
         pass
      
     # And Bob's our uncle
-    print 'place holder for pflatten_node_list'
-    return 0
+    print "Done."
     # End function pflatten_node_list
      
 
