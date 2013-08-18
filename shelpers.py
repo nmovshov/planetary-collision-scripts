@@ -122,7 +122,7 @@ def spickle_node_list(nl,filename=None):
     # End function spickle_node_list
 
 
-def pflatten_node_list(nl,filename,do_header=True,nl_idx=0):
+def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
     """Flatten physical field values from a node list to a rectangular ascii file.
 
     pflatten_node_list(nl,filename) extracts field variables from all nodes of nl,
@@ -134,7 +134,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_idx=0):
     pflatten_node_list(...,do_header=False) omits the header and appends the flattened
     nl to the end of the files.
 
-    pflatten_node_list(...,nl_idx=idx) inserts the integer idx in the first column
+    pflatten_node_list(...,nl_id=id) inserts the integer id in the first column
     of every node (row) in the node list. This can be used when appending multiple
     lists to the same file, providing a convenient way to distinguish nodes from
     different lists when the file is later read.
@@ -157,14 +157,14 @@ def pflatten_node_list(nl,filename,do_header=True,nl_idx=0):
                      ), "argument 1 must be a node list"
     assert isinstance(filename, str), "argument 2 must be a simple string"
     assert isinstance(do_header, bool), "true or false"
-    assert isinstance(nl_idx, int), "int only indices"
-    assert not isinstance(nl_idx, bool), "int only indices"
+    assert isinstance(nl_id, int), "int only idents"
+    assert not isinstance(nl_id, bool), "int only idents"
 
     # Write the header
     if do_header:
         if mpi.rank == 0:
             fid = open(filename,'w')
-            header = "Place holder for real header\n"
+            header = "#Place holder for real header\n"
             fid.write(header)
             fid.close()
             pass
@@ -193,8 +193,16 @@ def pflatten_node_list(nl,filename,do_header=True,nl_idx=0):
         if proc == mpi.rank:
             fid = open(filename,'a')
             for nk in range(nl.numInternalNodes):
-                line = "place holder for node fields"
-                fid.write(line+'\n')
+                line  = "{:2d}  ".format(nl_id)
+                line += "{0.x:+12.5e}  {0.y:+12.5e}  {0.z:+12.5e}  ".format(xloc[nk])
+                line += "{0.x:+12.5e}  {0.y:+12.5e}  {0.z:+12.5e}  ".format(vloc[nk])
+                line += "{0:+12.5e}  ".format(mloc[nk])
+                line += "{0:+12.5e}  ".format(rloc[nk])
+                line += "{0:+12.5e}  ".format(uloc[nk])
+                line += "{0:+12.5e}  ".format(ploc[nk])
+                line += "{0:+12.5e}  ".format(Tloc[nk])
+                line += "\n"
+                fid.write(line)
                 pass
             fid.close()
             pass
