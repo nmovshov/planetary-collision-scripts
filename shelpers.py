@@ -121,6 +121,7 @@ def spickle_node_list(nl,filename=None):
     return nlFieldDict
     # End function spickle_node_list
 
+
 def pflatten_node_list(nl,filename):
     """Flatten physical field values from a node list to a rectangular ascii file.
 
@@ -180,6 +181,9 @@ def pflatten_node_list(nl,filename):
             fid = open(filename,'a')
             sys.stderr.write("hi i am proc {}\n".format(proc))
             fid.write("hi i am proc {}\n".format(proc))
+            for nk in range(nl.numInternalNodes):
+                fid.write("    i am node {} from proc {}\n".format(nk,proc))
+                pass
             fid.close()
             pass
         mpi.barrier()
