@@ -122,7 +122,7 @@ def spickle_node_list(nl,filename=None):
     # End function spickle_node_list
 
 
-def pflatten_node_list(nl,filename):
+def pflatten_node_list(nl,filename,do_header=True,nl_idx=None):
     """Flatten physical field values from a node list to a rectangular ascii file.
 
     pflatten_node_list(nl,filename) extracts field variables from all nodes of nl,
@@ -130,6 +130,14 @@ def pflatten_node_list(nl,filename):
     the text file filename. (A short header is also written, using the # comment
     character so the resulting file can be easily read with, e.g., numpy.loadtext.)
     The file will be overwritten if it exists.
+
+    pflatten_node_list(...,do_header=False) omits the header and appends the flattened
+    nl to the end of the files.
+
+    pflatten_node_list(...,nl_idx=idx) inserts the integer idx in the first column
+    of every node (row) in the node list. This can be used when appending multiple
+    lists to the same file, providing a convenient way to distinguish nodes from
+    different lists when the file is later read.
 
     The format of the output table is (one line per node):
       x y z vx vy vz m rho p T U
