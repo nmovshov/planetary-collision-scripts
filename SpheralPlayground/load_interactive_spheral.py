@@ -28,7 +28,7 @@ from VoronoiDistributeNodes import distributeNodes3d # the load distributer
 # node lists generator, a node list distributer, a physics package, an integrator,
 # and a controller.
 #-------------------------------------------------------------------------------
-# First, create an equation of state
+# First, create an equation of state.
 units = sph.PhysicalConstants(1.0,1.0,1.0)
 etamin, etamax = 0.01, 100.0
 eos = sph.TillotsonEquationOfState('pure ice',etamin,etamax,units)
