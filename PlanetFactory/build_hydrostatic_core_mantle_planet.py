@@ -99,7 +99,7 @@ XSPH = True
 epsilonTensile = 0.0
 nTensile = 4
 HEvolution = IdealH
-densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids
+densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids.
 compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
@@ -111,12 +111,12 @@ rigorousBoundaries = False
 # TODO: fix ANEOS, currently only tillotson works.
 #-------------------------------------------------------------------------------
 eosCore, eosMantle = None, None
-# Most eos constructors take a units object, we usually use MKS
+# Most eos constructors take a units object, we usually use MKS.
 units = PhysicalConstants(1.0,   # Unit length in meters
                           1.0,   # Unit mass in kg
                           1.0)   # Unit time in seconds
 
-# Tillotson EOS for many geologic materials
+# Use tillotson EOS for many geologic materials.
 mats = ['granite', 'basalt', 'nylon', 'pure ice', '30% silicate ice', 'water']
 etamin, etamax = 0.01, 100.0
 if matMantle.lower() in mats:
@@ -124,7 +124,7 @@ if matMantle.lower() in mats:
 if matCore.lower() in mats:
     eosCore = TillotsonEquationOfState(matCore,etamin,etamax,units)
 
-# Verify valid EOSs (currently only tillotson works)
+# Verify valid EOSs (currently only tillotson works).
 if eosCore is None or eosMantle is None:
     raise ValueError("invalid material selection for core and/or mantle")
 if not (eosCore.valid() and eosMantle.valid()):
@@ -134,7 +134,7 @@ if not (eosCore.valid() and eosMantle.valid()):
 # NAV Restarts and output directories
 # Here we create the output directories, and deal with restarted runs if any.
 #-------------------------------------------------------------------------------
-# Restart and output files.
+# Name directories and files.
 jobDir = os.path.join(baseDir, 
                        'core=%s' % matCore,
                        'mantle=%s' % matMantle,

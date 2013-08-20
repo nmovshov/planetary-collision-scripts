@@ -101,35 +101,38 @@ compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
 #-------------------------------------------------------------------------------
-# NAV Build polytropic EOS object
+# NAV Equation of state
 #-------------------------------------------------------------------------------
 eosPlanet = PolytropicEquationOfStateMKS3d(polytrope_K,
                                            polytrope_n,
                                            polytrope_mu)
+assert eosPlanet.valid(), "equation of state construction failed"
 
 #-------------------------------------------------------------------------------
-# NAV Here we determine if, and deal with, restarted runs
+# NAV Restarts and output directories
+# Here we create the output directories, and deal with restarted runs if any.
 #-------------------------------------------------------------------------------
-# Restart and output files.
-dataDir = os.path.join(baseDir, 
-                       "index=%g" % polytrope_n,
-                       "const=%g" % polytrope_K,
-                       "nxPlanet=%i" % nxPlanet,
+# Name directories and files.
+jobDir = os.path.join(baseDir, 
+                       'index=%g' % polytrope_n,
+                       'const=%g' % polytrope_K,
+                       'nxPlanet=%i' % nxPlanet,
                        )
-restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
-vizDir = os.path.join(dataDir, "viz")
-baseName = jobName
-restartName = os.path.join(restartDir, baseName)
+restartDir = os.path.join(jobDir, 'restarts', 'proc-%04i' % mpi.rank)
+vizDir = os.path.join(jobDir, 'viz')
+outDir = os.path.join(jobDir, 'output')
+restartName = os.path.join(restartDir, jobName)
 
-# Check if the necessary output directories exist.  If not, create them.
-import os, sys
+# Check if the necessary directories exist.  If not, create them.
 if mpi.rank == 0:
-    if not os.path.exists(dataDir):
-        os.makedirs(dataDir)
+    if not os.path.exists(jobDir):
+        os.makedirs(jobDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
+    if not os.path.exists(outDir):
+        os.makedirs(outDir)
 mpi.barrier()
 if not os.path.exists(restartDir):
     os.makedirs(restartDir)
