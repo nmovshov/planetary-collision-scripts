@@ -173,7 +173,7 @@ if restoreCycle is None:
                                                  distributionType = 'lattice',
                                                  xmin = (-rPlanet, -rPlanet, -rPlanet),
                                                  xmax = ( rPlanet,  rPlanet,  rPlanet),
-                                                 rmin = 0.0
+                                                 rmin = 0.0,
                                                  rmax = rPlanet,
                                                  nNodePerh = nPerh)
 
