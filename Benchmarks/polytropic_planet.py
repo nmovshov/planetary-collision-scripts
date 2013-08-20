@@ -11,7 +11,7 @@
 # path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
-import sys
+import sys, os
 import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
@@ -19,26 +19,24 @@ from SolidSpheral3d import *
 from findLastRestart import *
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
+from GenerateNodeDistribution3d import GenerateNodeDistribution3d
 
 #-------------------------------------------------------------------------------
-# NAV Identify job name here
+# NAV SETUP
+# Physical parameters are in MKS units unless otherwise specified.
 #-------------------------------------------------------------------------------
-jobName = "polystatic"
+
+# Job name and description
+jobName = 'polystatic'
 jobDesc = "Hydrostatic equilibrium of a polytropic planet."
-print jobDesc
-
-#-------------------------------------------------------------------------------
-# NAV Setup
-# Generic, mutable problem parameters, in MKS units.
-# Modify these to suit your specific problem.
-#-------------------------------------------------------------------------------
+print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet properties
-rPlanet = 12.0            # (earth radii) initial guess for radius of planet
-mPlanet = 318             # (earth masses) mass of planet
-polytrope_K  = 2e5        # (varies) polytropic constant
-polytrope_n  = 1          # n=1 polytropic index
-polytrope_mu = 2.2e-3     # (kg/mole) mean molecular weight
+rPlanet = 11.2            # Initial guess for radius of planet (earth radii)
+mPlanet = 318             # Mass of planet (earth masses)
+polytrope_K  = 2e5        # Polytropic constant (varies)
+polytrope_n  = 1          # Polytropic index (n=1)
+polytrope_mu = 2.2e-3     # Mean molecular weight (kg/mole)
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
@@ -49,27 +47,25 @@ goalTime = 24000          # Time to advance to (sec)
 dt = 20                   # Initial guess for time step (sec)
 vizTime = 1200            # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
-cooldownFrequency = 1     # None or cycles between "cooldowns" (v=0, U=0)
-cooldownFactor = 0.8      # 0.0-1.0 multiplier of velocity and energy during cooldown
 
 # Node seeding parameters ("resolution")
-nxPlanet = 40             # Number of nodes across the diameter of the target
+nxPlanet = 20             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
-rhomin = 0.01*rhoPlanet   # Lower bound on node density
+rhomin = 0.001*rhoPlanet  # Lower bound on node density
 rhomax = 4.0*rhoPlanet    # Upper bound on node density
 
 # Gravity parameters
-softLength = 1.0e-5       # (fraction of planet radius) softening length
-opening = 1.0             # (dimensionless) opening parameter for gravity tree walk
-fdt = 0.1                 # (dimensionless) gravity timestep multiplier
+softLength = 1.0e-5       # Fraction of planet radius as softening length
+opening = 1.0             # Dimensionless opening parameter for gravity tree walk
+fdt = 0.1                 # Gravity time step multiplier
 softLength *= rPlanet
 G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-dtMin = 20                 # Minimum allowed time step (sec)
+dtMin = 2                 # Minimum allowed time step (sec)
 dtMax = 1000.0*dt         # Maximum allowed time step (sec)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
@@ -80,7 +76,8 @@ restoreCycle = None       # If None, latest available restart cycle is selected
 baseDir = jobName         # Base name for directory to store output in
 
 #-------------------------------------------------------------------------------
-# NAV Options for spheral's hydro mechanism (normally left alone)
+# NAV Spheral hydro solver options
+# These options for spheral's hydro mechanism are normally left alone.
 #-------------------------------------------------------------------------------
 HydroConstructor = ASPHHydro
 Qconstructor = MonaghanGingoldViscosity

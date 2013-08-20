@@ -62,7 +62,7 @@ rhomax = 4.0*rhoCore      # Upper bound on node density
 # Gravity parameters
 softLength = 1.0e-5       # Fraction of planet radius as softening length
 opening = 1.0             # Dimensionless opening parameter for gravity tree walk
-fdt = 0.1                 # Gravity timestep multiplier
+fdt = 0.1                 # Gravity time step multiplier
 softLength *= rPlanet
 G = MKS().G
 
@@ -89,14 +89,14 @@ Cq = 1.0
 Qlimiter = False
 balsaraCorrection = False
 epsilon2 = 1e-2
-negligibleSoundSpeed = 1e-4 
+negligibleSoundSpeed = 1e-4 # kind of arbitrary.
 csMultiplier = 1e-4
 hminratio = 0.1
 limitIdealH = False
 cfl = 0.5
 useVelocityMagnitudeForDt = False
 XSPH = True
-epsilonTensile = 0.3
+epsilonTensile = 0.0
 nTensile = 4
 HEvolution = IdealH
 densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids
