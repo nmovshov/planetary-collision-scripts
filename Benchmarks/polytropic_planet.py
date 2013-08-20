@@ -1,9 +1,14 @@
 #! /proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Hydrostatic equilibrium of a fluid polytropic planet compared with known analytic
-# solution where posisble.
-# Make sure the first line includes the full path to SPHERAL's python, then run
-# with mpirun.
+# Run a polytropic fluid planet to hydrostatic equilibrium.
+#
+# This script demonstrates the interaction of gravity and hydrodynamics inside a
+# planet sized body. Using an index 1 polytropic equation-of-state, the planet
+# should converge to a known density profile. But some tricks need to be employed
+# to help the inherently dynamic spheral reach a more-or-less static equilibrium.
+#
+# To run as an executable script, check that the shebang line points to the full
+# path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
 import sys
@@ -84,17 +89,17 @@ Cq = 1.0
 Qlimiter = False
 balsaraCorrection = False
 epsilon2 = 1e-2
-negligibleSoundSpeed = 1e-4 #TODO make physics based
+negligibleSoundSpeed = 1e-4 # kind of arbitrary.
 csMultiplier = 1e-4
 hminratio = 0.1
 limitIdealH = False
 cfl = 0.5
 useVelocityMagnitudeForDt = False
 XSPH = True
-epsilonTensile = 0.3
+epsilonTensile = 0.0
 nTensile = 4
 HEvolution = IdealH
-densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids
+densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids.
 compatibleEnergyEvolution = True
 rigorousBoundaries = False
 

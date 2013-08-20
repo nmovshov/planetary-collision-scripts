@@ -6,9 +6,10 @@
 # with various core/mantle materials and size ratios.
 # Copy this file to a separate folder and modify with your initial conditions. You
 # will need to consider the expected time scale to run, and you may need to tweak
-# the cooldown frequency and strength as the planet approcahes equilibrium.
-# To run as an executable script, check that the first line includes the full path
-# to SPHERAL's python.
+# the cooldown frequency and strength as the planet approaches equilibrium.
+#
+# To run as an executable script, check that the shebang line points to the full
+# path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
 import sys, os
