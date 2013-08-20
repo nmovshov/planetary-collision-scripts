@@ -217,7 +217,6 @@ del n
 #  * A time integrator of some flavor (usually a Runge-Kutta 2)
 #  * The simulation controller
 #-------------------------------------------------------------------------------
-
 # Create the gravity package.
 gravity = OctTreeGravity(G = G, 
                          softeningLength = softLength, 
@@ -274,36 +273,33 @@ control = SpheralController(integrator, WT,
                             vizTime = vizTime)
 
 #-------------------------------------------------------------------------------
-# NAV MIDPROCESS Here we register optional work to be done mid-run
+# NAV Periodic, mid-run actions
+# Here we register optional work to be done mid-run. Mid-run processes can be time
+# or cycle based. Here we use:
+#  * cooldown() - slow and cool all nodes (including ghost!) [cycle based]
 #-------------------------------------------------------------------------------
-def midprocess(stepsSoFar,timeNow,dt):
-    # stop and cool all nodes
-    vref = planet.velocity()
-    uref = planet.specificThermalEnergy()
-    for k in range(planet.numNodes):
-        vref[k] *= cooldownFactor
-        uref[k] *= cooldownFactor
-    pass
-frequency=cooldownFrequency
-control.appendPeriodicWork(midprocess,frequency)
+def cooldown(stepsSoFar,timeNow,dt):
+    # stop and cool all(!) nodes
+    pass # TODO implement viscous cooldown
+    # end cooldown()
+frequency=1
+control.appendPeriodicWork(cooldown,frequency)
 
 #-------------------------------------------------------------------------------
-# NAV Here we launch the simulation
+# NAV Launch simulation
+# The simulation can be run for a specified number of steps, or a specified time
+# in seconds.
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
-    #raise ValueError, ("Completed %i steps." % steps)
-
 else:
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
-    #control.step() # One more step to ensure we get the final viz dump.
+    control.dropViz()
 
 #-------------------------------------------------------------------------------
-# NAV Here we do any post processing
+# NAV Post processing tasks
+# Here we can include tasks that will happen once, if and when the run is completed
+# successfully. Things like saving flattened node lists and/or computed quantities.
 #-------------------------------------------------------------------------------
-shelpers.spickle_node_list(planet, jobName+'.dat')
-#from IPython import embed
-#if mpi.rank == 0:
-#    embed() # uncomment to start an interactive session when the run completes
-
+pass

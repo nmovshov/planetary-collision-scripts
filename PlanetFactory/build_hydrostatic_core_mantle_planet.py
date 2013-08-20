@@ -252,6 +252,7 @@ if restoreCycle is None:
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
+    pass
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
 for n in nodeSet:
@@ -266,7 +267,6 @@ del n
 #  * A time integrator of some flavor (usually a Runge-Kutta 2)
 #  * The simulation controller
 #-------------------------------------------------------------------------------
-
 # Create the gravity package.
 gravity = OctTreeGravity(G = G, 
                          softeningLength = softLength, 
