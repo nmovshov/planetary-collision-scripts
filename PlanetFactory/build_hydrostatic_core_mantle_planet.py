@@ -170,17 +170,16 @@ if restoreCycle is None:
 # the construction order is as follows:
 # 1. Create an empty node list with fields that match the size and type of problem.
 # 2. Create a "generator" that will decide what values to give to all field variables
-#    of node i. Normally we start with one of the  simple, stock generators, and
+#    of node i. Normally we start with one of the simple, stock generators, and
 #    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
-# 3. Create a "distributer" from a (nodeList, generator) pair. The generator will
-#    be used to fill values in the node list, and then discarded. The distributer
-#    persists so it can work to domain decompose the problem periodically.
+# 3. Distribute, using the (nodeList, generator) pair, among ranks. The generator
+#    will be used to fill values in the node list, and then discarded. 
 #-------------------------------------------------------------------------------
 # Create the node lists.
 core   = makeFluidNodeList('core', eosCore, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rCore*Vector.one, # probably unnecessary
-                           xmax =  10.0*rCore*Vector.one, # probably unnecessary
+                           xmin = -10.0*rCore*Vector.one, # (probably unnecessary)
+                           xmax =  10.0*rCore*Vector.one, # (probably unnecessary)
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,
@@ -240,7 +239,6 @@ if restoreCycle is None:
     print "Starting node distribution..."
     distributeNodes3d((core, coreGenerator),
                       (mantle, mantleGenerator))
-     
     nGlobalNodes = 0
     for n in nodeSet:
         print "Generator info for %s" % n.name

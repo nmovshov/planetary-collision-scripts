@@ -143,13 +143,21 @@ if restoreCycle is None:
     restoreCycle = findLastRestart(restartName)
 
 #-------------------------------------------------------------------------------
-# NAV Here we construct a node list for a spherical stationary planet
+# NAV Node construction
+# Here we create and populate a node list with initial conditions. In spheral, the
+# construction order is as follows:
+# 1. Create an empty node list with fields that match the size and type of problem.
+# 2. Create a "generator" that will decide what values to give to all field variables
+#    of node i. Normally we start with one of the simple, stock generators, and
+#    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
+# 3. Distribute, using the (nodeList, generator) pair, among ranks. The generator
+#    will be used to fill values in the node list, and then discarded. 
 #-------------------------------------------------------------------------------
-# Create the NodeList.
-planet = makeFluidNodeList("planet", eosPlanet, 
+# Create the node list.
+planet = makeFluidNodeList('planet', eosPlanet, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rPlanet*Vector.one,
-                           xmax =  10.0*rPlanet*Vector.one,
+                           xmin = -10.0*rPlanet*Vector.one, # (probably unnecessary)
+                           xmax =  10.0*rPlanet*Vector.one, # (probably unnecessary)
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,
@@ -157,26 +165,28 @@ planet = makeFluidNodeList("planet", eosPlanet,
                            )
 nodeSet = [planet]
 
-# Generate nodes
+# Unless restarting, create the generator and set initial field values.
 if restoreCycle is None:
-    print "Generating node distribution."
-    from GenerateNodeDistribution3d import GenerateNodeDistribution3d
-
+    # Start with the stock generator.
     planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
                                                  rhoPlanet,
-                                                 distributionType = "lattice",
+                                                 distributionType = 'lattice',
                                                  xmin = (-rPlanet, -rPlanet, -rPlanet),
                                                  xmax = ( rPlanet,  rPlanet,  rPlanet),
+                                                 rmin = 0.0
                                                  rmax = rPlanet,
                                                  nNodePerh = nPerh)
 
-# Disturb the symmetry with some random noise to avoid artificial waves
+    # Modify geometry.
+    # We disturb the lattice symmetry to avoid artificial singularities.
     for k in range(planetGenerator.localNumNodes()):
-        planetGenerator.x[k] *= 1.0 + 0.04*random.random()
-        planetGenerator.y[k] *= 1.0 + 0.04*random.random()
-        planetGenerator.z[k] *= 1.0 + 0.04*random.random()
+        planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        planetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        planetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        pass
 
-# Distribute nodes across ranks
+
+    # Fill node list using generators and distribute to ranks.
     print "Starting node distribution..."
     distributeNodes3d((planet, planetGenerator))
     nGlobalNodes = 0
@@ -192,14 +202,20 @@ if restoreCycle is None:
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
-# Construct a DataBase to hold our node list.
+    pass
+# The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
 for n in nodeSet:
     db.appendNodeList(n)
 del n
 
 #-------------------------------------------------------------------------------
-# NAV Here we create the various physics objects
+# NAV Spheral's simulation structure
+# Here we construct the objects that compose spheral's simulation hierarchy.
+# These are:
+#  * One or more physics packages (hydro, gravity, strength, damage)
+#  * A time integrator of some flavor (usually a Runge-Kutta 2)
+#  * The simulation controller
 #-------------------------------------------------------------------------------
 
 # Create our interpolation kernels -- one for normal hydro interactions, and
