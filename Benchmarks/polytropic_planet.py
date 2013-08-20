@@ -218,18 +218,17 @@ del n
 #  * The simulation controller
 #-------------------------------------------------------------------------------
 
-# Create our interpolation kernels -- one for normal hydro interactions, and
-# one for use with the artificial viscosity
-WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
-
-# Create the gravity object
+# Create the gravity package.
 gravity = OctTreeGravity(G = G, 
                          softeningLength = softLength, 
                          opening = opening, 
                          ftimestep = fdt)
 
-# Construct the artificial viscosity.
+# Create the kernel functions for SPH.
+WT = TableKernel(BSplineKernel(), 1000) # one for normal hydro
+WTPi = WT                               # one for artificial viscosity
+
+# Create the artificial viscosity object.
 q = Qconstructor(Cl, Cq)
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
@@ -237,7 +236,7 @@ q.epsilon2 = epsilon2
 q.negligibleSoundSpeed = negligibleSoundSpeed
 q.csMultiplier = csMultiplier
 
-# Construct the hydro physics object.
+# Create the hydro package.
 hydro = HydroConstructor(WT,
                          WTPi,
                          q,
@@ -251,7 +250,7 @@ hydro = HydroConstructor(WT,
                          epsTensile = epsilonTensile,
                          nTensile = nTensile)
 
-# Construct a time integrator.
+# Create the time integrator and attach the physics packages to it.
 integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(gravity)
 integrator.appendPhysicsPackage(hydro)
@@ -262,14 +261,14 @@ integrator.dtGrowth = dtGrowth
 integrator.verbose = verbosedt
 integrator.rigorousBoundaries = rigorousBoundaries
 
-# Build the controller.
+# Create the controller.
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             redistributeStep = redistributeStep,
                             restartBaseName = restartName,
                             restoreCycle = restoreCycle,
-                            vizBaseName = baseName,
+                            vizBaseName = jobName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
