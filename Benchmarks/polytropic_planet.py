@@ -32,7 +32,7 @@ jobDesc = "Hydrostatic equilibrium of a polytropic planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet properties
-rPlanet = 11.2            # Initial guess for radius of planet (earth radii)
+rPlanet = 12.2            # Initial guess for radius of planet (earth radii)
 mPlanet = 318             # Mass of planet (earth masses)
 polytrope_K  = 2e5        # Polytropic constant (varies)
 polytrope_n  = 1          # Polytropic index (n=1)
@@ -41,11 +41,16 @@ mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 
+# Cooldown mechanism
+cooldown_method = 'dashpot'
+cooldown_power = 0.2
+cooldown_frequency = 1
+
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 24000          # Time to advance to (sec)
+goalTime = 4000           # Time to advance to (sec)
 dt = 20                   # Initial guess for time step (sec)
-vizTime = 1200            # Time frequency for dropping viz files (sec)
+vizTime = 100             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 
 # Node seeding parameters ("resolution")
@@ -74,6 +79,15 @@ redistributeStep = 2000   # Frequency to load balance problem from scratch
 restartStep = 200         # Frequency to drop restart files
 restoreCycle = None       # If None, latest available restart cycle is selected
 baseDir = jobName         # Base name for directory to store output in
+
+#-------------------------------------------------------------------------------
+# NAV Assertions
+# This is a good place for a quick abort if some bad parameter choices are going
+# to cause trouble later.
+#-------------------------------------------------------------------------------
+assert 0 <= cooldown_power <= 1.0, "bad juju"
+assert type(cooldown_frequency) is int and cooldown_frequency > 0, "very funny"
+assert cooldown_method in ['dashpot'], "unknown cooldown method"
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -279,11 +293,21 @@ control = SpheralController(integrator, WT,
 #  * cooldown() - slow and cool all nodes (including ghost!) [cycle based]
 #-------------------------------------------------------------------------------
 def cooldown(stepsSoFar,timeNow,dt):
-    # stop and cool all(!) nodes
-    pass # TODO implement viscous cooldown
+    """Slow and cool internal nodes."""
+    if cooldown_method is 'dashpot':
+        typ_node_mass = planet.mass()[0]
+        typ_time_scale = dt
+        dashpot_parameter = cooldown_power*typ_node_mass/typ_time_scale
+        v = planet.velocity()
+        m = planet.mass()
+        u = planet.specificThermalEnergy()
+        delta_t = control.lastDt()
+        for nk in range(planet.numInternalNodes):
+            v[nk] *= (1 - dashpot_parameter*delta_t/m[nk])
+            u[nk] *= 0 # For a polytrope it doesn't matter
+        pass
     # end cooldown()
-frequency=1
-control.appendPeriodicWork(cooldown,frequency)
+control.appendPeriodicWork(cooldown,cooldown_frequency)
 
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
