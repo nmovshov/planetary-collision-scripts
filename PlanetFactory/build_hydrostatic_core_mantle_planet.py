@@ -79,6 +79,13 @@ restoreCycle = None       # If None, latest available restart cycle is selected
 baseDir = jobName         # Base name for directory to store output in
 
 #-------------------------------------------------------------------------------
+# Nav Assertions
+# This is a good place for a quick abort if some bad parameter choices are going
+# to cause trouble later.
+#-------------------------------------------------------------------------------
+pass
+
+#-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
 # These options for spheral's hydro mechanism are normally left alone.
 #-------------------------------------------------------------------------------
