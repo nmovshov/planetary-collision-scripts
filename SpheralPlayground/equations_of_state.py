@@ -1,11 +1,9 @@
-#! /auto/proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
 # Load some of spheral's equation-of-state objects to workspace.
 # Run this in iPython for interactive exploration of EOS options in spheral.
 #-------------------------------------------------------------------------------
+import sys, os
 from SolidSpheral3d import *
-import Gnuplot
-import os
 
 #-------------------------------------------------------------------------------
 # Setup
@@ -21,7 +19,7 @@ units = PhysicalConstants(1.0,   # Unit length in meters
 #-------------------------------------------------------------------------------
 # Tillotson EOS for common materials
 #-------------------------------------------------------------------------------
-mats = ["Granite", "Basalt", "Nylon", "Pure Ice", "30% Silicate Ice", "Water"]
+mats = ['Granite', 'Basalt', 'Nylon', 'Pure Ice', '30% Silicate Ice', 'Water']
 etamin, etamax = 0.01, 100.0
 EOSes = [TillotsonEquationOfState(mat, etamin, etamax, units) for mat in mats]
 granite  = EOSes[0]
@@ -36,7 +34,7 @@ del EOSes, mats, etamin, etamax
 # M/ANEOS improved SiO2
 #-------------------------------------------------------------------------------
 izetl = vector_of_int(1, -1)
-initializeANEOS("/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT", "ANEOS.barf", izetl)
+initializeANEOS('/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT', 'ANEOS.barf', izetl)
 SiO2 = ANEOS(0,          # Material number
              1000,       # num rho vals
              1000,       # num T vals
@@ -73,5 +71,5 @@ print
 print "Available materials:"
 for k,v in Materials.iteritems():
     print k.ljust(20), v
-
+    pass
 
