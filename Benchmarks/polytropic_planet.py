@@ -52,6 +52,8 @@ goalTime = 16000          # Time to advance to (sec)
 dt = 20                   # Initial guess for time step (sec)
 vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
+outTime = 600             # Time frequency for running output routine (sec)
+outCycle = None           # Cycle frequency for running output routine
 
 # Node seeding parameters ("resolution")
 nxPlanet = 40             # Number of nodes across the diameter of the target
@@ -83,11 +85,15 @@ baseDir = jobName         # Base name for directory to store output in
 #-------------------------------------------------------------------------------
 # NAV Assertions
 # This is a good place for a quick abort if some bad parameter choices are going
-# to cause trouble later.
+# to cause trouble later, in confusing ways. We assume that spheral constructors
+# use their own assertions, so here we can validate just our own stuff. Another
+# valid option would be to simply not worry about it, and let exceptions happen.
 #-------------------------------------------------------------------------------
 assert 0 <= cooldown_power <= 1.0, "bad juju"
 assert type(cooldown_frequency) is int and cooldown_frequency > 0, "very funny"
 assert cooldown_method in ['dashpot'], "unknown cooldown method"
+assert (outTime is None) or (outCycle is None),\
+        "output on both time and cycle is confusing"
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
