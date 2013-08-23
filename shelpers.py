@@ -1,11 +1,10 @@
-#------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #   Spheral Helpers - A collection of some convenience functions for reuse in
 #                     the planetary collision scripts.
 #
-# Author: nmovshov@gmail.com
-#------------------------------------------------------------------------------
+# Author: nmovshov at gmail dot com
+#-------------------------------------------------------------------------------
 import sys, os
-import warnings
 import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
 import SolidSpheral3d as sph
@@ -21,11 +20,11 @@ def spickle_node_list(nl,filename=None):
     also be pickled to a file of that name. The file will be overwritten if it
     exists.
 
-    The s in spickle is for 'serial', a reminder that this method collects ALL
-    nodes of the node list (not just local nodes) in a single process. Thus this
-    method is mainly useful for interactive work with small node lists. It is the
-    user's responsibility to make sure her process has enough memory to hold the
-    returned dict.
+    The s in spickle is for 'serial', a reminder that this method collects all
+    nodes of the node list (from all ranks) in a single process. Thus this method
+    is mainly useful for interactive work with small node lists. It is the user's
+    responsibility to make sure her process has enough memory to hold the returned
+    dict.
 
     See also: pflatten_node_list
     """
@@ -80,7 +79,8 @@ def spickle_node_list(nl,filename=None):
     globalFields = mpi.allreduce(localFields, mpi.SUM)
 
     # Create a dictionary to hold field variables.
-    nlFieldDict = dict(x=[],   # position vector
+    nlFieldDict = dict(name=nl.name,
+                       x=[],   # position vector
                        v=[],   # velocity vector
                        m=[],   # mass
                        rho=[], # mass density
