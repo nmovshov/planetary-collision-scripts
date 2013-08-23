@@ -48,13 +48,13 @@ cooldown_frequency = 1
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 4000           # Time to advance to (sec)
+goalTime = 8000           # Time to advance to (sec)
 dt = 20                   # Initial guess for time step (sec)
 vizTime = 100             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 
 # Node seeding parameters ("resolution")
-nxPlanet = 20             # Number of nodes across the diameter of the target
+nxPlanet = 40             # Number of nodes across the diameter of the target
 nPerh = 1.51              # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
