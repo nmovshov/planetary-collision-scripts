@@ -49,7 +49,7 @@ cooldown_frequency = 1
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
 goalTime = 16000          # Time to advance to (sec)
-dt = 20                   # Initial guess for time step (sec)
+dtInit = 20               # Initial guess for time step (sec)
 vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 outTime = 600             # Time frequency for running output routine (sec)
@@ -73,7 +73,7 @@ G = MKS().G
 # More simulation parameters
 dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
 dtMin = 2                 # Minimum allowed time step (sec)
-dtMax = 1000.0*dt         # Maximum allowed time step (sec)
+dtMax = 1000.0*dtInit     # Maximum allowed time step (sec)
 verbosedt = False         # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000           # Maximum allowed steps for simulation advance
 statsStep = None          # Frequency for sampling conservation statistics and such
@@ -273,7 +273,7 @@ hydro = HydroConstructor(WT,
 integrator = SynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(gravity)
 integrator.appendPhysicsPackage(hydro)
-integrator.lastDt = dt
+integrator.lastDt = dtInit
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
@@ -296,20 +296,21 @@ control = SpheralController(integrator, WT,
 # NAV Periodic, mid-run actions
 # Here we register optional work to be done mid-run. Mid-run processes can be time
 # or cycle based. Here we use:
-#  * cooldown() - slow and cool all nodes (including ghost!) [cycle based]
+#  * cooldown() - slow and cool internal nodes [cycle based]
+#  * output() - a generic access routine, usually a pickle of node list or some
+#               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
 def cooldown(stepsSoFar,timeNow,dt):
     """Slow and cool internal nodes."""
     if cooldown_method is 'dashpot':
         typ_node_mass = planet.mass()[0]
-        typ_time_scale = dt
+        typ_time_scale = dtInit
         dashpot_parameter = cooldown_power*typ_node_mass/typ_time_scale
         v = planet.velocity()
         m = planet.mass()
         u = planet.specificThermalEnergy()
-        delta_t = control.lastDt()
         for nk in range(planet.numInternalNodes):
-            v[nk] *= (1 - dashpot_parameter*delta_t/m[nk])
+            v[nk] *= (1 - dashpot_parameter*dt/m[nk])
             u[nk] *= 0 # For a polytrope it doesn't matter
         pass
     # end cooldown()
