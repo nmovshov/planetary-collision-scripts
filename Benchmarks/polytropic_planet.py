@@ -48,9 +48,9 @@ cooldown_frequency = 1
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
-goalTime = 8000           # Time to advance to (sec)
+goalTime = 16000          # Time to advance to (sec)
 dt = 20                   # Initial guess for time step (sec)
-vizTime = 100             # Time frequency for dropping viz files (sec)
+vizTime = 600             # Time frequency for dropping viz files (sec)
 vizCycle = None           # Cycle frequency for dropping viz files
 
 # Node seeding parameters ("resolution")
