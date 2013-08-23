@@ -313,7 +313,11 @@ def cooldown(stepsSoFar,timeNow,dt):
             v[nk] *= (1 - dashpot_parameter*dt/m[nk])
             u[nk] *= 0 # For a polytrope it doesn't matter
         pass
-    # end cooldown()
+    pass
+
+def mOutput(stepsSoFar,timeNow,dt):
+    pass #TODO
+
 control.appendPeriodicWork(cooldown,cooldown_frequency)
 
 #-------------------------------------------------------------------------------
