@@ -32,11 +32,11 @@ jobDesc = "Hydrostatic equilibrium of a polytropic planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet properties
-rPlanet = 12.2            # Initial guess for radius of planet (earth radii)
-mPlanet = 318             # Mass of planet (earth masses)
-polytrope_K  = 2e5        # Polytropic constant (varies)
-polytrope_n  = 1          # Polytropic index (n=1)
-polytrope_mu = 2.2e-3     # Mean molecular weight (kg/mole)
+rPlanet = 12.2             # Initial guess for radius of planet (earth radii)
+mPlanet = 318              # Mass of planet (earth masses)
+polytrope_K  = 2e5         # Polytropic constant (varies)
+polytrope_n  = 1           # Polytropic index (n=1)
+polytrope_mu = 2.2e-3      # Mean molecular weight (kg/mole)
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
@@ -47,40 +47,40 @@ cooldownPower = 0.2        # Dimensionless cooldown "strength" 0-1 (none-total)
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
 
 # Times, simulation control, and output
-steps = None              # None or advance a number of steps rather than to a time
-goalTime = 16000          # Time to advance to (sec)
-dtInit = 20               # Initial guess for time step (sec)
-vizTime = 600             # Time frequency for dropping viz files (sec)
-vizCycle = None           # Cycle frequency for dropping viz files
-outTime = 600             # Time frequency for running output routine (sec)
-outCycle = None           # Cycle frequency for running output routine
+steps = None               # None or advance a number of steps rather than to a time
+goalTime = 16000           # Time to advance to (sec)
+dtInit = 20                # Initial guess for time step (sec)
+vizTime = 600              # Time frequency for dropping viz files (sec)
+vizCycle = None            # Cycle frequency for dropping viz files
+outTime = 600              # Time frequency for running output routine (sec)
+outCycle = None            # Cycle frequency for running output routine
 
 # Node seeding parameters ("resolution")
-nxPlanet = 40             # Number of nodes across the diameter of the target
-nPerh = 1.51              # Nominal number of nodes per smoothing scale
-hmin = 1.0e-6*rPlanet     # Lower bound on smoothing length
-hmax = 1.0e-1*rPlanet     # Upper bound on smoothing length
-rhomin = 0.001*rhoPlanet  # Lower bound on node density
-rhomax = 4.0*rhoPlanet    # Upper bound on node density
+nxPlanet = 40              # Number of nodes across the diameter of the target
+nPerh = 1.51               # Nominal number of nodes per smoothing scale
+hmin = 1.0e-6*rPlanet      # Lower bound on smoothing length
+hmax = 1.0e-1*rPlanet      # Upper bound on smoothing length
+rhomin = 0.001*rhoPlanet   # Lower bound on node density
+rhomax = 4.0*rhoPlanet     # Upper bound on node density
 
 # Gravity parameters
-softLength = 1.0e-5       # Fraction of planet radius as softening length
-opening = 1.0             # Dimensionless opening parameter for gravity tree walk
-fdt = 0.1                 # Gravity time step multiplier
+softLength = 1.0e-5        # Fraction of planet radius as softening length
+opening = 1.0              # Dimensionless opening parameter for gravity tree walk
+fdt = 0.1                  # Gravity time step multiplier
 softLength *= rPlanet
 G = MKS().G
 
 # More simulation parameters
-dtGrowth = 2.0            # Maximum growth factor for time step in a cycle (dimensionless)
-dtMin = 2                 # Minimum allowed time step (sec)
-dtMax = 1000.0*dtInit     # Maximum allowed time step (sec)
-verbosedt = False         # Verbose reporting of the time step criteria per cycle
-maxSteps = 1000           # Maximum allowed steps for simulation advance
-statsStep = None          # Frequency for sampling conservation statistics and such
-redistributeStep = 2000   # Frequency to load balance problem from scratch
-restartStep = 200         # Frequency to drop restart files
-restoreCycle = None       # If None, latest available restart cycle is selected
-baseDir = jobName         # Base name for directory to store output in
+dtGrowth = 2.0             # Maximum growth factor for time step per cycle (dimensionless)
+dtMin = 2                  # Minimum allowed time step (sec)
+dtMax = 1000.0*dtInit      # Maximum allowed time step (sec)
+verbosedt = False          # Verbose reporting of the time step criteria per cycle
+maxSteps = 1000            # Maximum allowed steps for simulation advance
+statsStep = None           # Frequency for sampling conservation statistics and such
+redistributeStep = 2000    # Frequency to load balance problem from scratch
+restartStep = 200          # Frequency to drop restart files
+restoreCycle = None        # If None, latest available restart cycle is selected
+baseDir = jobName          # Base name for directory to store output in
 
 #-------------------------------------------------------------------------------
 # NAV Assertions
