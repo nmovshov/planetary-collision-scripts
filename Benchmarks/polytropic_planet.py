@@ -47,7 +47,7 @@ cooldownPower = 0.2        # Dimensionless cooldown "strength" 0-1 (none-total)
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
 
 # Times, simulation control, and output
-steps = None               # None or advance a number of steps rather than to a time
+steps = 6               # None or advance a number of steps rather than to a time
 goalTime = 16000           # Time to advance to (sec)
 dtInit = 20                # Initial guess for time step (sec)
 vizTime = 600              # Time frequency for dropping viz files (sec)
@@ -302,18 +302,18 @@ control = SpheralController(integrator, WT,
 #  * output() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
+massScale = planet.mass()[0]
+timeSCale = dtInit
+dashpotParameter = cooldownPower*massScale/timeSCale
 def cooldown(stepsSoFar,timeNow,dt):
     """Slow and cool internal nodes."""
     if cooldownMethod is 'dashpot':
-        typ_node_mass = planet.mass()[0]
-        typ_time_scale = dtInit
-        dashpot_parameter = cooldownPower*typ_node_mass/typ_time_scale
         v = planet.velocity()
         m = planet.mass()
         u = planet.specificThermalEnergy()
-        for nk in range(planet.numInternalNodes):
-            v[nk] *= (1 - dashpot_parameter*dt/m[nk])
-            u[nk] *= 0 # For a polytrope it doesn't matter
+        for k in range(planet.numInternalNodes):
+            v[k] *= (1 - dashpotParameter*dt/m[k])
+            u[k] *= 0 # irrelevant for a polytrope
         pass
     pass
 
