@@ -32,7 +32,7 @@ def spickle_node_list(nl,filename=None):
     # Make sure we are not wasting our time.
     assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
                           sph.Spheral.SolidMaterial.SolidNodeList3d)
-                     ), "argument 1 must be a node list"
+                      ), "argument 1 must be a node list"
     
     # Estimate memory usage and give user a chance to avoid a crash.
     # TODO fix this block
