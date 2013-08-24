@@ -42,9 +42,9 @@ rPlanet *= 6371.0e3
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 
 # Cooldown mechanism
-cooldown_method = 'dashpot'
-cooldown_power = 0.2
-cooldown_frequency = 1
+cooldownMethod = 'dashpot' # 'dashpot' or 'stomp' TODO reimplement stomp
+cooldownPower = 0.2        # Dimensionless cooldown "strength" 0-1 (none-total)
+cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
 
 # Times, simulation control, and output
 steps = None              # None or advance a number of steps rather than to a time
@@ -89,9 +89,11 @@ baseDir = jobName         # Base name for directory to store output in
 # use their own assertions, so here we can validate just our own stuff. Another
 # valid option would be to simply not worry about it, and let exceptions happen.
 #-------------------------------------------------------------------------------
-assert 0 <= cooldown_power <= 1.0, "bad juju"
-assert type(cooldown_frequency) is int and cooldown_frequency > 0, "very funny"
-assert cooldown_method in ['dashpot'], "unknown cooldown method"
+assert 0 <= cooldownPower <= 1.0, "bad juju"
+assert type(cooldownFrequency) is int and cooldownFrequency > 0, "very funny"
+assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
+assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
+        "dashpot cooling method requires frequency=1"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 
@@ -302,10 +304,10 @@ control = SpheralController(integrator, WT,
 #-------------------------------------------------------------------------------
 def cooldown(stepsSoFar,timeNow,dt):
     """Slow and cool internal nodes."""
-    if cooldown_method is 'dashpot':
+    if cooldownMethod is 'dashpot':
         typ_node_mass = planet.mass()[0]
         typ_time_scale = dtInit
-        dashpot_parameter = cooldown_power*typ_node_mass/typ_time_scale
+        dashpot_parameter = cooldownPower*typ_node_mass/typ_time_scale
         v = planet.velocity()
         m = planet.mass()
         u = planet.specificThermalEnergy()
@@ -318,7 +320,7 @@ def cooldown(stepsSoFar,timeNow,dt):
 def mOutput(stepsSoFar,timeNow,dt):
     pass #TODO
 
-control.appendPeriodicWork(cooldown,cooldown_frequency)
+control.appendPeriodicWork(cooldown,cooldownFrequency)
 
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
