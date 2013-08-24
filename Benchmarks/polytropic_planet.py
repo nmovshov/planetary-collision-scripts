@@ -16,7 +16,7 @@ import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
 from SolidSpheral3d import *
-from findLastRestart import *
+from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d
@@ -56,7 +56,7 @@ outTime = 600              # Time frequency for running output routine (sec)
 outCycle = None            # Cycle frequency for running output routine
 
 # Node seeding parameters ("resolution")
-nxPlanet = 40              # Number of nodes across the diameter of the target
+nxPlanet = 20              # Number of nodes across the diameter of the target
 nPerh = 1.51               # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet      # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet      # Upper bound on smoothing length

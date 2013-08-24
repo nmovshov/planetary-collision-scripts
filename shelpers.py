@@ -132,17 +132,18 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
     The file will be overwritten if it exists.
 
     pflatten_node_list(...,do_header=False) omits the header and appends the flattened
-    nl to the end of the files.
+    nl to the end of the file if one exists.
 
-    pflatten_node_list(...,nl_id=id) inserts the integer id in the first column
+    pflatten_node_list(...,nl_id=id) places the integer id in the first column
     of every node (row) in the node list. This can be used when appending multiple
     lists to the same file, providing a convenient way to distinguish nodes from
-    different lists when the file is later read.
+    different lists when the file is later read. The default id (for single node
+    list files) is 0.
 
     The format of the output table is (one line per node):
-      x y z vx vy vz m rho p T U
+      id x y z vx vy vz m rho p T U
 
-    The p in pflatten is for 'parallel', a reminder that the all nodes will be
+    The p in pflatten is for 'parallel', a reminder that all nodes will be
     processed in their local rank, without ever being communicated or collected
     in a single process. Each mpi rank will wait its turn to access the output file,
     so the writing is in fact serial, but avoids bandwidth and memory waste and
@@ -154,7 +155,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
     # Make sure we are not wasting our time.
     assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
                           sph.Spheral.SolidMaterial.SolidNodeList3d)
-                     ), "argument 1 must be a node list"
+                      ), "argument 1 must be a node list"
     assert isinstance(filename, str), "argument 2 must be a simple string"
     assert isinstance(do_header, bool), "true or false"
     assert isinstance(nl_id, int), "int only idents"
@@ -213,4 +214,3 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
     print "Done."
     # End function pflatten_node_list
      
-
