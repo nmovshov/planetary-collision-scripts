@@ -47,13 +47,13 @@ cooldownPower = 0.2        # Dimensionless cooldown "strength" 0-1 (none-total)
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
 
 # Times, simulation control, and output
-steps = 6               # None or advance a number of steps rather than to a time
+steps = None               # None or advance a number of steps rather than to a time
 goalTime = 16000           # Time to advance to (sec)
 dtInit = 20                # Initial guess for time step (sec)
 vizTime = 600              # Time frequency for dropping viz files (sec)
 vizCycle = None            # Cycle frequency for dropping viz files
-outTime = 600              # Time frequency for running output routine (sec)
-outCycle = None            # Cycle frequency for running output routine
+outTime = None             # Time frequency for running output routine (sec)
+outCycle = 100             # Cycle frequency for running output routine
 
 # Node seeding parameters ("resolution")
 nxPlanet = 20              # Number of nodes across the diameter of the target
@@ -316,11 +316,20 @@ def cooldown(stepsSoFar,timeNow,dt):
             u[k] *= 0 # irrelevant for a polytrope
         pass
     pass
+control.appendPeriodicWork(cooldown,cooldownFrequency)
 
 def mOutput(stepsSoFar,timeNow,dt):
-    pass #TODO
-
-control.appendPeriodicWork(cooldown,cooldownFrequency)
+    """Save node list to flat ascii file."""
+    mFileName="{0}-{1:04d}-{2:g}.{3}".format(
+              jobName, stepsSoFar, timeNow, 'fnl')
+    shelpers.pflatten_node_list(planet, outDir + '/' + mFileName)
+    pass
+if not outCycle is None:
+    control.appendPeriodicWork(mOutput,outCycle)
+    pass
+if not outCycle is None:
+    #TODO implement timed output
+    pass
 
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
