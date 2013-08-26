@@ -52,7 +52,7 @@ goalTime = 1000            # Time to advance to (sec)
 dtInit = 20                # Initial guess for time step (sec)
 vizTime = 600              # Time frequency for dropping viz files (sec)
 vizCycle = None            # Cycle frequency for dropping viz files
-outTime = 600              # Time between running output routine (sec)
+outTime = 1600             # Time between running output routine (sec)
 outCycle = None            # Cycles between running output routine
 
 # Node seeding parameters ("resolution")
@@ -359,17 +359,18 @@ else:
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
 # If Gnuplot is available, plot the density profile for quick reference.
-try:
-    import Gnuplot
-    g = Gnuplot.Gnuplot(debug=0)
-    pass
-except ImportError as mExc:
-    print "ImportError:", mExc, ", skipping graphics."
-    pass
-else:
-    pass
-finally:
-    pass
+#try:
+#    import Gnuplot
+#    g = Gnuplot.Gnuplot(debug=0)
+#    g.title("Planet density profile")
+#    pass
+#except ImportError as mExc:
+#    print "ImportError:", mExc, ", skipping graphics."
+#    pass
+#else:
+#    pass
+#finally:
+#    pass
 
 #-------------------------------------------------------------------------------
 # NAV Final thoughts
