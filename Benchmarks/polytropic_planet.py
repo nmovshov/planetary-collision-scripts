@@ -357,4 +357,22 @@ else:
 #-------------------------------------------------------------------------------
 # Save final state in a flattened node list (.fnl) file.
 mOutput(control.totalSteps, control.time(), control.lastDt())
-pass
+
+# If Gnuplot is available, plot the density profile for quick reference.
+try:
+    import Gnuplot
+    g = Gnuplot.Gnuplot(debug=0)
+    pass
+except ImportError as mExc:
+    print "ImportError:", mExc, ", skipping graphics."
+    pass
+else:
+    pass
+finally:
+    pass
+
+#-------------------------------------------------------------------------------
+# NAV Final thoughts
+# Here we may print a message if desired, or do any final action.
+#-------------------------------------------------------------------------------
+print jobName, "completed."
