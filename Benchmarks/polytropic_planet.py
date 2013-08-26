@@ -42,7 +42,7 @@ rPlanet *= 6371.0e3
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 
 # Cooldown mechanism
-cooldownMethod = 'dashpot' # 'dashpot' or 'stomp' TODO reimplement stomp
+cooldownMethod = 'dashpot' # 'dashpot' or 'stomp' 
 cooldownPower = 0.2        # Dimensionless cooldown "strength" 0-1 (none-total)
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
 
@@ -314,6 +314,15 @@ def cooldown(stepsSoFar,timeNow,dt):
         for k in range(planet.numInternalNodes):
             v[k] *= (1 - dashpotParameter*dt/m[k])
             u[k] *= 0 # irrelevant for a polytrope
+            pass
+        pass
+    elif cooldownMethod is 'stomp':
+        v = planet.velocity()
+        u = planet.specificThermalEnergy()
+        for k in range(planet.numInternalNodes):
+            v[k] *= (1 - cooldownPower)
+            u[k] *= 0 # irrelevant for a polytrope
+            pass
         pass
     pass
 control.appendPeriodicWork(cooldown,cooldownFrequency)
@@ -326,10 +335,8 @@ def mOutput(stepsSoFar,timeNow,dt):
     pass
 if not outCycle is None:
     control.appendPeriodicWork(mOutput,outCycle)
-    pass
 if not outTime is None:
     control.appendPeriodicTimeWork(mOutput,outTime)
-    pass
 
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
