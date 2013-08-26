@@ -51,7 +51,7 @@ def spickle_node_list(nl,filename=None):
     mpi.barrier()
 
     # Start collecting data.
-    print 'Pickling', nl.label(), nl.name, '........'
+    sys.stdout.write('Pickling ' +  nl.label() + ' ' + nl.name + '........')
 
     # Get values of field variables stored in internal nodes.
     xloc = nl.positions().internalValues()
@@ -172,7 +172,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
         pass
      
     # Start collecting data.
-    print 'Flattening', nl.label(), nl.name, '........'
+    sys.stdout.write('Flattening ' + nl.label() + ' ' + nl.name + '........')
     
     # Get values of field variables stored in internal nodes
     xloc = nl.positions().internalValues()
