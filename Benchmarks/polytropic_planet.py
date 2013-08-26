@@ -376,4 +376,4 @@ mOutput(control.totalSteps, control.time(), control.lastDt())
 # NAV Final thoughts
 # Here we may print a message if desired, or do any final action.
 #-------------------------------------------------------------------------------
-print jobName, "completed."
+print jobName.upper(), "completed."
