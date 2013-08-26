@@ -34,8 +34,8 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 # Planet properties
 rPlanet = 12.2             # Initial guess for radius of planet (earth radii)
 mPlanet = 318              # Mass of planet (earth masses)
-polytrope_K  = 2e5         # Polytropic constant (varies)
 polytrope_n  = 1           # Polytropic index (n=1)
+polytrope_K  = 2e5         # Polytropic constant (Pressure/density^n)
 polytrope_mu = 2.2e-3      # Mean molecular weight (kg/mole)
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
@@ -303,8 +303,8 @@ control = SpheralController(integrator, WT,
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
 massScale = planet.mass()[0]
-timeSCale = dtInit
-dashpotParameter = cooldownPower*massScale/timeSCale
+timeScale = 1.0/sqrt(2*rhoPlanet*G)
+dashpotParameter = cooldownPower*massScale/timeScale
 def cooldown(stepsSoFar,timeNow,dt):
     """Slow and cool internal nodes."""
     if cooldownMethod is 'dashpot':
