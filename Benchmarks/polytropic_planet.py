@@ -52,8 +52,8 @@ goalTime = 16000           # Time to advance to (sec)
 dtInit = 20                # Initial guess for time step (sec)
 vizTime = 600              # Time frequency for dropping viz files (sec)
 vizCycle = None            # Cycle frequency for dropping viz files
-outTime = None             # Time frequency for running output routine (sec)
-outCycle = 100             # Cycle frequency for running output routine
+outTime = 100              # Time between running output routine (sec)
+outCycle = None            # Cycles between running output routine
 
 # Node seeding parameters ("resolution")
 nxPlanet = 20              # Number of nodes across the diameter of the target
@@ -327,8 +327,8 @@ def mOutput(stepsSoFar,timeNow,dt):
 if not outCycle is None:
     control.appendPeriodicWork(mOutput,outCycle)
     pass
-if not outCycle is None:
-    #TODO implement timed output
+if not outTime is None:
+    control.appendPeriodicTimeWork(mOutput,outTime)
     pass
 
 #-------------------------------------------------------------------------------
