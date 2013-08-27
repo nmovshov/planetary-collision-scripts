@@ -312,7 +312,7 @@ def cooldown(stepsSoFar,timeNow,dt):
         m = planet.mass()
         u = planet.specificThermalEnergy()
         for k in range(planet.numInternalNodes):
-            v[k] *= (1 - dashpotParameter*dt/m[k])
+            v[k] *= 1 - min(dashpotParameter*dt/m[k], 1)
             u[k] *= 0 # irrelevant for a polytrope
             pass
         pass
