@@ -34,22 +34,6 @@ def spickle_node_list(nl,filename=None):
                           sph.Spheral.SolidMaterial.SolidNodeList3d)
                       ), "argument 1 must be a node list"
     
-    # Estimate memory usage and give user a chance to avoid a crash.
-    # TODO fix this block
-    if mpi.rank == 0:
-        nbFields = 11 # pos and vel count as 3 each
-        bytesPerNode = 8*nbFields
-        bytes = 2*bytesPerNode*nl.numNodes # times 2 b/c of temporary vars
-        if bytes > 1e9:
-            msg = "It looks like this will require a dangerous amount of memory." + \
-                  "\nContinue anyway (%d bytes needed)? y/[n] " % bytes
-            abort = raw_input(msg)
-            if abort in ('n', 'no', 'N', 'No', 'NO', ''):
-                return
-            pass
-        pass
-    mpi.barrier()
-
     # Start collecting data.
     sys.stdout.write('Pickling ' +  nl.label() + ' ' + nl.name + '........')
 
