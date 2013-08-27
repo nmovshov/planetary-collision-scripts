@@ -43,8 +43,9 @@ rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 
 # Cooldown mechanism
 cooldownMethod = 'dashpot' # 'dashpot' or 'stomp' 
-cooldownPower = 0.2        # Dimensionless cooldown "strength" 0-1 (none-total)
+cooldownPower = 0.8        # Dimensionless cooldown "strength" >=0
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
+                           # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
 steps = None               # None or advance a number of steps rather than to a time
@@ -89,7 +90,9 @@ baseDir = jobName          # Base name for directory to store output in
 # use their own assertions, so here we can validate just our own stuff. Another
 # valid option would be to simply not worry about it, and let exceptions happen.
 #-------------------------------------------------------------------------------
-assert 0 <= cooldownPower <= 1.0, "bad juju"
+assert 0 <= cooldownPower, "cool DOWN not up"
+if cooldownMethod is 'stomp':
+    assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
 assert type(cooldownFrequency) is int and cooldownFrequency > 0, "very funny"
 assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
 assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
@@ -302,8 +305,8 @@ control = SpheralController(integrator, WT,
 #  * output() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
-massScale = planet.mass()[0]
-timeScale = 1.0/sqrt(2*rhoPlanet*G)
+massScale = planet.mass().internalValues()[0]
+timeScale = 0.1/sqrt(2*rhoPlanet*G)
 dashpotParameter = cooldownPower*massScale/timeScale
 def cooldown(stepsSoFar,timeNow,dt):
     """Slow and cool internal nodes."""
