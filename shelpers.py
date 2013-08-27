@@ -9,7 +9,7 @@ import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
 import SolidSpheral3d as sph
 
-def spickle_node_list(nl,filename=None):
+def spickle_node_list(nl,filename=None,silent=False):
     """Pack physical field variables from a node list in a dict and pickle.
 
     (Note: This is not a true pickler class.)
@@ -33,9 +33,11 @@ def spickle_node_list(nl,filename=None):
     assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
                           sph.Spheral.SolidMaterial.SolidNodeList3d)
                       ), "argument 1 must be a node list"
+    assert isinstance(silent, bool), "true or false"
     
     # Start collecting data.
-    sys.stdout.write('Pickling ' +  nl.label() + ' ' + nl.name + '........')
+    if not silent:
+        sys.stdout.write('Pickling ' +  nl.label() + ' ' + nl.name + '........')
 
     # Get values of field variables stored in internal nodes.
     xloc = nl.positions().internalValues()
@@ -101,12 +103,13 @@ def spickle_node_list(nl,filename=None):
         pass
         
     # And Bob's our uncle.
-    print "Done."
+    if not silent:
+        print "Done."
     return nlFieldDict
     # End function spickle_node_list
 
 
-def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
+def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     """Flatten physical field values from a node list to a rectangular ascii file.
 
     pflatten_node_list(nl,filename) extracts field variables from all nodes of nl,
@@ -142,6 +145,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
                       ), "argument 1 must be a node list"
     assert isinstance(filename, str), "argument 2 must be a simple string"
     assert isinstance(do_header, bool), "true or false"
+    assert isinstance(silent, bool), "true or false"
     assert isinstance(nl_id, int), "int only idents"
     assert not isinstance(nl_id, bool), "int only idents"
 
@@ -156,7 +160,8 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
         pass
      
     # Start collecting data.
-    sys.stdout.write('Flattening ' + nl.label() + ' ' + nl.name + '........')
+    if not silent:
+        sys.stdout.write('Flattening ' + nl.label() + ' ' + nl.name + '........')
     
     # Get values of field variables stored in internal nodes
     xloc = nl.positions().internalValues()
@@ -195,6 +200,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0):
         pass
      
     # And Bob's our uncle
-    print "Done."
+    if not silent:
+        print "Done."
     # End function pflatten_node_list
      
