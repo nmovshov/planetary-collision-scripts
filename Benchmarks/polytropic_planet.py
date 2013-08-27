@@ -358,6 +358,27 @@ else:
 # Save final state in a flattened node list (.fnl) file.
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
+# Print current planet's vitals and compare to expected solution is any.
+if polytrope_n == 1:
+    # Approximate planet's vitals via nearest node
+    mdict = shelpers.spickle_node_list(planet)
+    plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
+    plan_rho = max(mdict['rho'])
+    plan_pee = max(mdict['p'])
+    # Calculate derived polytrope vitals
+    alfa = sqrt(polytrope_K/(2*pi*G))
+    poly_arr = pi*alfa
+    poly_rho = mPlanet/(4.0/3.0*pi*plan_arr**3) * (pi**2/3.0)
+    poly_pee = polytrope_K * poly_rho**2
+    cout = sys.stdout.write
+    cout("\nbenchmark report card\n".upper())
+    cout("               | Planet     | n=1 polytrope | \n")
+    cout("R [m]          | {:.4e} | {:.4e}    | \n".format(plan_arr,poly_arr))
+    cout("rho_c [kg/m^3] | {:.4e} | {:.4e}    | \n".format(plan_rho,poly_rho))
+    cout("P_c [Pa]       | {:.4e} | {:.4e}    | \n".format(plan_pee,poly_pee))
+
+
+
 # If Gnuplot is available, plot the density profile for quick reference.
 #try:
 #    import Gnuplot
@@ -376,4 +397,4 @@ mOutput(control.totalSteps, control.time(), control.lastDt())
 # NAV Final thoughts
 # Here we may print a message if desired, or do any final action.
 #-------------------------------------------------------------------------------
-print jobName.upper(), "completed."
+print "\n", jobName.upper(), "completed."
