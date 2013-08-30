@@ -45,6 +45,7 @@ def spickle_node_list(nl,filename=None,silent=False):
     mloc = nl.mass().internalValues()
     rloc = nl.massDensity().internalValues()
     uloc = nl.specificThermalEnergy().internalValues()
+    Hloc = nl.Hfield().internalValues()
     #(pressure and temperature are stored in the eos object and accessed differently)
     eos = nl.equationOfState()
     ploc = sph.ScalarField('ploc',nl)
@@ -58,7 +59,7 @@ def spickle_node_list(nl,filename=None,silent=False):
     #  We do this so we can concatenate everything in a single reduction operation,
     #  to ensure that all fields in one record in the final list belong to the same
     #  node.
-    localFields = zip(xloc, vloc, mloc, rloc, uloc, ploc, Tloc)
+    localFields = zip(xloc, vloc, mloc, rloc, uloc, ploc, Tloc, Hloc)
 
     # Do a SUM reduction on all ranks.
     #  This works because the + operator for python lists is a concatenation!
@@ -71,6 +72,7 @@ def spickle_node_list(nl,filename=None,silent=False):
                        m=[],   # mass
                        rho=[], # mass density
                        p=[],   # pressure
+                       h=[],   # smoothing ellipsoid axes
                        T=[],   # temperature
                        U=[],   # specific thermal energy
                       )
@@ -85,6 +87,10 @@ def spickle_node_list(nl,filename=None,silent=False):
         nlFieldDict[  'U'].append( globalFields[k][4])
         nlFieldDict[  'p'].append( globalFields[k][5])
         nlFieldDict[  'T'].append( globalFields[k][6])
+        nlFieldDict[  'h'].append((globalFields[k][7].Inverse().eigenValues().x,
+                                   globalFields[k][7].Inverse().eigenValues().y,
+                                   globalFields[k][7].Inverse().eigenValues().z,
+                                   ))
 
     # Optionally, pickle the dict to a file.
     if mpi.rank == 0:
@@ -128,7 +134,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     list files) is 0.
 
     The format of the output table is (one line per node):
-      id x y z vx vy vz m rho p T U
+      id x y z vx vy vz m rho p T U hmin hmax
 
     The p in pflatten is for 'parallel', a reminder that all nodes will be
     processed in their local rank, without ever being communicated or collected
@@ -169,6 +175,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     mloc = nl.mass().internalValues()
     rloc = nl.massDensity().internalValues()
     uloc = nl.specificThermalEnergy().internalValues()
+    Hloc = nl.Hfield().internalValues()
     #(pressure and temperature are stored in the eos object and accessed differently)
     eos = nl.equationOfState()
     ploc = sph.ScalarField('ploc',nl)
@@ -191,6 +198,8 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
                 line += "{0:+12.5e}  ".format(uloc[nk])
                 line += "{0:+12.5e}  ".format(ploc[nk])
                 line += "{0:+12.5e}  ".format(Tloc[nk])
+                line += "{0:+12.5e}  ".format(Hloc[nk].Inverse().eigenValues().minElement())
+                line += "{0:+12.5e}  ".format(Hloc[nk].Inverse().eigenValues().maxElement())
                 line += "\n"
                 fid.write(line)
                 pass
