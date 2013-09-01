@@ -371,7 +371,7 @@ if polytrope_n == 1:
     # Calculate derived polytrope vitals
     alfa = sqrt(polytrope_K/(2*pi*G))
     poly_arr = pi*alfa
-    poly_rho = mPlanet/(4.0/3.0*pi*plan_arr**3) * (pi**2/3.0)
+    poly_rho = mPlanet/(4.0/3.0*pi*poly_arr**3) * (pi**2/3.0)
     poly_pee = polytrope_K * poly_rho**2
     cout = sys.stdout.write
     cout("\nbenchmark report card\n".upper())
