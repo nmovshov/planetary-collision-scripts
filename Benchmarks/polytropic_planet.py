@@ -40,6 +40,7 @@ polytrope_mu = 2.2e-3      # Mean molecular weight (kg/mole)
 mPlanet *= 5.972e24
 rPlanet *= 6371.0e3
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
+gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
 cooldownMethod = 'dashpot' # 'dashpot' or 'stomp' 
@@ -73,8 +74,8 @@ G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0             # Maximum growth factor for time step per cycle (dimensionless)
-dtMin = 2                  # Minimum allowed time step (sec)
-dtMax = 1000.0*dtInit      # Maximum allowed time step (sec)
+dtMin = int(2e-3*gravTime) # Minimum allowed time step (sec)
+dtMax = int(gravTime)      # Maximum allowed time step (sec)
 verbosedt = False          # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000            # Maximum allowed steps for simulation advance
 statsStep = None           # Frequency for sampling conservation statistics and such
@@ -139,8 +140,6 @@ assert eosPlanet.valid(), "equation of state construction failed"
 #-------------------------------------------------------------------------------
 # Name directories and files.
 jobDir = os.path.join(baseDir, 
-                       'index=%g' % polytrope_n,
-                       'const=%g' % polytrope_K,
                        'nxPlanet=%i' % nxPlanet,
                        )
 restartDir = os.path.join(jobDir, 'restarts', 'proc-%04i' % mpi.rank)
@@ -364,7 +363,7 @@ mOutput(control.totalSteps, control.time(), control.lastDt())
 # Print current planet's vitals and compare to expected solution is any.
 if polytrope_n == 1:
     # Approximate planet's vitals via nearest node
-    mdict = shelpers.spickle_node_list(planet)
+    mdict = shelpers.spickle_node_list(planet,silent=True)
     plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
     plan_rho = max(mdict['rho'])
     plan_pee = max(mdict['p'])
