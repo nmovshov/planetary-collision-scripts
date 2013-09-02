@@ -380,21 +380,6 @@ if polytrope_n == 1:
     cout("P_c [Pa]       | {:.4e} | {:.4e}    | \n".format(plan_pee,poly_pee))
 
 
-
-# If Gnuplot is available, plot the density profile for quick reference.
-#try:
-#    import Gnuplot
-#    g = Gnuplot.Gnuplot(debug=0)
-#    g.title("Planet density profile")
-#    pass
-#except ImportError as mExc:
-#    print "ImportError:", mExc, ", skipping graphics."
-#    pass
-#else:
-#    pass
-#finally:
-#    pass
-
 #-------------------------------------------------------------------------------
 # NAV Final thoughts
 # Here we may print a message if desired, or do any final action.
