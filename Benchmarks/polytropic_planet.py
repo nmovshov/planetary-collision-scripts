@@ -32,7 +32,7 @@ jobDesc = "Hydrostatic equilibrium of a polytropic planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet properties
-rPlanet = 12.2             # Initial guess for radius of planet (earth radii)
+rPlanet = 11.8             # Initial guess for radius of planet (earth radii)
 mPlanet = 318              # Mass of planet (earth masses)
 polytrope_n  = 1           # Polytropic index (n=1)
 polytrope_K  = 2e5         # Polytropic constant (Pressure/density^n)
@@ -44,13 +44,13 @@ gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
 cooldownMethod = 'dashpot' # 'dashpot' or 'stomp' 
-cooldownPower = 0.8        # Dimensionless cooldown "strength" >=0
+cooldownPower = 1.0        # Dimensionless cooldown "strength" >=0
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
                            # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
 steps = None               # None or advance a number of steps rather than to a time
-goalTime = 1000            # Time to advance to (sec)
+goalTime = 6000            # Time to advance to (sec)
 dtInit = 20                # Initial guess for time step (sec)
 vizTime = 600              # Time frequency for dropping viz files (sec)
 vizCycle = None            # Cycle frequency for dropping viz files
@@ -66,9 +66,9 @@ rhomin = 0.001*rhoPlanet   # Lower bound on node density
 rhomax = 4.0*rhoPlanet     # Upper bound on node density
 
 # Gravity parameters
-softLength = 1.0e-5        # Fraction of planet radius as softening length
+softLength = 1.0/nxPlanet  # Fraction of planet radius as softening length
 opening = 1.0              # Dimensionless opening parameter for gravity tree walk
-fdt = 0.1                  # Gravity time step multiplier
+fdt = 0.01                 # Gravity time step multiplier
 softLength *= rPlanet
 G = MKS().G
 
@@ -347,6 +347,7 @@ if not outTime is None:
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
+    control.dropRestartFile()
 else:
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
