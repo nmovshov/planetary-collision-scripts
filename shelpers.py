@@ -159,7 +159,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     if do_header:
         if mpi.rank == 0:
             fid = open(filename,'w')
-            header = "#Place holder for real header\n"
+            header = "#id x y z vx vy vz m rho p T U hmin hmax\n"
             fid.write(header)
             fid.close()
             pass
