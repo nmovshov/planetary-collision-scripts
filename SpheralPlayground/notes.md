@@ -5,7 +5,7 @@ IPython (http://ipython.org/) is a much better option than the default python
 interpreter. You will have to build IPython from source, using Spheral's python
 instead of the system python! This is very easy to do.
 
-  - `equations_of_state.py` [BV]
+  - `equations_of_state.py` 
     + To use the ANEOS object remember to build Spheral with ANEOS support
   - `load_interactive_spheral.py`
     + All the components of a spheral run are loaded into the gloabl namespace
