@@ -1,10 +1,9 @@
 Testing stability, accuracy, and performance
 ==============================================
-2013/08/26
-  - `NakamuraFujiwara.py` [mostly working]
-    + TODO: currently only Tillotson is implemented
-    + TODO: check artificial viscosity and other hydro
-    + TODO: add post-run diagnostics
 
-  - `polytropic_planet` [in development, do not use!]
-    + Trying to reconcile results of normal/hacked_grav/parallel
+  - `NakamuraFujiwara.py` 
+    + See [Nakamura and Fujiwara, 1991](http://linkinghub.elsevier.com/retrieve/pii/001910359190040Z)
+
+  - `polytropic_planet.py` 
+    + For a refresher on polytropes and the solution for a polytropic index n=1
+      check out this [summary] (http://www.astro.princeton.edu/~gk/A403/polytrop.pdf).
