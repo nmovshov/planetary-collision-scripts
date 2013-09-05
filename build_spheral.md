@@ -6,6 +6,7 @@ For example:
 
     cd ..
     mkdir SPHERAL
+    cd SPHERAL
 
 Spheral is hosted on SourceForge (http://sourceforge.net/projects/spheral/)
 and is managed with Mercurial (http://mercurial.selenic.com/). 
