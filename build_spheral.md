@@ -57,4 +57,5 @@ the spheral directory clean.
 
 IMPORTANT: Run your scripts using the python interpreter provided by spheral, not
 your system's default python. You can set up an alias, e.g.:
+
     alias spy '/path/to/spheral/bin/python'
