@@ -36,6 +36,12 @@ Build spheral:
     cd spheral/src
     make
 
+If you are running GNU make (check with `make --version`) on a multi core machine,
+you can speed things up a bit:
+
+    cd spheral/src
+    make -j 2
+    
 For more config and build options, see the not-quite-up-to-date config manual:
 
     cd spheral/doc
