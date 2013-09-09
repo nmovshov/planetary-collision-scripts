@@ -15,7 +15,7 @@ Download IPython:
 
 Install using spheral's python:
 
-    cd IPython
+    cd ipython
     /path/to/spheral/bin/python setup.py install
 
 Set up a convenient shortcut:
