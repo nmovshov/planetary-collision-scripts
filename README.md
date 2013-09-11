@@ -17,7 +17,7 @@ Maintained by: Naor Movshovitz (nmovshov@gmail.com)
 Directory: **(WARNING: work in progress, updated often!)**  
   [MF=mostly functional; BV=beta version (use with care); PH=place holder]
   - `Benchmarks` - Tests of accuracy and performance.  
-    + `NakamuraFujiwara.py` - Collision of two spheres with strength and damage, no gravity. Try to reproduce Nakamura and Fujiwara (1991). [MF] 
+    + `Nakamura_Fujiwara.py` - Collision of two spheres with strength and damage, no gravity. Try to reproduce Nakamura and Fujiwara (1991). [MF] 
     + `polytropic_planet.py` - Hydrostatic equilibrium of a fluid polytropic planet, compared with known analytic solution. [BV]  
   - `PlanetFactory` - Scripts for setting up and saving sph node lists modeling generic and custom planets.
     + `build_hydrostatic_single_material_planet.py` - Set up a spherical, single material, fluid planet and run to hydrostatic equilibrium. No strength or damage model. [PH]
