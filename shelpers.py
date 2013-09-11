@@ -157,9 +157,10 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
 
     # Write the header
     if do_header:
+        nbGlobalNodes = mpi.allreduce(nl.numInternalNodes, mpi.SUM)
+        header = header_template.format(nbGlobalNodes)
         if mpi.rank == 0:
             fid = open(filename,'w')
-            header = "#id x y z vx vy vz m rho p T U hmin hmax\n"
             fid.write(header)
             fid.close()
             pass
@@ -212,4 +213,33 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     if not silent:
         print "Done."
     # End function pflatten_node_list
-     
+
+
+global header_template
+header_template = """
+################################################################################
+# This file contains output data from a Spheral++ simulation, including all 
+# field variables as well as some diagnostic data and node meta data. This
+# file should contain {} lines, one per SPH node used in the simulation.
+# Line order is not significant and is not guaranteed to match the node ordering
+# during the run, which itself is not significant. The columns contain field
+# values in whatever units where used in the simulation. Usually MKS.
+# Columns are:
+#    | id | x | y | z | vx | vy | vz | m | rho | p | T | U | hmin | hmax |
+#
+# Column legend:
+#    
+#        id - an integer identifier of the node list this node came from
+#     x,y,z - node space coordinates 
+#  vx,vy,vz - node velocity components
+#         m - node mass
+#       rho - mass density
+#         p - pressure
+#         T - temperature
+#         U - specific internal energy
+# hmin,hmax - smallest and largest half-axes of the smoothing ellipsoid 
+#
+# Tip: load table into python with np.load()
+#
+################################################################################
+"""
