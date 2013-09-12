@@ -40,14 +40,14 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
 rTarget = 200.0            # Target radius (m)
-mTarget = 200.0            # Target mass (kg)
-matTarget = 'water'        # Target material (see uss/MATERIALS.md for options)
+mTarget = 3.36e10          # Target mass (kg)
+matTarget = 'pure ice'     # Target material (see uss/MATERIALS.md for options)
 rhoTarget = 3.0*mTarget/(4.0*pi*rTarget**3)
 
 # Impactor parameters
 rImpactor = 100.0          # Impactor radius (m)
-mImpactor = 100.0          # Impactor mass (kg)
-matImpactor = 'water'      # Impactor material (see uss/MATERIALS.md for options)
+mImpactor = 4.28e9         # Impactor mass (kg)
+matImpactor = 'pure ice'   # Impactor material (see uss/MATERIALS.md for options)
 rhoImpactor = 3.0*mImpactor/(4.0*pi*rImpactor**3)
 
 # Collision parameters
@@ -56,13 +56,13 @@ angleImpact = 30           # Impact angle to normal (degrees)
 
 # Times, simulation control, and output
 nxTarget = 20              # Nodes across diameter of target (run "resolution")
-steps = None               # None or advance a number of steps rather than to a time
+steps = 0               # None or advance a number of steps rather than to a time
 goalTime = 6               # Time to advance to (sec)
 dtInit = 0.02              # Initial guess for time step (sec)
 vizTime = None             # Time frequency for dropping viz files (sec)
-vizCycle = None            # Cycle frequency for dropping viz files
+vizCycle = 1            # Cycle frequency for dropping viz files
 outTime = None             # Time between running output routine (sec)
-outCycle = None            # Cycles between running output routine
+outCycle = 1            # Cycles between running output routine
 
 # Node list parameters
 nPerh = 1.51               # Nominal number of nodes per smoothing scale
@@ -133,7 +133,7 @@ units = PhysicalConstants(1.0, # unit length in meters
 
 # Select and construct target eos
 if matTarget.lower() in shelpers.material_strings['tillotson']:
-    etamin, etamax = rhomin/rhoTarget, rhomin/rhoTarget
+    etamin, etamax = rhomin/rhoTarget, rhomax/rhoTarget
     eosTarget = TillotsonEquationOfState(matTarget, etamin, etamax, units)
 elif matTarget.lower() in shelpers.material_strings['m/aneos']:
     print "m/anoes" #TODO put in aneos
@@ -250,16 +250,6 @@ if restoreCycle is None:
                                    nNodePerh = nPerh
                                    )
 
-    # Place the impactor where at point of impact. It is coming from the 
-    # positive x direction in the xy plane.
-    displace = Vector((rTarget+rImpactor)*cos(pi/180.0*angleImpact),
-                      (rTarget+rImpactor)*sin(pi/180.0*angleImpact),
-                      0.0)
-    for k in range(impactorGenerator.localNumNodes()):
-        impactorGenerator.x[k] += displace.x
-        impactorGenerator.y[k] += displace.y
-        impactorGenerator.z[k] += displace.z
-                                                       
     # Disturb the lattice symmetry to avoid artificial singularities.
     for k in range(targetGenerator.localNumNodes()):
         targetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
@@ -272,6 +262,16 @@ if restoreCycle is None:
         impactorGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
         pass
 
+    # Place the impactor at the point of impact. It is coming from the 
+    # positive x direction in the xy plane.
+    displace = Vector((rTarget+rImpactor)*cos(pi/180.0*angleImpact),
+                      (rTarget+rImpactor)*sin(pi/180.0*angleImpact),
+                      0.0)
+    for k in range(impactorGenerator.localNumNodes()):
+        impactorGenerator.x[k] += displace.x
+        impactorGenerator.y[k] += displace.y
+        impactorGenerator.z[k] += displace.z
+                                                       
     # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."
     distributeNodes3d((target, targetGenerator),
@@ -363,7 +363,7 @@ def mOutput(stepsSoFar,timeNow,dt):
     """Save node list to flat ascii file."""
     mFileName="{0}-{1:04d}-{2:g}.{3}".format(
               jobName, stepsSoFar, timeNow, 'fnl')
-    shelpers.pflatten_node_list(planet, outDir + '/' + mFileName)
+    shelpers.pflatten_node_list(target, outDir + '/' + mFileName)
     pass
 if not outCycle is None:
     control.appendPeriodicWork(mOutput,outCycle)

@@ -196,9 +196,9 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
                 line += "{0.x:+12.5e}  {0.y:+12.5e}  {0.z:+12.5e}  ".format(vloc[nk])
                 line += "{0:+12.5e}  ".format(mloc[nk])
                 line += "{0:+12.5e}  ".format(rloc[nk])
-                line += "{0:+12.5e}  ".format(uloc[nk])
                 line += "{0:+12.5e}  ".format(ploc[nk])
                 line += "{0:+12.5e}  ".format(Tloc[nk])
+                line += "{0:+12.5e}  ".format(uloc[nk])
                 line += "{0:+12.5e}  ".format(Hloc[nk].Inverse().eigenValues().minElement())
                 line += "{0:+12.5e}  ".format(Hloc[nk].Inverse().eigenValues().maxElement())
                 line += "\n"
