@@ -137,7 +137,7 @@ if matTarget.lower() in shelpers.material_strings['tillotson']:
     pext, pmin, pmax = 0.0, 0.0, 1e200
     eosTarget = TillotsonEquationOfState(matTarget, etamin, etamax, units)
     eosTarget.minimumPressure = pmin
-elif matTarget.lower() in shelpers.material_strings['m/aneos']:
+elif matTarget.lower() in shelpers.material_strings['maneos']:
     print "m/anoes" #TODO put in aneos
 else:
     raise ValueError("invalid material selection for target")
@@ -148,7 +148,7 @@ if matImpactor.lower() in shelpers.material_strings['tillotson']:
     pext, pmin, pmax = 0.0, 0.0, 1e200
     eosImpactor = TillotsonEquationOfState(matImpactor, etamin, etamax, units)
     eosImpactor.minimumPressure = pmin
-elif matImpactor.lower() in shelpers.material_strings['m/aneos']:
+elif matImpactor.lower() in shelpers.material_strings['maneos']:
     print "m/anoes" # TODO put in aneos
 else:
     raise ValueError("invalid material selection for impactor")
@@ -275,6 +275,7 @@ if restoreCycle is None:
         impactorGenerator.x[k] += displace.x
         impactorGenerator.y[k] += displace.y
         impactorGenerator.z[k] += displace.z
+        pass
                                                        
     # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."
@@ -292,7 +293,15 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    print "Worst node mass ratio: {}".format(impactor.mass().min()/
+                                             target.mass().max())
     
+    # Launch the impactor
+    vel = impactor.velocity()
+    for k in range(impactor.numInternalNodes):
+        vel[k].x = -vImpact
+        pass
+
     pass
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
