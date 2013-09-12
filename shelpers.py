@@ -243,3 +243,11 @@ header_template = """
 #
 ################################################################################
 """
+
+global material_strings
+material_strings = {}
+material_strings = dict(
+        tillotson = ('granite', 'basalt', 'nylon', 'pure ice', 
+                     '30% silicate ice', 'water'),
+        maneos    = ('sio2'),
+        )
