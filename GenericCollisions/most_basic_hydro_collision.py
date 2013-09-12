@@ -91,6 +91,8 @@ baseDir = jobName          # Base name for directory to store output in
 # valid option would be to simply not worry about it, and let exceptions happen.
 #-------------------------------------------------------------------------------
 assert 0 <= angleImpact < 90, "give impact angle in first quadrant (in degrees)"
+assert (outTime is None) or (outCycle is None),\
+        "output on both time and cycle is confusing"
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -293,4 +295,104 @@ db = DataBase()
 for n in nodeSet:
     db.appendNodeList(n)
 del n
-sys.exit() #TODO continue here
+
+#-------------------------------------------------------------------------------
+# NAV Spheral's simulation structure
+# Here we construct the objects that compose spheral's simulation hierarchy.
+# These are:
+#  * One or more physics packages (hydro, gravity, strength, damage)
+#  * A time integrator of some flavor (usually a Runge-Kutta 2)
+#  * The simulation controller
+#-------------------------------------------------------------------------------
+# Create the kernel functions for SPH.
+WT = TableKernel(BSplineKernel(), 1000) # one for normal hydro
+WTPi = WT                               # one for artificial viscosity
+
+# Create the artificial viscosity object.
+q = Qconstructor(Cl, Cq)
+q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
+q.epsilon2 = epsilon2
+q.negligibleSoundSpeed = negligibleSoundSpeed
+q.csMultiplier = csMultiplier
+
+# Create the hydro package.
+hydro = HydroConstructor(WT,
+                         WTPi,
+                         q,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         gradhCorrection = False,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HEvolution,
+                         XSPH = XSPH,
+                         epsTensile = epsilonTensile,
+                         nTensile = nTensile)
+
+# Create the time integrator and attach the physics packages to it.
+integrator = SynchronousRK2Integrator(db)
+integrator.appendPhysicsPackage(hydro)
+integrator.lastDt = dtInit
+integrator.dtMin = dtMin
+integrator.dtMax = dtMax
+integrator.dtGrowth = dtGrowth
+integrator.verbose = verbosedt
+integrator.rigorousBoundaries = rigorousBoundaries
+
+# Create the controller.
+control = SpheralController(integrator, WT,
+                            statsStep = statsStep,
+                            restartStep = restartStep,
+                            redistributeStep = redistributeStep,
+                            restartBaseName = restartName,
+                            restoreCycle = restoreCycle,
+                            vizBaseName = jobName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime)
+
+#-------------------------------------------------------------------------------
+# NAV Periodic, mid-run actions
+# Here we register optional work to be done mid-run. Mid-run processes can be time
+# or cycle based. Here we use:
+#  * output() - a generic access routine, usually a pickle of node list or some
+#               calculated value of interest [cycle or time based]
+#-------------------------------------------------------------------------------
+def mOutput(stepsSoFar,timeNow,dt):
+    """Save node list to flat ascii file."""
+    mFileName="{0}-{1:04d}-{2:g}.{3}".format(
+              jobName, stepsSoFar, timeNow, 'fnl')
+    shelpers.pflatten_node_list(planet, outDir + '/' + mFileName)
+    pass
+if not outCycle is None:
+    control.appendPeriodicWork(mOutput,outCycle)
+if not outTime is None:
+    control.appendPeriodicTimeWork(mOutput,outTime)
+
+#-------------------------------------------------------------------------------
+# NAV Launch simulation
+# The simulation can be run for a specified number of steps, or a specified time
+# in seconds.
+#-------------------------------------------------------------------------------
+if not steps is None:
+    control.step(steps)
+    control.dropRestartFile()
+else:
+    control.advance(goalTime, maxSteps)
+    control.dropRestartFile()
+    control.dropViz()
+
+#-------------------------------------------------------------------------------
+# NAV Post processing tasks
+# Here we can include tasks that will happen once, if and when the run is completed
+# successfully. Things like saving flattened node lists and/or computed quantities.
+#-------------------------------------------------------------------------------
+# Save final state in a flattened node list (.fnl) file.
+mOutput(control.totalSteps, control.time(), control.lastDt())
+
+#-------------------------------------------------------------------------------
+# NAV Final thoughts
+# Here we may print a message if desired, or do any final action.
+#-------------------------------------------------------------------------------
+print "\n", jobName.upper(), "completed."

@@ -361,7 +361,7 @@ else:
 # Save final state in a flattened node list (.fnl) file.
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
-# Print current planet's vitals and compare to expected solution is any.
+# Print current planet's vitals and compare to expected solution.
 if polytrope_n == 1:
     # Approximate planet's vitals via nearest node
     mdict = shelpers.spickle_node_list(planet,silent=True)
