@@ -39,7 +39,7 @@ jobDesc = "Pure hydro collision of fluid, single material spheres."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
-rTarget = 200.0            # Target radius (m)
+rTarget = 220.0            # Target radius (m)
 mTarget = 3.36e10          # Target mass (kg)
 matTarget = 'pure ice'     # Target material (see uss/MATERIALS.md for options)
 rhoTarget = 3.0*mTarget/(4.0*pi*rTarget**3)
@@ -134,7 +134,9 @@ units = PhysicalConstants(1.0, # unit length in meters
 # Select and construct target eos
 if matTarget.lower() in shelpers.material_strings['tillotson']:
     etamin, etamax = rhomin/rhoTarget, rhomax/rhoTarget
+    pext, pmin, pmax = 0.0, 0.0, 1e200
     eosTarget = TillotsonEquationOfState(matTarget, etamin, etamax, units)
+    eosTarget.minimumPressure = pmin
 elif matTarget.lower() in shelpers.material_strings['m/aneos']:
     print "m/anoes" #TODO put in aneos
 else:
@@ -143,7 +145,9 @@ else:
 # Select and construct impactor eos
 if matImpactor.lower() in shelpers.material_strings['tillotson']:
     etamin, etamax = rhomin/rhoImpactor, rhomax/rhoImpactor
+    pext, pmin, pmax = 0.0, 0.0, 1e200
     eosImpactor = TillotsonEquationOfState(matImpactor, etamin, etamax, units)
+    eosImpactor.minimumPressure = pmin
 elif matImpactor.lower() in shelpers.material_strings['m/aneos']:
     print "m/anoes" # TODO put in aneos
 else:
