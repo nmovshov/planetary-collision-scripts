@@ -131,17 +131,19 @@ units = PhysicalConstants(1.0, # unit length in meters
 
 # Select and construct target eos
 if matTarget.lower() in shelpers.material_strings['tillotson']:
-    print "tilo"
+    etamin, etamax = rhomin/rhoTarget, rhomin/rhoTarget
+    eosTarget = TillotsonEquationOfState(matTarget, etamin, etamax, units)
 elif matTarget.lower() in shelpers.material_strings['m/aneos']:
-    print "m/anoes"
+    print "m/anoes" #TODO put in aneos
 else:
     raise ValueError("invalid material selection for target")
 
 # Select and construct impactor eos
 if matImpactor.lower() in shelpers.material_strings['tillotson']:
-    print "tilo"
+    etamin, etamax = rhomin/rhoImpactor, rhomax/rhoImpactor
+    eosImpactor = TillotsonEquationOfState(matImpactor, etamin, etamax, units)
 elif matImpactor.lower() in shelpers.material_strings['m/aneos']:
-    print "m/anoes"
+    print "m/anoes" # TODO put in aneos
 else:
     raise ValueError("invalid material selection for impactor")
 
