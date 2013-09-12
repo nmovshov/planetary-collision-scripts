@@ -39,15 +39,15 @@ jobDesc = "Pure hydro collision of fluid, single material spheres."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
-rTarget = 200              # Target radius (m)
-mTarget = 200              # Target mass (kg)
-matTarget = 'basalt'       # Target material (see uss/MATERIALS.md for options)
+rTarget = 200.0            # Target radius (m)
+mTarget = 200.0            # Target mass (kg)
+matTarget = 'water'        # Target material (see uss/MATERIALS.md for options)
 rhoTarget = 3.0*mTarget/(4.0*pi*rTarget**3)
 
 # Impactor parameters
-rImpactor = 200            # Impactor radius (m)
-mImpactor = 200            # Impactor mass (kg)
-matImpactor = 'basalt'     # Impactor material (see uss/MATERIALS.md for options)
+rImpactor = 100.0          # Impactor radius (m)
+mImpactor = 100.0          # Impactor mass (kg)
+matImpactor = 'water'      # Impactor material (see uss/MATERIALS.md for options)
 rhoImpactor = 3.0*mImpactor/(4.0*pi*rImpactor**3)
 
 # Collision parameters
@@ -152,3 +152,145 @@ if eosTarget is None or eosImpactor is None:
     raise ValueError("target and/or impactor eos construction failed")
 if not (eosTarget.valid() and eosImpactor.valid()):
     raise ValueError("target and/or impactor eos construction failed")
+
+#-------------------------------------------------------------------------------
+# NAV Restarts and output directories
+# Here we create the output directories, and deal with restarted runs if any.
+#-------------------------------------------------------------------------------
+# Name directories and files.
+jobDir = os.path.join(baseDir, 
+                       'nxTarget=%i' % nxTarget,
+                       )
+restartDir = os.path.join(jobDir, 'restarts', 'proc-%04i' % mpi.rank)
+vizDir = os.path.join(jobDir, 'viz')
+outDir = os.path.join(jobDir, 'output')
+restartName = os.path.join(restartDir, jobName)
+
+# Check if the necessary directories exist.  If not, create them.
+if mpi.rank == 0:
+    if not os.path.exists(jobDir):
+        os.makedirs(jobDir)
+    if not os.path.exists(vizDir):
+        os.makedirs(vizDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
+    if not os.path.exists(outDir):
+        os.makedirs(outDir)
+mpi.barrier()
+if not os.path.exists(restartDir):
+    os.makedirs(restartDir)
+mpi.barrier()
+
+# If we're restarting, find the set of most recent restart files.
+if restoreCycle is None:
+    restoreCycle = findLastRestart(restartName)
+
+#-------------------------------------------------------------------------------
+# NAV Node construction
+# Here we create and populate a node list with initial conditions. In spheral, the
+# construction order is as follows:
+# 1. Create an empty node list with fields that match the size and type of problem.
+# 2. Create a "generator" that will decide what values to give to all field variables
+#    of node i. Normally we start with one of the simple, stock generators, and
+#    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
+# 3. Distribute, using the (nodeList, generator) pair, among ranks. The generator
+#    will be used to fill values in the node list, and then discarded. 
+#-------------------------------------------------------------------------------
+# Create the node lists.
+target   = makeFluidNodeList('target', eosTarget, 
+                             nPerh = nPerh, 
+                             xmin = -10.0*rTarget*Vector.one, # (probably unnecessary)
+                             xmax =  10.0*rTarget*Vector.one, # (probably unnecessary)
+                             hmin = hmin,
+                             hmax = hmax,
+                             rhoMin = rhomin,
+                             rhoMax = rhomax,
+                             )
+impactor = makeFluidNodeList('impactor', eosImpactor, 
+                             nPerh = nPerh, 
+                             xmin = -10.0*rImpactor*Vector.one, # (probably unnecessary)
+                             xmax =  10.0*rImpactor*Vector.one, # (probably unnecessary)
+                             hmin = hmin,
+                             hmax = hmax,
+                             rhoMin = rhomin,
+                             rhoMax = rhomax,
+                             )
+nodeSet = [target, impactor]
+
+# Unless restarting, create the generators and set initial field values.
+if restoreCycle is None:
+    # Determine appropriate resolution for impactor.
+    m_per_node_target = 1.0 * mTarget / (nxTarget**3)
+    nxImp = max(2, int((mImpactor/m_per_node_target)**(1.0/3.0)))
+    m_per_node_imp = 1.0 * mImpactor / (nxImp**3)
+    print "Selected {} nodes across impactor.".format(nxImp)
+    print "Target node mass = {}; Impactor node mass = {}".format(
+                                                           m_per_node_target,
+                                                           m_per_node_imp)
+
+    # Start with the stock generators.
+    targetGenerator   = GenerateNodeDistribution3d(nxTarget, nxTarget, nxTarget,
+                                   rhoTarget,
+                                   distributionType = 'lattice',
+                                   xmin = (-rTarget, -rTarget, -rTarget),
+                                   xmax = ( rTarget,  rTarget,  rTarget),
+                                   rmin = 0.0,
+                                   rmax = rTarget,
+                                   nNodePerh = nPerh
+                                   )
+    impactorGenerator = GenerateNodeDistribution3d(nxImp, nxImp, nxImp,
+                                   rhoImpactor,
+                                   distributionType = 'lattice',
+                                   xmin = (-rImpactor, -rImpactor, -rImpactor),
+                                   xmax = ( rImpactor,  rImpactor,  rImpactor),
+                                   rmin = 0.0,
+                                   rmax = rImpactor,
+                                   nNodePerh = nPerh
+                                   )
+
+    # Place the impactor where at point of impact. It is coming from the 
+    # positive x direction in the xy plane.
+    displace = Vector((rTarget+rImpactor)*cos(pi/180.0*angleImpact),
+                      (rTarget+rImpactor)*sin(pi/180.0*angleImpact),
+                      0.0)
+    for k in range(impactorGenerator.localNumNodes()):
+        impactorGenerator.x[k] += displace.x
+        impactorGenerator.y[k] += displace.y
+        impactorGenerator.z[k] += displace.z
+                                                       
+    # Disturb the lattice symmetry to avoid artificial singularities.
+    for k in range(targetGenerator.localNumNodes()):
+        targetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        targetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        targetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        pass
+    for k in range(impactorGenerator.localNumNodes()):
+        impactorGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        impactorGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        impactorGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        pass
+
+    # Fill node lists using generators and distribute to ranks.
+    print "Starting node distribution..."
+    distributeNodes3d((target, targetGenerator),
+                      (impactor, impactorGenerator))
+    nGlobalNodes = 0
+    for n in nodeSet:
+        print "Generator info for %s" % n.name
+        print "   Minimum number of nodes per domain : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.MIN)
+        print "   Maximum number of nodes per domain : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.MAX)
+        print "               Global number of nodes : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.SUM)
+        nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
+    del n
+    print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    
+    pass
+# The spheral controller needs a DataBase object to hold the node lists.
+db = DataBase()
+for n in nodeSet:
+    db.appendNodeList(n)
+del n
+sys.exit() #TODO continue here
