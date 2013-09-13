@@ -39,15 +39,15 @@ jobDesc = "Pure hydro collision of fluid, single material spheres."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
-rTarget = 1200.0            # Target radius (m)
+rTarget = 1200.0           # Target radius (m)
 rhoTarget = 2700.0         # Target initial density (kg/m^3)
-matTarget = 'basalt'     # Target material (see uss/MATERIALS.md for options)
+matTarget = 'basalt'       # Target material (see uss/MATERIALS.md for options)
 mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
 
 # Impactor parameters
 rImpactor = 600.0          # Impactor radius (m)
 rhoImpactor = 2700.0       # Impactor initial density (kg/m^3)
-matImpactor = 'basalt'   # Impactor material (see uss/MATERIALS.md for options)
+matImpactor = 'basalt'     # Impactor material (see uss/MATERIALS.md for options)
 mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
 # Collision parameters
@@ -55,7 +55,7 @@ vImpact = 1000             # Impact velocity (m/s)
 angleImpact = 30           # Impact angle to normal (degrees)
 
 # Times, simulation control, and output
-nxTarget = 20              # Nodes across diameter of target (run "resolution")
+nxTarget = 40              # Nodes across diameter of target (run "resolution")
 steps = None               # None or advance a number of steps rather than to a time
 goalTime = 12              # Time to advance to (sec)
 dtInit = 0.02              # Initial guess for time step (sec)
@@ -76,7 +76,7 @@ dtGrowth = 2.0             # Maximum growth factor for time step per cycle (dime
 dtMin = 0                  # Minimum allowed time step (sec)
 dtMax = 0.1*goalTime       # Maximum allowed time step (sec)
 verbosedt = False          # Verbose reporting of the time step criteria per cycle
-maxSteps = 400             # Maximum allowed steps for simulation advance
+maxSteps = 800             # Maximum allowed steps for simulation advance
 statsStep = None           # Frequency for sampling conservation statistics and such
 redistributeStep = 2000    # Frequency to load balance problem from scratch
 restartStep = 200          # Frequency to drop restart files
