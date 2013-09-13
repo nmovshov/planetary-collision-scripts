@@ -39,30 +39,30 @@ jobDesc = "Pure hydro collision of fluid, single material spheres."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
-rTarget = 220.0            # Target radius (m)
-mTarget = 3.36e10          # Target mass (kg)
-matTarget = 'pure ice'     # Target material (see uss/MATERIALS.md for options)
-rhoTarget = 3.0*mTarget/(4.0*pi*rTarget**3)
+rTarget = 1200.0            # Target radius (m)
+rhoTarget = 2700.0         # Target initial density (kg/m^3)
+matTarget = 'basalt'     # Target material (see uss/MATERIALS.md for options)
+mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
 
 # Impactor parameters
-rImpactor = 100.0          # Impactor radius (m)
-mImpactor = 4.28e9         # Impactor mass (kg)
-matImpactor = 'pure ice'   # Impactor material (see uss/MATERIALS.md for options)
-rhoImpactor = 3.0*mImpactor/(4.0*pi*rImpactor**3)
+rImpactor = 600.0          # Impactor radius (m)
+rhoImpactor = 2700.0       # Impactor initial density (kg/m^3)
+matImpactor = 'basalt'   # Impactor material (see uss/MATERIALS.md for options)
+mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
 # Collision parameters
-vImpact = 10               # Impact velocity (m/s)
+vImpact = 1000             # Impact velocity (m/s)
 angleImpact = 30           # Impact angle to normal (degrees)
 
 # Times, simulation control, and output
 nxTarget = 20              # Nodes across diameter of target (run "resolution")
-steps = 0               # None or advance a number of steps rather than to a time
-goalTime = 6               # Time to advance to (sec)
+steps = None               # None or advance a number of steps rather than to a time
+goalTime = 12              # Time to advance to (sec)
 dtInit = 0.02              # Initial guess for time step (sec)
-vizTime = None             # Time frequency for dropping viz files (sec)
-vizCycle = 1            # Cycle frequency for dropping viz files
+vizTime = 1                # Time frequency for dropping viz files (sec)
+vizCycle = None            # Cycle frequency for dropping viz files
 outTime = None             # Time between running output routine (sec)
-outCycle = 1            # Cycles between running output routine
+outCycle = None            # Cycles between running output routine
 
 # Node list parameters
 nPerh = 1.51               # Nominal number of nodes per smoothing scale
@@ -75,8 +75,8 @@ rhomax = 1e+8*rhoTarget    # Upper bound on node density
 dtGrowth = 2.0             # Maximum growth factor for time step per cycle (dimensionless)
 dtMin = 0                  # Minimum allowed time step (sec)
 dtMax = 0.1*goalTime       # Maximum allowed time step (sec)
-verbosedt = True           # Verbose reporting of the time step criteria per cycle
-maxSteps = 1000            # Maximum allowed steps for simulation advance
+verbosedt = False          # Verbose reporting of the time step criteria per cycle
+maxSteps = 400             # Maximum allowed steps for simulation advance
 statsStep = None           # Frequency for sampling conservation statistics and such
 redistributeStep = 2000    # Frequency to load balance problem from scratch
 restartStep = 200          # Frequency to drop restart files
@@ -165,6 +165,8 @@ if not (eosTarget.valid() and eosImpactor.valid()):
 #-------------------------------------------------------------------------------
 # Name directories and files.
 jobDir = os.path.join(baseDir, 
+                       'rTarget=%0.2g' % rTarget,
+                       'rImpactor=%0.2g' % rImpactor,
                        'nxTarget=%i' % nxTarget,
                        )
 restartDir = os.path.join(jobDir, 'restarts', 'proc-%04i' % mpi.rank)
@@ -293,8 +295,8 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
-    print "Worst node mass ratio: {}".format(impactor.mass().min()/
-                                             target.mass().max())
+    print "Worst node mass ratio: {}".format(impactor.mass().max()/
+                                             target.mass().min())
     
     # Launch the impactor
     vel = impactor.velocity()
