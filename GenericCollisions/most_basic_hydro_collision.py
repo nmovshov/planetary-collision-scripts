@@ -346,7 +346,7 @@ hydro = HydroConstructor(WT,
                          nTensile = nTensile)
 
 # Create the time integrator and attach the physics packages to it.
-integrator = SynchronousRK2Integrator(db)
+integrator = CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
 integrator.lastDt = dtInit
 integrator.dtMin = dtMin

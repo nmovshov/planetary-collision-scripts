@@ -60,7 +60,7 @@ q = sph.MonaghanGingoldViscosity(1.0, 1.0)
 hydro = sph.ASPHHydro(WT,WTPi,q)
 
 # Create the time integrator and attach the physics package to it.
-integrator = sph.SynchronousRK2Integrator(db)
+integrator = sph.CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
 
 # Create the controller.
