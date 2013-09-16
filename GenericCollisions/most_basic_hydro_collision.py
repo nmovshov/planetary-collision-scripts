@@ -55,9 +55,9 @@ vImpact = 1000             # Impact velocity (m/s)
 angleImpact = 30           # Impact angle to normal (degrees)
 
 # Times, simulation control, and output
-nxTarget = 40              # Nodes across diameter of target (run "resolution")
+nxTarget = 20              # Nodes across diameter of target (run "resolution")
 steps = None               # None or advance a number of steps rather than to a time
-goalTime = 12              # Time to advance to (sec)
+goalTime = 6               # Time to advance to (sec)
 dtInit = 0.02              # Initial guess for time step (sec)
 vizTime = 1                # Time frequency for dropping viz files (sec)
 vizCycle = None            # Cycle frequency for dropping viz files
@@ -133,7 +133,7 @@ units = PhysicalConstants(1.0, # unit length in meters
 
 # Select and construct target eos
 if matTarget.lower() in shelpers.material_strings['tillotson']:
-    etamin, etamax = rhomin/rhoTarget, rhomax/rhoTarget
+    etamin, etamax = 0.94, rhomax/rhoTarget
     pext, pmin, pmax = 0.0, 0.0, 1e200
     eosTarget = TillotsonEquationOfState(matTarget, etamin, etamax, units)
     eosTarget.minimumPressure = pmin
@@ -144,7 +144,7 @@ else:
 
 # Select and construct impactor eos
 if matImpactor.lower() in shelpers.material_strings['tillotson']:
-    etamin, etamax = rhomin/rhoImpactor, rhomax/rhoImpactor
+    etamin, etamax = 0.94, rhomax/rhoImpactor
     pext, pmin, pmax = 0.0, 0.0, 1e200
     eosImpactor = TillotsonEquationOfState(matImpactor, etamin, etamax, units)
     eosImpactor.minimumPressure = pmin
