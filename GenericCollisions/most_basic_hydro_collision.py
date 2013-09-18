@@ -168,6 +168,7 @@ jobDir = os.path.join(baseDir,
                        'rTarget=%0.2g' % rTarget,
                        'rImpactor=%0.2g' % rImpactor,
                        'nxTarget=%i' % nxTarget,
+                       'np=%i' % mpi.procs,
                        )
 restartDir = os.path.join(jobDir, 'restarts', 'proc-%04i' % mpi.rank)
 vizDir = os.path.join(jobDir, 'viz')
