@@ -12,11 +12,11 @@ to start using the scripts:
 + We'll call this newly created, top-level directory `<uss>`. Add the path to `<uss>`
   to your `PYTHONPATH` variable, In your `.bashrc` or `.cshrc` file put:
         
-        export PYTHONPATH = "path/to/<uss>:$PYTHONPATH"
+        export PYTHONPATH = "path/to/<uss>:"
 
   or  
   
-        setenv PYTHONPATH "path/to/<uss>:$PYTHONPATH"
+        setenv PYTHONPATH "path/to/<uss>:"
   
   respectively.
   
