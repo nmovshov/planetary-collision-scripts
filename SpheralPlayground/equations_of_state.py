@@ -45,6 +45,7 @@ sph.initializeANEOS('/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT',
                                                              'ANEOS.barf', izetl)
 etamin, etamax = 0.94, 10
 rho0 = 2650
+pext, pmin, pmax = 0.0, -1e200, 1e200 # these are actually the defaults
 SiO2 = sph.ANEOS(0,           # Material number
                  1000,        # num rho vals
                  1000,        # num T vals
@@ -52,7 +53,8 @@ SiO2 = sph.ANEOS(0,           # Material number
                  etamax*rho0, # maximum density (kg/m^3)
                  1.0,         # minimum temperature (K)
                  1.0e4,       # maximum temperature (K)
-                 units)
+                 units,
+                 pext, pmin, pmax)
 os.system('rm -f ANEOS.barf')
 del izetl, etamin, etamax, rho0
 
