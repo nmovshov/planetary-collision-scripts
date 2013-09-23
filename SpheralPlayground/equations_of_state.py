@@ -24,7 +24,7 @@ units = sph.PhysicalConstants(1.0,   # Unit length in meters
 # Tillotson EOS for common materials
 #-------------------------------------------------------------------------------
 mats = ['Granite', 'Basalt', 'Nylon', 'Pure Ice', '30% Silicate Ice', 'Water']
-etamin, etamax = 0.01, 100.0
+etamin, etamax = 0.94, 10.0
 pext, pmin, pmax = 0.0, -1e200, 1e200 # these are actually the defaults
 EOSes = [sph.TillotsonEquationOfState(mat, etamin, etamax, units,
          externalPressure = pext, minimumPressure = pmin, maximumPressure = pmax)
@@ -43,16 +43,18 @@ del EOSes, mats, etamin, etamax
 izetl = sph.vector_of_int(1, -1)
 sph.initializeANEOS('/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT',
                                                              'ANEOS.barf', izetl)
-SiO2 = sph.ANEOS(0,          # Material number
-                 1000,       # num rho vals
-                 1000,       # num T vals
-                 2000.0,     # minimum density (kg/m^3)
-                 4000.0,     # maximum density (kg/m^3)
-                 1.0,        # minimum temperature (K)
-                 1.0e4,      # maximum temperature (K)
+etamin, etamax = 0.94, 10
+rho0 = 2650
+SiO2 = sph.ANEOS(0,           # Material number
+                 1000,        # num rho vals
+                 1000,        # num T vals
+                 etamin*rho0, # minimum density (kg/m^3)
+                 etamax*rho0, # maximum density (kg/m^3)
+                 1.0,         # minimum temperature (K)
+                 1.0e4,       # maximum temperature (K)
                  units)
 os.system('rm -f ANEOS.barf')
-del izetl
+del izetl, etamin, etamax, rho0
 
 #-------------------------------------------------------------------------------
 # A polytropic fluid EOS
