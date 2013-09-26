@@ -68,7 +68,7 @@ rhomax = 4.0*rhoPlanet     # Upper bound on node density
 # Gravity parameters
 softLength = 1.0/nxPlanet  # Fraction of planet radius as softening length
 opening = 1.0              # Dimensionless opening parameter for gravity tree walk
-fdt = 0.01                 # Gravity time step multiplier
+fdt = 0.1                  # Time step multiplier (dt=fdt*sqrt(softlength/a))
 softLength *= rPlanet
 G = MKS().G
 
