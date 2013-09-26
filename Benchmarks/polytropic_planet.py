@@ -367,6 +367,7 @@ if polytrope_n == 1:
     # Approximate planet's vitals via nearest node
     mdict = shelpers.spickle_node_list(planet,silent=True)
     plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
+    plan_arr += max([max(x) for x in mdict['h']])
     plan_rho = max(mdict['rho'])
     plan_pee = max(mdict['p'])
     # Calculate derived polytrope vitals
