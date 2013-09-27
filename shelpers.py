@@ -229,7 +229,14 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
     """
 
     # Make sure we are not wasting our time.
-    assert True
+    assert isinstance(nls,(list,tuple)), "argument 1 must be a list or tuple"
+    assert isinstance(filename, str), "argument 2 must be a simple string"
+    assert isinstance(do_header, bool), "true or false"
+    assert isinstance(silent, bool), "true or false"
+    for k in range(len(nls)):
+        assert isinstance(nls[k],(sph.Spheral.NodeSpace.FluidNodeList3d,
+                                  sph.Spheral.SolidMaterial.SolidNodeList3d)
+                         ), "argument 1 must contain node lists"
 
     # Write the header.
     if do_header:
