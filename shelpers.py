@@ -46,7 +46,7 @@ def spickle_node_list(nl,filename=None,silent=False):
     rloc = nl.massDensity().internalValues()
     uloc = nl.specificThermalEnergy().internalValues()
     Hloc = nl.Hfield().internalValues()
-    #(pressure and temperature are stored in the eos object and accessed differently)
+    #(pressure and temperature are stored in the eos object.)
     eos = nl.equationOfState()
     ploc = sph.ScalarField('ploc',nl)
     Tloc = sph.ScalarField('loc',nl)
@@ -155,7 +155,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     assert isinstance(nl_id, int), "int only idents"
     assert not isinstance(nl_id, bool), "int only idents"
 
-    # Write the header
+    # Write the header.
     if do_header:
         nbGlobalNodes = mpi.allreduce(nl.numInternalNodes, mpi.SUM)
         header = header_template.format(nbGlobalNodes)
@@ -170,14 +170,14 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     if not silent:
         sys.stdout.write('Flattening ' + nl.label() + ' ' + nl.name + '........')
     
-    # Get values of field variables stored in internal nodes
+    # Get values of field variables stored in internal nodes.
     xloc = nl.positions().internalValues()
     vloc = nl.velocity().internalValues()
     mloc = nl.mass().internalValues()
     rloc = nl.massDensity().internalValues()
     uloc = nl.specificThermalEnergy().internalValues()
     Hloc = nl.Hfield().internalValues()
-    #(pressure and temperature are stored in the eos object and accessed differently)
+    #(pressure and temperature are stored in the eos object.)
     eos = nl.equationOfState()
     ploc = sph.ScalarField('ploc',nl)
     Tloc = sph.ScalarField('loc',nl)
@@ -209,10 +209,36 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
         mpi.barrier()
         pass
      
-    # And Bob's our uncle
+    # And Bob's our uncle.
     if not silent:
         print "Done."
     # End function pflatten_node_list
+
+
+def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
+    """Flatten a list of node lists to a rectangular ascii file.
+
+    pflatten_node_list_list(nls,filename) writes meta data about the node lists
+    in nls, which must be either a list or a tuple of valid node lists, to a header
+    of the file filename, and then calls pflatten_node_list(nl,filename) for each
+    nl in nls.
+
+    pflatten_node_list_list(...,do_header=False) omits the header.
+
+    See also: pflatten_node_list
+    """
+
+    # Make sure we are not wasting our time.
+    assert True
+
+    # Write the header.
+    if do_header:
+        pass
+
+    # And Bob's our uncle.
+    if not silent:
+        print "Done."
+    # End function pflatten_node_list_list
 
 
 global header_template
