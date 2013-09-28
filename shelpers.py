@@ -240,6 +240,17 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
 
     # Write the header.
     if do_header:
+        header = "temporary header placeholder\n"
+        if mpi.rank == 0:
+            fid = open(filename,'w')
+            fid.write(header)
+            fid.close()
+            pass
+        pass
+
+    # Send contents of nls to be flattened.
+    for k in range(len(nls)):
+        pflatten_node_list(nls[k],filename,do_header=False,nl_id=k,silent=silent)
         pass
 
     # And Bob's our uncle.
