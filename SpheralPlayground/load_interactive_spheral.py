@@ -37,7 +37,7 @@ eos = sph.TillotsonEquationOfState('pure ice',etamin,etamax,units)
 nodes = sph.makeFluidNodeList('nodelist', eos)
 
 # Create a stock generator.
-generator = GenerateNodeDistribution3d(10, 10, 10, 
+generator = GenerateNodeDistribution3d(2, 2, 2, 
                                        eos.referenceDensity,
                                        distributionType = 'lattice')
 

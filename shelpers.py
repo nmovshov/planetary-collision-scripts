@@ -233,14 +233,17 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
     assert isinstance(filename, str), "argument 2 must be a simple string"
     assert isinstance(do_header, bool), "true or false"
     assert isinstance(silent, bool), "true or false"
-    for k in range(len(nls)):
-        assert isinstance(nls[k],(sph.Spheral.NodeSpace.FluidNodeList3d,
+    for nl in nls:
+        assert isinstance(nl,(sph.Spheral.NodeSpace.FluidNodeList3d,
                                   sph.Spheral.SolidMaterial.SolidNodeList3d)
                          ), "argument 1 must contain node lists"
 
     # Write the header.
     if do_header:
-        header = "temporary header placeholder\n"
+        nbGlobalNodes = 0
+        for nl in nls:
+            nbGlobalNodes += mpi.allreduce(nl.numInternalNodes, mpi.SUM)
+        header = header_template.format(nbGlobalNodes)
         if mpi.rank == 0:
             fid = open(filename,'w')
             fid.write(header)
@@ -264,7 +267,7 @@ header_template = """
 ################################################################################
 # This file contains output data from a Spheral++ simulation, including all 
 # field variables as well as some diagnostic data and node meta data. This
-# file should contain {} lines, one per SPH node used in the simulation.
+# file should contain {} data lines, one per SPH node used in the simulation.
 # Line order is not significant and is not guaranteed to match the node ordering
 # during the run, which itself is not significant. The columns contain field
 # values in whatever units where used in the simulation. Usually MKS.
