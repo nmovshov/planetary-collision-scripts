@@ -9,6 +9,20 @@ import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
 import SolidSpheral3d as sph
 
+def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
+    """Return a spheral EOS object for a material identified by tag.
+
+    See also: material_dictionary
+    """
+
+    # Make sure we are not wasting our time.
+    assert material_tag in material_dictionary.keys()
+    assert isinstance(units,sph.PhysicalConstants)
+    assert isinstance(etamin,float)
+    assert isinstance(etamax,float)
+    print 'alo'
+    # End function construct_eos_for_material
+
 def spickle_node_list(nl,filename=None,silent=False):
     """Pack physical field variables from a node list in a dict and pickle.
 
@@ -291,10 +305,23 @@ header_template = """
 ################################################################################
 """
 
-global material_strings
-material_strings = {}
-material_strings = dict(
-        tillotson = ('granite', 'basalt', 'nylon', 'pure ice', 
-                     '30% silicate ice', 'water'),
-        maneos    = ('sio2'),
+global material_dictionary
+# A dictionary of unique short tags for commonly used material EOSs
+material_dictionary = {}
+
+material_dictionary['h2oice'] = dict(
+        eos_type = 'tillotson',
+        eos_constructor = sph.TillotsonEquationOfState,
+        eos_arguments = {'materialName':'pure ice'},
         )
+
+material_dictionary['dirtyice'] = dict(
+        eos_type = 'tillotson',
+        eos_constructor = sph.TillotsonEquationOfState,
+        eos_arguments = {'materialName':'30% silicate ice'},
+        )
+
+
+
+
+
