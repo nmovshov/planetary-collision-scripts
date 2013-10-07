@@ -14,5 +14,4 @@ string.
 | 'basalt'      |  Tillotson parameters for basalt
 | 'nylon'       |  Tillotson parameters for nylon (solid)
 | 'SiO2'        |  M/ANEOS SiO2 with Melosh (2007) correction
-| 'poly'        |  A polytrope with n=1 and K=2e5
 

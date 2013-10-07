@@ -28,18 +28,19 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     """
 
     # Make sure we are not wasting our time.
-    assert material_tag in material_dictionary.keys()
+    assert isinstance(material_tag,str)
+    assert material_tag.lower() in material_dictionary.keys()
     assert isinstance(units,sph.PhysicalConstants)
     assert isinstance(etamin,float)
     assert isinstance(etamax,float)
 
     # Build eos using our internal dictionary
-    mat_dict = material_dictionary[material_tag]
+    mat_dict = material_dictionary[material_tag.lower()]
     eos_constructor = mat_dict['eos_constructor']
     eos_arguments = mat_dict['eos_arguments']
     eos = None
 
-    if mat_dict['eos_type'] == 'tillotson':
+    if mat_dict['eos_type'] == 'Tillotson':
         eos = eos_constructor(eos_arguments['materialName'],
                               etamin, etamax, units)
         pass
@@ -392,4 +393,4 @@ material_dictionary['SiO2'] = dict(
         eos_arguments = {},
         eos_id = len(material_dictionary.keys()) + 1,
         )
-
+# End material_dictionary
