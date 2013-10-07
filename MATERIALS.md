@@ -1,8 +1,8 @@
 Material selection table
 ==========================
-In all scripts provided in this package, the user can choose between the
+In most scripts provided in this package, the user can choose between the
 following equations of state, one per node list, by specifying a material
-string.
+string. (Case does not matter.)
 
 
 | String        |  EOS used

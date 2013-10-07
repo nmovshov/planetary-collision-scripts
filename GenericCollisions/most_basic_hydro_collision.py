@@ -131,33 +131,21 @@ units = PhysicalConstants(1.0, # unit length in meters
                           1.0, # unit mass in kilograms
                           1.0) # unit time in seconds
 
-# Select and construct target eos
-if matTarget.lower() in shelpers.material_strings['tillotson']:
-    etamin, etamax = 0.94, rhomax/rhoTarget
-    pext, pmin, pmax = 0.0, 0.0, 1e200
-    eosTarget = TillotsonEquationOfState(matTarget, etamin, etamax, units)
-    eosTarget.minimumPressure = pmin
-elif matTarget.lower() in shelpers.material_strings['maneos']:
-    print "m/anoes" #TODO put in aneos
-else:
-    raise ValueError("invalid material selection for target")
+# Optionally, provide non-default values to the following
+etamin, etamax = 0.94, 100.0
 
-# Select and construct impactor eos
-if matImpactor.lower() in shelpers.material_strings['tillotson']:
-    etamin, etamax = 0.94, rhomax/rhoImpactor
-    pext, pmin, pmax = 0.0, 0.0, 1e200
-    eosImpactor = TillotsonEquationOfState(matImpactor, etamin, etamax, units)
-    eosImpactor.minimumPressure = pmin
-elif matImpactor.lower() in shelpers.material_strings['maneos']:
-    print "m/anoes" # TODO put in aneos
-else:
-    raise ValueError("invalid material selection for impactor")
+# Construct and verify target eos
+eosTarget = shelpers.construct_eos_for_material(matTarget,units,etamin,etamax)
+assert eosTarget is not None
+assert eosTarget.valid()
 
-# Verify valid EOSs
-if eosTarget is None or eosImpactor is None:
-    raise ValueError("target and/or impactor eos construction failed")
-if not (eosTarget.valid() and eosImpactor.valid()):
-    raise ValueError("target and/or impactor eos construction failed")
+# Construct and verify impactor eos
+eosImpactor = shelpers.construct_eos_for_material(matImpactor,units,etamin,etamax)
+assert eosImpactor is not None
+assert eosImpactor.valid()
+
+print eosImpactor.uid
+sys.exit()
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories

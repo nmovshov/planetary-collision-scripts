@@ -43,6 +43,7 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     if mat_dict['eos_type'] == 'Tillotson':
         eos = eos_constructor(eos_arguments['materialName'],
                               etamin, etamax, units)
+        eos.uid = mat_dict['eos_id']
         pass
     else:
         print "EOS type {} not yet implemented".format(mat_dict['eos_type'])
@@ -387,7 +388,7 @@ material_dictionary['nylon'] = dict(
         eos_id = len(material_dictionary.keys()) + 1,
         )
 
-material_dictionary['SiO2'] = dict(
+material_dictionary['sio2'] = dict(
         eos_type = 'M/ANEOS',
         eos_constructor = None,
         eos_arguments = {},
