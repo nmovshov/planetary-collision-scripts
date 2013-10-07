@@ -20,7 +20,23 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     assert isinstance(units,sph.PhysicalConstants)
     assert isinstance(etamin,float)
     assert isinstance(etamax,float)
-    print 'alo'
+
+    # Build eos using our internal dictionary
+    mat_dict = material_dictionary[material_tag]
+    eos_constructor = mat_dict['eos_constructor']
+    eos_arguments = mat_dict['eos_arguments']
+    eos = None
+
+    if mat_dict['eos_type'] == 'tillotson':
+        eos = eos_constructor(eos_arguments['materialName'],
+                              etamin, etamax, units)
+        pass
+    else:
+        print "EOS type {} not yet implemented".format(mat_dict['eos_type'])
+        pass
+
+    # And Bob's our uncle
+    return eos
     # End function construct_eos_for_material
 
 def spickle_node_list(nl,filename=None,silent=False):
@@ -313,12 +329,14 @@ material_dictionary['h2oice'] = dict(
         eos_type = 'tillotson',
         eos_constructor = sph.TillotsonEquationOfState,
         eos_arguments = {'materialName':'pure ice'},
+        eos_id = len(material_dictionary.keys()) + 1,
         )
 
 material_dictionary['dirtyice'] = dict(
         eos_type = 'tillotson',
         eos_constructor = sph.TillotsonEquationOfState,
         eos_arguments = {'materialName':'30% silicate ice'},
+        eos_id = len(material_dictionary.keys()) + 1,
         )
 
 
