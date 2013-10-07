@@ -12,6 +12,18 @@ import SolidSpheral3d as sph
 def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     """Return a spheral EOS object for a material identified by tag.
 
+    construct_eos_for_material(mtag,units) calls the appropriate spheral eos
+    constructor for the material identified by mtag, which must be one of the keys
+    defined in the global shelpers.material_dictionary. This dictionary also includes
+    additional arguments to be passed to the constructor, when necessary.
+
+    All uss runs should use this method to create equations of state, instead of
+    calling the spheral constructors directly, in order to allow automatic record
+    keeping of what material was used in a given run. This also allows reusing 
+    "pre cooked" node lists in new runs.
+
+    The file <uss>/MATERIALS.md should contain a table of available material tags.
+
     See also: material_dictionary
     """
 
@@ -322,24 +334,62 @@ header_template = """
 """
 
 global material_dictionary
-# A dictionary of unique short tags for commonly used material EOSs
+# A dictionary of unique short tags for commonly used material EOSs.
+# We use this in spite of the added complexity to allow users of uss to specify 
+# nothing more than a unique string material "tag" as a complete choice of eos.
+# All uss runs should use this tag and the construct_eos_for_material method 
+# instead of calling the spheral eos constructors directly. This also allows 
+# keeping a record of what material was used in each run, and thus allows a hands
+# free importing of precooked planets into new runs.
+# IMPORTANT: add new entries AFTER old ones to preserve unique ids.
 material_dictionary = {}
 
+material_dictionary['water'] = dict(
+        eos_type = 'Tillotson',
+        eos_constructor = sph.TillotsonEquationOfState,
+        eos_arguments = {'materialName':'water'},
+        eos_id = len(material_dictionary.keys()) + 1,
+        )
+
 material_dictionary['h2oice'] = dict(
-        eos_type = 'tillotson',
+        eos_type = 'Tillotson',
         eos_constructor = sph.TillotsonEquationOfState,
         eos_arguments = {'materialName':'pure ice'},
         eos_id = len(material_dictionary.keys()) + 1,
         )
 
 material_dictionary['dirtyice'] = dict(
-        eos_type = 'tillotson',
+        eos_type = 'Tillotson',
         eos_constructor = sph.TillotsonEquationOfState,
         eos_arguments = {'materialName':'30% silicate ice'},
         eos_id = len(material_dictionary.keys()) + 1,
         )
 
+material_dictionary['granite'] = dict(
+        eos_type = 'Tillotson',
+        eos_constructor = sph.TillotsonEquationOfState,
+        eos_arguments = {'materialName':'granite'},
+        eos_id = len(material_dictionary.keys()) + 1,
+        )
 
+material_dictionary['basalt'] = dict(
+        eos_type = 'Tillotson',
+        eos_constructor = sph.TillotsonEquationOfState,
+        eos_arguments = {'materialName':'basalt'},
+        eos_id = len(material_dictionary.keys()) + 1,
+        )
 
+material_dictionary['nylon'] = dict(
+        eos_type = 'Tillotson',
+        eos_constructor = sph.TillotsonEquationOfState,
+        eos_arguments = {'materialName':'nylon'},
+        eos_id = len(material_dictionary.keys()) + 1,
+        )
 
+material_dictionary['SiO2'] = dict(
+        eos_type = 'M/ANEOS',
+        eos_constructor = None,
+        eos_arguments = {},
+        eos_id = len(material_dictionary.keys()) + 1,
+        )
 
