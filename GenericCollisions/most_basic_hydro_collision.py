@@ -144,9 +144,6 @@ eosImpactor = shelpers.construct_eos_for_material(matImpactor,units,etamin,etama
 assert eosImpactor is not None
 assert eosImpactor.valid()
 
-print eosImpactor.uid
-sys.exit()
-
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
 # Here we create the output directories, and deal with restarted runs if any.
@@ -203,6 +200,7 @@ target   = makeFluidNodeList('target', eosTarget,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
                              )
+target.eos_id = eosTarget.uid
 impactor = makeFluidNodeList('impactor', eosImpactor, 
                              nPerh = nPerh, 
                              xmin = -10.0*rImpactor*Vector.one, # (probably unnecessary)
@@ -212,6 +210,7 @@ impactor = makeFluidNodeList('impactor', eosImpactor,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
                              )
+impactor.eos_id = eosImpactor.uid
 nodeSet = [target, impactor]
 
 # Unless restarting, create the generators and set initial field values.
