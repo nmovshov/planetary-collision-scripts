@@ -58,10 +58,10 @@ outCycle = None              # Cycles between running output routine
 
 # Node list parameters
 nPerh = 1.51                 # Nominal number of nodes per smoothing scale
-hmin = int(1e-6*rPlanet)     # Lower bound on smoothing length
-hmax = int(2e+0*rPlanet)     # Upper bound on smoothing length
-rhomin = int(1e-6*rhoPlanet) # Lower bound on node density
-rhomax = int(1e+1*rhoPlanet) # Upper bound on node density
+hmin = 1e-6*rPlanet          # Lower bound on smoothing length
+hmax = 2e+0*rPlanet          # Upper bound on smoothing length
+rhomin = 1e-6*rhoPlanet      # Lower bound on node density
+rhomax = 1e+1*rhoPlanet      # Upper bound on node density
 
 # Gravity parameters
 softLength = 1.0/nxPlanet    # Fraction of planet radius as softening length
@@ -71,9 +71,9 @@ softLength *= rPlanet
 G = MKS().G
 
 # More simulation parameters
-dtGrowth = 2.0               # Maximum growth factor for time step per cycle (dimensionless)
+dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
 dtMin = 0                    # Minimum allowed time step (sec)
-dtMax = int(0.1*goalTime)    # Maximum allowed time step (sec)
+dtMax = 0.1*goalTime         # Maximum allowed time step (sec)
 verbosedt = False            # Verbose reporting of the time step criteria per cycle
 maxSteps = 800               # Maximum allowed steps for simulation advance
 statsStep = None             # Frequency for sampling conservation statistics and such

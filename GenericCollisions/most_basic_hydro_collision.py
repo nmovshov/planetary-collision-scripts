@@ -72,7 +72,7 @@ rhomin = 1e-4*rhoTarget    # Lower bound on node density
 rhomax = 1e+8*rhoTarget    # Upper bound on node density
 
 # More simulation parameters
-dtGrowth = 2.0             # Maximum growth factor for time step per cycle (dimensionless)
+dtGrowth = 2.0             # Maximum growth factor for time step per cycle 
 dtMin = 0                  # Minimum allowed time step (sec)
 dtMax = 0.1*goalTime       # Maximum allowed time step (sec)
 verbosedt = False          # Verbose reporting of the time step criteria per cycle
