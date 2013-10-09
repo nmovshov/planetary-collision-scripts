@@ -31,7 +31,7 @@ jobName = 'polystatic'
 jobDesc = "Hydrostatic equilibrium of a polytropic planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
-# Planet properties
+# Planet parameters
 rPlanet = 11.8             # Initial guess for radius of planet (earth radii)
 mPlanet = 318              # Mass of planet (earth masses)
 polytrope_n  = 1           # Polytropic index (n=1)
@@ -48,8 +48,15 @@ cooldownPower = 1.0        # Dimensionless cooldown "strength" >=0
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
                            # * With 'stomp' method, 0<=power<=1
 
+# Gravity parameters
+softLength = 1.0/nxPlanet  # Fraction of planet radius as softening length
+opening = 1.0              # Dimensionless opening parameter for gravity tree walk
+fdt = 0.1                  # Time step multiplier (dt=fdt*sqrt(softlength/a))
+softLength *= rPlanet
+G = MKS().G
+
 # Times, simulation control, and output
-nxPlanet = 20              # Nodes across diameter of target (run "resolution")
+nxPlanet = 20              # Nodes across diameter of planet (run "resolution")
 steps = None               # None or advance a number of steps rather than to a time
 goalTime = 6000            # Time to advance to (sec)
 dtInit = 20                # Initial guess for time step (sec)
@@ -58,19 +65,12 @@ vizCycle = None            # Cycle frequency for dropping viz files
 outTime = 1600             # Time between running output routine (sec)
 outCycle = None            # Cycles between running output routine
 
-# Node seeding parameters ("resolution")
+# Node list parameters
 nPerh = 1.51               # Nominal number of nodes per smoothing scale
 hmin = 1.0e-6*rPlanet      # Lower bound on smoothing length
 hmax = 1.0e-1*rPlanet      # Upper bound on smoothing length
 rhomin = 0.001*rhoPlanet   # Lower bound on node density
 rhomax = 4.0*rhoPlanet     # Upper bound on node density
-
-# Gravity parameters
-softLength = 1.0/nxPlanet  # Fraction of planet radius as softening length
-opening = 1.0              # Dimensionless opening parameter for gravity tree walk
-fdt = 0.1                  # Time step multiplier (dt=fdt*sqrt(softlength/a))
-softLength *= rPlanet
-G = MKS().G
 
 # More simulation parameters
 dtGrowth = 2.0             # Maximum growth factor for time step per cycle (dimensionless)
