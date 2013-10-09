@@ -57,7 +57,7 @@ angleImpact = 30           # Impact angle to normal (degrees)
 # Times, simulation control, and output
 nxTarget = 20              # Nodes across diameter of target (run "resolution")
 steps = None               # None or advance a number of steps rather than to a time
-goalTime = 6               # Time to advance to (sec)
+goalTime = 2               # Time to advance to (sec)
 dtInit = 0.02              # Initial guess for time step (sec)
 vizTime = 1                # Time frequency for dropping viz files (sec)
 vizCycle = None            # Cycle frequency for dropping viz files
@@ -126,6 +126,7 @@ rigorousBoundaries = False
 # material string (see <uss>MATERIALS.md for available options).
 #-------------------------------------------------------------------------------
 eosTarget, eosImpactor = None, None
+
 # Most eos constructors need to know about units. We usually use MKS.
 units = PhysicalConstants(1.0, # unit length in meters
                           1.0, # unit mass in kilograms
@@ -151,7 +152,9 @@ assert eosImpactor.valid()
 # Name directories and files.
 jobDir = os.path.join(baseDir, 
                        'rTarget=%0.2g' % rTarget,
+                       'eosTarget=%d' % eosTarget.uid,
                        'rImpactor=%0.2g' % rImpactor,
+                       'eosImpactor=%d' % eosImpactor.uid,
                        'nxTarget=%i' % nxTarget,
                        'np=%i' % mpi.procs,
                        )
@@ -366,7 +369,7 @@ def mOutput(stepsSoFar,timeNow,dt):
     """Save node list to flat ascii file."""
     mFileName="{0}-{1:04d}-{2:g}.{3}".format(
               jobName, stepsSoFar, timeNow, 'fnl')
-    shelpers.pflatten_node_list(target, outDir + '/' + mFileName)
+    shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
 if not outCycle is None:
     control.appendPeriodicWork(mOutput,outCycle)
