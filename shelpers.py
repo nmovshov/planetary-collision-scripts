@@ -178,7 +178,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     list files) is 0.
 
     The format of the output table is (one line per node):
-      id x y z vx vy vz m rho p T U hmin hmax
+      id eos_id x y z vx vy vz m rho p T U hmin hmax
 
     The p in pflatten is for 'parallel', a reminder that all nodes will be
     processed in their local rank, without ever being communicated or collected
@@ -236,6 +236,7 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
             fid = open(filename,'a')
             for nk in range(nl.numInternalNodes):
                 line  = "{:2d}  ".format(nl_id)
+                line += "{:2d}  ".format(getattr(nl,'eos_id',-1))
                 line += "{0.x:+12.5e}  {0.y:+12.5e}  {0.z:+12.5e}  ".format(xloc[nk])
                 line += "{0.x:+12.5e}  {0.y:+12.5e}  {0.z:+12.5e}  ".format(vloc[nk])
                 line += "{0:+12.5e}  ".format(mloc[nk])
@@ -316,11 +317,12 @@ header_template = """
 # during the run, which itself is not significant. The columns contain field
 # values in whatever units where used in the simulation. Usually MKS.
 # Columns are:
-#    | id | x | y | z | vx | vy | vz | m | rho | p | T | U | hmin | hmax |
+#  | id | eos_id | x | y | z | vx | vy | vz | m | rho | p | T | U | hmin | hmax |
 #
 # Column legend:
 #    
 #        id - an integer identifier of the node list this node came from
+#    eos_id - an integer identifier of the material eos used with this node list
 #     x,y,z - node space coordinates 
 #  vx,vy,vz - node velocity components
 #         m - node mass
