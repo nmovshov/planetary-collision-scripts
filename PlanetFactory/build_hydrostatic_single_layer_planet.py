@@ -34,9 +34,9 @@ jobDesc = "Hydrostatic equilibrium of a single-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet parameters
-rPlanet = 500e3              # Initial guess for planet radius (m)
-mPlanet = 5e22               # Total (and conserved) planet mass (kg)
-matPlanet = 'basalt'         # Planet material (see <uss>/MATERIALS.md for options)
+rPlanet = 1000e3             # Initial guess for planet radius (m)
+mPlanet = 4e21               # Total (and conserved) planet mass (kg)
+matPlanet = 'h2oice'         # Planet material (see <uss>/MATERIALS.md for options)
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
@@ -49,11 +49,11 @@ cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
 # Times, simulation control, and output
 nxPlanet = 20                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or advance a number of steps rather than to a time
-goalTime = 2                 # Time to advance to (sec)
+goalTime = 20*gravTime       # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
-vizTime = 1                  # Time frequency for dropping viz files (sec)
+vizTime = 0.4*gravTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
-outTime = None               # Time between running output routine (sec)
+outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
 
 # Node list parameters
