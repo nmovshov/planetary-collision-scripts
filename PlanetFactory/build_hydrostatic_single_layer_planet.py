@@ -136,13 +136,14 @@ units = PhysicalConstants(1.0, # unit length in meters
                           1.0, # unit mass in kilograms
                           1.0) # unit time in seconds
 
-# Optionally, provide non-default values to the following
-etamin, etamax = 0.94, 100.0
-
 # Construct and verify planet eos
-eosPlanet = shelpers.construct_eos_for_material(matPlanet,units,etamin,etamax)
+eosPlanet = shelpers.construct_eos_for_material(matPlanet,units)
 assert eosPlanet is not None
 assert eosPlanet.valid()
+
+# Optionally, provide non-default values to the following
+eosPlanet.etamin = 0.94
+eosPlanet.minimumPressure = -1e200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -150,7 +151,7 @@ assert eosPlanet.valid()
 #-------------------------------------------------------------------------------
 # Name directories and files.
 jobDir = os.path.join(baseDir, 
-                       'rPlanet=%0.2g' % rPlanet,
+                       'mPlanet=%0.2g' % mPlanet,
                        'eosPlanet=%d' % eosPlanet.uid,
                        'nxPlanet=%i' % nxPlanet,
                        'np=%i' % mpi.procs,
