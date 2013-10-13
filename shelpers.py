@@ -308,7 +308,7 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
 
 
 global header_template
-header_template = """
+header_template = """\
 ################################################################################
 # This file contains output data from a Spheral++ simulation, including all 
 # field variables as well as some diagnostic data and node meta data. This
