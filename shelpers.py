@@ -166,7 +166,8 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     which must be a valid node list, and writes them as a rectangular table into
     the text file filename. (A short header is also written, using the # comment
     character so the resulting file can be easily read with, e.g., numpy.loadtext.)
-    The file will be overwritten if it exists.
+    The file will be overwritten if it exists. If filename has the .gz extension
+    it will be compressed using gzip.
 
     pflatten_node_list(...,do_header=False) omits the header and appends the flattened
     nl to the end of the file if one exists.
@@ -198,6 +199,14 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     assert isinstance(silent, bool), "true or false"
     assert isinstance(nl_id, int), "int only idents"
     assert not isinstance(nl_id, bool), "int only idents"
+
+    # Determine if file should be compressed.
+    if os.path.splitext(filename)[1] == '.gz':
+        import gzip
+        open = gzip.open
+    else:
+        import __builtin__
+        open = __builtin__.open
 
     # Write the header.
     if do_header:
@@ -283,6 +292,14 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
                                   sph.Spheral.SolidMaterial.SolidNodeList3d)
                          ), "argument 1 must contain node lists"
 
+    # Determine if file should be compressed.
+    if os.path.splitext(filename)[1] == '.gz':
+        import gzip
+        open = gzip.open
+    else:
+        import __builtin__
+        open = __builtin__.open
+
     # Write the header.
     if do_header:
         nbGlobalNodes = 0
@@ -332,7 +349,7 @@ header_template = """\
 #         U - specific internal energy
 # hmin,hmax - smallest and largest half-axes of the smoothing ellipsoid 
 #
-# Tip: load table into python with np.load()
+# Tip: load table into python with np.loadtxt()
 #
 ################################################################################
 """
