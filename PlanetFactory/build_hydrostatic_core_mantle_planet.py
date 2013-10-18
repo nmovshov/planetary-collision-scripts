@@ -194,3 +194,96 @@ mpi.barrier()
 # If we're restarting, find the set of most recent restart files.
 if restoreCycle is None:
     restoreCycle = findLastRestart(restartName)
+
+#-------------------------------------------------------------------------------
+# NAV Node construction
+# Here we create and populate node lists with initial conditions. In spheral, the
+# construction order is as follows:
+# 1. Create an empty node list with fields matching the size and type of problem.
+# 2. Create a "generator" that will decide what values to give all field variables
+#    of node i. Normally we start with one of the simple, stock generators, and
+#    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
+# 3. Distribute, using the (nodeList, generator) pair, among ranks. The generator
+#    will be used to fill values in the node list, and then discarded. 
+#-------------------------------------------------------------------------------
+# Create the node lists.
+core   = makeFluidNodeList('core', eosCore, 
+                           nPerh = nPerh, 
+                           xmin = -10.0*rCore*Vector.one, # (probably unnecessary)
+                           xmax =  10.0*rCore*Vector.one, # (probably unnecessary)
+                           hmin = hmin,
+                           hmax = hmax,
+                           rhoMin = rhomin,
+                           rhoMax = rhomax,
+                           )
+core.eos_id = eosCore.uid
+
+mantle = makeFluidNodeList('mantle', eosMantle, 
+                           nPerh = nPerh, 
+                           xmin = -10.0*rPlanet*Vector.one, # (probably unnecessary)
+                           xmax =  10.0*rPlanet*Vector.one, # (probably unnecessary)
+                           hmin = hmin,
+                           hmax = hmax,
+                           rhoMin = rhomin,
+                           rhoMax = rhomax,
+                           )
+mantle.eos_id = eosMantle.uid
+
+nodeSet = [core, mantle]
+
+# Unless restarting, create the generator and set initial field values.
+if restoreCycle is None:
+    # Start with the stock generator.
+    nxCore = int(nxPlanet*(rCore/rPlanet))
+    coreGenerator   = GenerateNodeDistribution3d(nxCore, nxCore, nxCore,
+                                          rhoCore,
+                                          distributionType = 'lattice',
+                                          xmin = (-rCore, -rCore, -rCore),
+                                          xmax = ( rCore,  rCore,  rCore),
+                                          rmin = 0.0,
+                                          rmax = rCore,
+                                          nNodePerh = nPerh)
+    mantleGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
+                                          rhoMantle,
+                                          distributionType = 'lattice',
+                                          xmin = (-rPlanet, -rPlanet, -rPlanet),
+                                          xmax = ( rPlanet,  rPlanet,  rPlanet),
+                                          rmin = rCore,
+                                          rmax = rPlanet,
+                                          nNodePerh = nPerh)
+
+    # We disturb the lattice symmetry to avoid artificial singularities.
+    for k in range(coreGenerator.localNumNodes()):
+        coreGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        coreGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        coreGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        pass
+    for k in range(mantleGenerator.localNumNodes()):
+        mantleGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        mantleGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        mantleGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        pass
+
+    # Fill node lists using generators and distribute to ranks.
+    print "Starting node distribution..."
+    distributeNodes3d((core, coreGenerator),
+                      (mantle, mantleGenerator))
+    nGlobalNodes = 0
+    for n in nodeSet:
+        print "Generator info for %s" % n.name
+        print "   Minimum number of nodes per domain : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.MIN)
+        print "   Maximum number of nodes per domain : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.MAX)
+        print "               Global number of nodes : ", \
+              mpi.allreduce(n.numInternalNodes, mpi.SUM)
+        nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
+    del n
+    print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    
+    pass
+# The spheral controller needs a DataBase object to hold the node lists.
+db = DataBase()
+for n in nodeSet:
+    db.appendNodeList(n)
+del n

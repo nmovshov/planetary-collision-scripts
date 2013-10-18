@@ -184,7 +184,7 @@ if restoreCycle is None:
 # NAV Node construction
 # Here we create and populate a node list with initial conditions. In spheral, the
 # construction order is as follows:
-# 1. Create an empty node list with fields that match the size and type of problem.
+# 1. Create an empty node list with fields matching the size and type of problem.
 # 2. Create a "generator" that will decide what values to give all field variables
 #    of node i. Normally we start with one of the simple, stock generators, and
 #    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
