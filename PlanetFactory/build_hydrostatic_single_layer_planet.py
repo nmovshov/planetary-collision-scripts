@@ -320,7 +320,7 @@ control = SpheralController(integrator, WT,
 #-------------------------------------------------------------------------------
 def mOutput(stepsSoFar,timeNow,dt):
     mFileName="{0}-{1:04d}-{2:g}.{3}".format(
-              jobName, stepsSoFar, timeNow, 'fnl')
+              jobName, stepsSoFar, timeNow, 'fnl.gz')
     shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
 if not outCycle is None:
