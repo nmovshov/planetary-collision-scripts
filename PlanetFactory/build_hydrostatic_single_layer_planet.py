@@ -112,7 +112,7 @@ balsaraCorrection = False
 epsilon2 = 1e-2
 negligibleSoundSpeed = 1e-4 # kind of arbitrary.
 csMultiplier = 1e-4
-hminratio = 0.1#TODO include in constructor
+hminratio = 0.1
 limitIdealH = False
 cfl = 0.5
 useVelocityMagnitudeForDt = False
@@ -142,8 +142,8 @@ assert eosPlanet is not None
 assert eosPlanet.valid()
 
 # Optionally, provide non-default values to the following
-eosPlanet.etamin = 0.94
-eosPlanet.minimumPressure = -1e200
+eosPlanet.etamin = 0.94 # default is 0.94
+eosPlanet.minimumPressure = 0.0 # default is 1e-200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -200,6 +200,7 @@ planet = makeFluidNodeList('planet', eosPlanet,
                            hmax = hmax,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
+                           hminratio = hminratio,
                            )
 planet.eos_id = eosPlanet.uid
 nodeSet = [planet]

@@ -118,7 +118,7 @@ balsaraCorrection = False
 epsilon2 = 1e-2
 negligibleSoundSpeed = 1e-4 # kind of arbitrary.
 csMultiplier = 1e-4
-hminratio = 0.1#TODO include in constructor
+hminratio = 0.1
 limitIdealH = False
 cfl = 0.5
 useVelocityMagnitudeForDt = False
@@ -153,10 +153,10 @@ assert eosMantle is not None
 assert eosMantle.valid()
 
 # Optionally, provide non-default values to the following
-eosCore.etamin = 0.94
-eosCore.minimumPressure = -1e200
-eosMantle.etamin = 0.94
-eosMantle.minimumPressure = -1e200
+eosCore.etamin = 0.94 # default is 0.94
+eosCore.minimumPressure = 0.0 # default is 1e-200
+eosMantle.etamin = 0.94 # default is 0.94
+eosMantle.minimumPressure = 0.0 # default is 1e-200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -215,6 +215,7 @@ core   = makeFluidNodeList('core', eosCore,
                            hmax = hmax,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
+                           hminratio = hminratio,
                            )
 core.eos_id = eosCore.uid
 
@@ -226,6 +227,7 @@ mantle = makeFluidNodeList('mantle', eosMantle,
                            hmax = hmax,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
+                           hminratio = hminratio,
                            )
 mantle.eos_id = eosMantle.uid
 
