@@ -112,7 +112,7 @@ balsaraCorrection = False
 epsilon2 = 1e-2
 negligibleSoundSpeed = 1e-4 # kind of arbitrary.
 csMultiplier = 1e-4
-hminratio = 0.1
+hminratio = 0.1#TODO include in constructor
 limitIdealH = False
 cfl = 0.5
 useVelocityMagnitudeForDt = False
@@ -327,25 +327,25 @@ if not outCycle is None:
 if not outTime is None:
     control.appendPeriodicTimeWork(mOutput,outTime)
 
-massScale = planet.mass().internalValues()[0]
-timeScale = 0.1/sqrt(2*rhoPlanet*G)
-dashpotParameter = cooldownPower*massScale/timeScale
 def cooldown(stepsSoFar,timeNow,dt):
-    if cooldownMethod is 'dashpot':
-        v = planet.velocity()
-        m = planet.mass()
-        u = planet.specificThermalEnergy()
-        for k in range(planet.numInternalNodes):
-            v[k] *= 1 - min(dashpotParameter*dt/m[k], 1)
-            u[k] *= 0 # TODO: maybe improve on this
+    massScale = mPlanet/nGlobalNodes
+    timeScale = 0.1/gravTime
+    dashpotParameter = cooldownPower*massScale/timeScale
+    for nl in nodeSet:
+        v = nl.velocity()
+        m = nl.mass()
+        u = nl.specificThermalEnergy()
+        if cooldownMethod == 'dashpot':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - min(dashpotParameter*dt/m[k], 1)
+                u[k] *= 0.0 #TODO: maybe improve this
+                pass
             pass
-        pass
-    elif cooldownMethod is 'stomp':
-        v = planet.velocity()
-        u = planet.specificThermalEnergy()
-        for k in range(planet.numInternalNodes):
-            v[k] *= (1 - cooldownPower)
-            u[k] *= 0 # irrelevant for a polytrope
+        elif cooldownMethod == 'stomp':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - cooldownPower
+                u[k] *= 0.0 #TODO maybe improve this
+                pass
             pass
         pass
     pass

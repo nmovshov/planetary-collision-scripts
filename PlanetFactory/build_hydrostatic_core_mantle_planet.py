@@ -118,7 +118,7 @@ balsaraCorrection = False
 epsilon2 = 1e-2
 negligibleSoundSpeed = 1e-4 # kind of arbitrary.
 csMultiplier = 1e-4
-hminratio = 0.1
+hminratio = 0.1#TODO include in constructor
 limitIdealH = False
 cfl = 0.5
 useVelocityMagnitudeForDt = False
@@ -287,3 +287,147 @@ db = DataBase()
 for n in nodeSet:
     db.appendNodeList(n)
 del n
+
+#-------------------------------------------------------------------------------
+# NAV Spheral's simulation structure
+# Here we construct the objects that compose spheral's simulation hierarchy.
+# These are:
+#  * One or more physics packages (hydro, gravity, strength, damage)
+#  * A time integrator of some flavor (usually a Runge-Kutta 2)
+#  * The simulation controller
+#-------------------------------------------------------------------------------
+# Create the gravity package.
+gravity = OctTreeGravity(G = G, 
+                         softeningLength = softLength, 
+                         opening = opening, 
+                         ftimestep = fdt)
+
+# Create the kernel functions for SPH.
+WT = TableKernel(BSplineKernel(), 1000) # one for normal hydro
+WTPi = WT                               # one for artificial viscosity
+
+# Create the artificial viscosity object.
+q = Qconstructor(Cl, Cq)
+q.limiter = Qlimiter
+q.balsaraShearCorrection = balsaraCorrection
+q.epsilon2 = epsilon2
+q.negligibleSoundSpeed = negligibleSoundSpeed
+q.csMultiplier = csMultiplier
+
+# Create the hydro package.
+hydro = HydroConstructor(WT,
+                         WTPi,
+                         q,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         gradhCorrection = False,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HEvolution,
+                         XSPH = XSPH,
+                         epsTensile = epsilonTensile,
+                         nTensile = nTensile)
+
+# Create the time integrator and attach the physics packages to it.
+integrator = CheapSynchronousRK2Integrator(db)
+integrator.appendPhysicsPackage(gravity)
+integrator.appendPhysicsPackage(hydro)
+integrator.lastDt = dtInit
+integrator.dtMin = dtMin
+integrator.dtMax = dtMax
+integrator.dtGrowth = dtGrowth
+integrator.verbose = verbosedt
+integrator.rigorousBoundaries = rigorousBoundaries
+
+# Create the controller.
+control = SpheralController(integrator, WT,
+                            statsStep = statsStep,
+                            restartStep = restartStep,
+                            redistributeStep = redistributeStep,
+                            restartBaseName = restartName,
+                            restoreCycle = restoreCycle,
+                            vizBaseName = jobName,
+                            vizDir = vizDir,
+                            vizStep = vizCycle,
+                            vizTime = vizTime)
+
+#-------------------------------------------------------------------------------
+# NAV Periodic, mid-run actions
+# Here we register optional work to be done mid-run. Mid-run processes can be time
+# or cycle based. Here we use:
+#  * cooldown() - slow and cool internal nodes [cycle based]
+#  * output() - a generic access routine, usually a pickle of node list or some
+#               calculated value of interest [cycle or time based]
+#-------------------------------------------------------------------------------
+def mOutput(stepsSoFar,timeNow,dt):
+    mFileName="{0}-{1:04d}-{2:g}.{3}".format(
+              jobName, stepsSoFar, timeNow, 'fnl')
+    shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
+    pass
+if not outCycle is None:
+    control.appendPeriodicWork(mOutput,outCycle)
+if not outTime is None:
+    control.appendPeriodicTimeWork(mOutput,outTime)
+
+def cooldown(stepsSoFar,timeNow,dt):
+    massScale = mPlanet/nGlobalNodes
+    timeScale = 0.1/gravTime
+    dashpotParameter = cooldownPower*massScale/timeScale
+    for nl in nodeSet:
+        v = nl.velocity()
+        m = nl.mass()
+        u = nl.specificThermalEnergy()
+        if cooldownMethod == 'dashpot':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - min(dashpotParameter*dt/m[k], 1)
+                u[k] *= 0.0 #TODO: maybe improve this
+                pass
+            pass
+        elif cooldownMethod == 'stomp':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - cooldownPower
+                u[k] *= 0.0 #TODO maybe improve this
+                pass
+            pass
+        pass
+    pass
+control.appendPeriodicWork(cooldown,cooldownFrequency)
+
+#-------------------------------------------------------------------------------
+# NAV Launch simulation
+# The simulation can be run for a specified number of steps, or a specified time
+# in seconds.
+#-------------------------------------------------------------------------------
+if not steps is None:
+    control.step(steps)
+    control.dropRestartFile()
+else:
+    control.advance(goalTime, maxSteps)
+    control.dropRestartFile()
+    control.dropViz()
+
+#-------------------------------------------------------------------------------
+# NAV Post processing tasks
+# Here we can include tasks that will happen once, if and when the run is completed
+# successfully. Things like saving flattened node lists and/or computed quantities.
+#-------------------------------------------------------------------------------
+# Save final state in a flattened node list (.fnl) file.
+mOutput(control.totalSteps, control.time(), control.lastDt())
+
+# Print current planet's (approximate) vitals.
+#mdict = shelpers.spickle_node_list(planet,silent=True)
+#plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
+#plan_arr += max([max(x) for x in mdict['h']])
+#plan_rho = max(mdict['rho'])
+#plan_pee = max(mdict['p'])
+#cout = sys.stdout.write
+#cout("\nplanet vitals\n".upper())
+#cout("R = {:.4e} m \n".format(plan_arr))
+#cout("rho_c = {:.4e} kg/m^3\n".format(plan_rho))
+#cout("P_c = {:.4e} Pa\n".format(plan_pee))
+
+#-------------------------------------------------------------------------------
+# NAV Final thoughts
+# Here we may print a message if desired, or do any final action.
+#-------------------------------------------------------------------------------
+print "\n", jobName.upper(), "completed."
