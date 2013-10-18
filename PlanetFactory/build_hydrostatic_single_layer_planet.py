@@ -120,7 +120,7 @@ XSPH = True
 epsilonTensile = 0.0
 nTensile = 4
 HEvolution = IdealH
-densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids.
+densityUpdate = IntegrateDensity # (Sum|Integrate)Density
 compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
