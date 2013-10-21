@@ -284,6 +284,7 @@ if restoreCycle is None:
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
     pass
+
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
 for n in nodeSet:

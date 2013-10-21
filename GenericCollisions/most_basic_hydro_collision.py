@@ -3,7 +3,7 @@
 # Run two fluid spheres into each other.
 # 
 # This script launches the most basic type of collision we can imagine. Two
-# spherical fluid objects of arbitrary size collide with some specified velocity
+# spherical, fluid objects of arbitrary size collide with some specified velocity
 # and impact parameter. In spheral terms, the target and impactor are of type
 # FluidNodeList, and the only physics package attached to the integrator is the
 # hydro package. Although the target and impactor may select a solid material 
@@ -41,13 +41,13 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 # Target parameters
 rTarget = 1200.0           # Target radius (m)
 rhoTarget = 2700.0         # Target initial density (kg/m^3)
-matTarget = 'basalt'       # Target material (see uss/MATERIALS.md for options)
+matTarget = 'basalt'       # Target material (see <uss>/MATERIALS.md for options)
 mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
 
 # Impactor parameters
 rImpactor = 600.0          # Impactor radius (m)
 rhoImpactor = 2700.0       # Impactor initial density (kg/m^3)
-matImpactor = 'basalt'     # Impactor material (see uss/MATERIALS.md for options)
+matImpactor = 'basalt'     # Impactor material (see <uss>/MATERIALS.md for options)
 mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
 # Collision parameters
@@ -115,7 +115,7 @@ XSPH = True
 epsilonTensile = 0.0
 nTensile = 4
 HEvolution = IdealH
-densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids.
+densityUpdate = IntegrateDensity # (Sum|Integrate)Density
 compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
@@ -144,6 +144,12 @@ assert eosTarget.valid()
 eosImpactor = shelpers.construct_eos_for_material(matImpactor,units,etamin,etamax)
 assert eosImpactor is not None
 assert eosImpactor.valid()
+
+# Optionally, provide non-default values to the following
+eosTarget.etamin = 0.94 # default is 0.94
+eosTarget.minimumPressure = 0.0 # default is 1e-200
+eosImpactor.etamin = 0.94 # default is 0.94
+eosImpactor.minimumPressure = 0.0 # default is 1e-200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -202,8 +208,10 @@ target   = makeFluidNodeList('target', eosTarget,
                              hmax = hmax,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
+                             hminratio = hminratio,
                              )
 target.eos_id = eosTarget.uid
+
 impactor = makeFluidNodeList('impactor', eosImpactor, 
                              nPerh = nPerh, 
                              xmin = -10.0*rImpactor*Vector.one, # (probably unnecessary)
@@ -212,8 +220,10 @@ impactor = makeFluidNodeList('impactor', eosImpactor,
                              hmax = hmax,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
+                             hminratio = hminratio,
                              )
 impactor.eos_id = eosImpactor.uid
+
 nodeSet = [target, impactor]
 
 # Unless restarting, create the generators and set initial field values.
@@ -296,6 +306,7 @@ if restoreCycle is None:
         pass
 
     pass
+
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
 for n in nodeSet:
@@ -366,9 +377,8 @@ control = SpheralController(integrator, WT,
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
 def mOutput(stepsSoFar,timeNow,dt):
-    """Save node list to flat ascii file."""
     mFileName="{0}-{1:04d}-{2:g}.{3}".format(
-              jobName, stepsSoFar, timeNow, 'fnl')
+              jobName, stepsSoFar, timeNow, 'fnl.gz')
     shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
 if not outCycle is None:
