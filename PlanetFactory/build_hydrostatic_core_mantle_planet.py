@@ -374,7 +374,7 @@ if not outTime is None:
 
 def cooldown(stepsSoFar,timeNow,dt):
     massScale = mPlanet/nGlobalNodes
-    timeScale = 0.1/gravTime
+    timeScale = 0.1*gravTime
     dashpotParameter = cooldownPower*massScale/timeScale
     for nl in nodeSet:
         v = nl.velocity()

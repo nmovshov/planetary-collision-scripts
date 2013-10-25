@@ -48,21 +48,14 @@ cooldownPower = 1.0        # Dimensionless cooldown "strength" >=0
 cooldownFrequency = 1      # Cycles between application (use 1 with dashpot)
                            # * With 'stomp' method, 0<=power<=1
 
-# Gravity parameters
-softLength = 1.0/nxPlanet  # Fraction of planet radius as softening length
-opening = 1.0              # Dimensionless opening parameter for gravity tree walk
-fdt = 0.1                  # Time step multiplier (dt=fdt*sqrt(softlength/a))
-softLength *= rPlanet
-G = MKS().G
-
 # Times, simulation control, and output
 nxPlanet = 20              # Nodes across diameter of planet (run "resolution")
 steps = None               # None or advance a number of steps rather than to a time
-goalTime = 6000            # Time to advance to (sec)
-dtInit = 20                # Initial guess for time step (sec)
-vizTime = 600              # Time frequency for dropping viz files (sec)
+goalTime = 20*gravTime     # Time to advance to (sec)
+dtInit = 2.0               # Initial guess for time step (sec)
+vizTime = 0.4*gravTime     # Time frequency for dropping viz files (sec)
 vizCycle = None            # Cycle frequency for dropping viz files
-outTime = 1600             # Time between running output routine (sec)
+outTime = vizTime          # Time between running output routine (sec)
 outCycle = None            # Cycles between running output routine
 
 # Node list parameters
@@ -72,10 +65,17 @@ hmax = 1.0e-1*rPlanet      # Upper bound on smoothing length
 rhomin = 0.001*rhoPlanet   # Lower bound on node density
 rhomax = 4.0*rhoPlanet     # Upper bound on node density
 
+# Gravity parameters
+softLength = 1.0/nxPlanet  # Fraction of planet radius as softening length
+opening = 1.0              # Dimensionless opening parameter for gravity tree walk
+fdt = 0.1                  # Time step multiplier (dt=fdt*sqrt(softlength/a))
+softLength *= rPlanet
+G = MKS().G
+
 # More simulation parameters
-dtGrowth = 2.0             # Maximum growth factor for time step per cycle (dimensionless)
-dtMin = int(2e-3*gravTime) # Minimum allowed time step (sec)
-dtMax = int(gravTime)      # Maximum allowed time step (sec)
+dtGrowth = 2.0             # Maximum growth factor for time step per cycle 
+dtMin = 0                  # Minimum allowed time step (sec)
+dtMax = 0.1*goalTime       # Maximum allowed time step (sec)
 verbosedt = False          # Verbose reporting of the time step criteria per cycle
 maxSteps = 1000            # Maximum allowed steps for simulation advance
 statsStep = None           # Frequency for sampling conservation statistics and such
@@ -122,7 +122,7 @@ XSPH = True
 epsilonTensile = 0.0
 nTensile = 4
 HEvolution = IdealH
-densityUpdate = RigorousSumDensity # Sum is best for fluids, integrate for solids.
+densityUpdate = IntegrateDensity # (Sum|Integrate)Density
 compatibleEnergyEvolution = True
 rigorousBoundaries = False
 
@@ -171,8 +171,8 @@ if restoreCycle is None:
 # NAV Node construction
 # Here we create and populate a node list with initial conditions. In spheral, the
 # construction order is as follows:
-# 1. Create an empty node list with fields that match the size and type of problem.
-# 2. Create a "generator" that will decide what values to give to all field variables
+# 1. Create an empty node list with fields matching the size and type of problem.
+# 2. Create a "generator" that will decide what values to give all field variables
 #    of node i. Normally we start with one of the simple, stock generators, and
 #    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
 # 3. Distribute, using the (nodeList, generator) pair, among ranks. The generator
@@ -187,6 +187,7 @@ planet = makeFluidNodeList('planet', eosPlanet,
                            hmax = hmax,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
+                           hminratio = hminratio,
                            )
 nodeSet = [planet]
 
@@ -202,7 +203,6 @@ if restoreCycle is None:
                                                  rmax = rPlanet,
                                                  nNodePerh = nPerh)
 
-    # Modify geometry.
     # We disturb the lattice symmetry to avoid artificial singularities.
     for k in range(planetGenerator.localNumNodes()):
         planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
@@ -305,41 +305,39 @@ control = SpheralController(integrator, WT,
 #  * output() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
-massScale = planet.mass().internalValues()[0]
-timeScale = 0.1/sqrt(2*rhoPlanet*G)
-dashpotParameter = cooldownPower*massScale/timeScale
-def cooldown(stepsSoFar,timeNow,dt):
-    """Slow and cool internal nodes."""
-    if cooldownMethod is 'dashpot':
-        v = planet.velocity()
-        m = planet.mass()
-        u = planet.specificThermalEnergy()
-        for k in range(planet.numInternalNodes):
-            v[k] *= 1 - min(dashpotParameter*dt/m[k], 1)
-            u[k] *= 0 # irrelevant for a polytrope
-            pass
-        pass
-    elif cooldownMethod is 'stomp':
-        v = planet.velocity()
-        u = planet.specificThermalEnergy()
-        for k in range(planet.numInternalNodes):
-            v[k] *= (1 - cooldownPower)
-            u[k] *= 0 # irrelevant for a polytrope
-            pass
-        pass
-    pass
-control.appendPeriodicWork(cooldown,cooldownFrequency)
-
 def mOutput(stepsSoFar,timeNow,dt):
-    """Save node list to flat ascii file."""
     mFileName="{0}-{1:04d}-{2:g}.{3}".format(
-              jobName, stepsSoFar, timeNow, 'fnl')
-    shelpers.pflatten_node_list(planet, outDir + '/' + mFileName)
+              jobName, stepsSoFar, timeNow, 'fnl.gz')
+    shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
 if not outCycle is None:
     control.appendPeriodicWork(mOutput,outCycle)
 if not outTime is None:
     control.appendPeriodicTimeWork(mOutput,outTime)
+
+def cooldown(stepsSoFar,timeNow,dt):
+    massScale = mPlanet/nGlobalNodes
+    timeScale = 0.1*gravTime
+    dashpotParameter = cooldownPower*massScale/timeScale
+    for nl in nodeSet:
+        v = nl.velocity()
+        m = nl.mass()
+        u = nl.specificThermalEnergy()
+        if cooldownMethod == 'dashpot':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - min(dashpotParameter*dt/m[k], 1)
+                u[k] *= 0.0 #TODO: maybe improve this
+                pass
+            pass
+        elif cooldownMethod == 'stomp':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - cooldownPower
+                u[k] *= 0.0 #TODO maybe improve this
+                pass
+            pass
+        pass
+    pass
+control.appendPeriodicWork(cooldown,cooldownFrequency)
 
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
