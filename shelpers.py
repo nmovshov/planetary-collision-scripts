@@ -324,6 +324,9 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
     # End function pflatten_node_list_list
 
 
+global nb_fnl_columns
+nb_fnl_columns = 15
+
 global header_template
 header_template = """\
 ################################################################################

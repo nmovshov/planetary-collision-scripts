@@ -25,6 +25,10 @@ r = np.sqrt(x**2 + y**2 + z**2)
 rho = nodes[:,9]
 
 plt.plot(r,rho,'.')
+plt.xlabel('Radius [m]')
+plt.ylabel('Density [kg/m^3]')
+plt.title(sys.argv[1])
+plt.grid()
 plt.show()
 plt.close()
 print "Done."
