@@ -35,9 +35,9 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet parameters
 rPlanet = 1000e3             # Initial guess for planet radius (m)
-mPlanet = 4e21               # Total (and conserved) planet mass (kg)
+rhoPlanet = 916.             # Initial guess for planet density (kg/m^3)
 matPlanet = 'h2oice'         # Planet material (see <uss>/MATERIALS.md for options)
-rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
+mPlanet = rhoPlanet * (4.0*pi/3.0) * rPlanet**3
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
