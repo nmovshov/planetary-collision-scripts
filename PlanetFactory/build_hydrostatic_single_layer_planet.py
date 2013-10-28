@@ -329,7 +329,9 @@ if not outTime is None:
     control.appendPeriodicTimeWork(mOutput,outTime)
 
 def cooldown(stepsSoFar,timeNow,dt):
-    massScale = mPlanet/nGlobalNodes
+    nbGlobalNodes = mpi.allreduce(sum([nl.numInternalNodes for nl in nodeSet]),
+                                  mpi.SUM)
+    massScale = mPlanet/nbGlobalNodes
     timeScale = 0.1*gravTime
     dashpotParameter = cooldownPower*massScale/timeScale
     for nl in nodeSet:
