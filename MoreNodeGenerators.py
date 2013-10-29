@@ -49,17 +49,32 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         # for parallel cases.
         NodeGeneratorBase.__init__(self, True,
                                    self.x, self.y, self.z, self.m, self.H)
-        print "alo" 
         pass
 
     #---------------------------------------------------------------------------
     # The actual generator algorithm
     #---------------------------------------------------------------------------
     def generate_equally_spaced_shells(self):
-        x,y,z,m,H=[1],[2],[3],[4],[5]
+        x,y,z,m,H=[1],[2],[3],[4],[SymTensor3d()]
         return x, y, z, m, H
         pass
 
     #---------------------------------------------------------------------------
     # Required methods from NodeGeneratorBase
     #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y) == len(self.z)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
+
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+
+    def localMassDensity(self, i):
+        assert i >= 0 and i < len(self.rho)
+        return self.rho[i]
+
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
