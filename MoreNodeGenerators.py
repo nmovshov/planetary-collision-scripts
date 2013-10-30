@@ -9,6 +9,7 @@ from Spheral import SymTensor3d
 from Spheral import vector_of_int, vector_of_double 
 from Spheral import vector_of_SymTensor3d, vector_of_vector_of_double
 import mpi
+import numpy as np
 procID = mpi.rank
 nProcs = mpi.procs
 
@@ -55,6 +56,33 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
     # The actual generator algorithm
     #---------------------------------------------------------------------------
     def generate_equally_spaced_shells(self):
+        """Given shel spacing, fill sphere with equally spaced nodes.
+
+        The idea is simple. The requested number of equally spaced shells defines
+        the linear spacing between nodes. Use that linear spacing to fill the
+        sphere by filling up slices first, then stacks, then shells.
+        """
+        dl = (self.rMax-self.rMin)/self.nLayers # Constant linear spacing.
+        
+        # Fill up shells...
+        import pdb
+#        pdb.set_trace()
+        shells = np.linspace(self.rMin,self.rMax,self.nLayers)
+        for r in shells:
+            # With stacks...
+            dG = dl/r
+            nGs = pi/dG
+            stacks = np.linspace(0.0,pi,nGs)
+            for G in stacks:
+                # Full of slices.
+                dq = dl/(r*sin(G))
+                slices = np.arange(0,2*pi,dq)
+                for q in slices:
+                    print r,G,q
+                    pass
+                pass
+            pass
+        
         x,y,z,m,H=[1],[2],[3],[4],[SymTensor3d()]
         return x, y, z, m, H
         pass
