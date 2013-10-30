@@ -26,7 +26,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
         assert type(nLayers) == int
-        assert nLayers > 0
+        assert nLayers > 1
         assert type(rho)==type(rMin)==type(rMax)==type(nNodePerh)==float
         assert rho > 0.0
         assert rMax > rMin >= 0.0
@@ -68,7 +68,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         the linear spacing between nodes. Use that linear spacing to fill the
         sphere by filling up slices first, then stacks, then shells.
         """
-        dl = (self.rMax-self.rMin)/self.nLayers # Constant linear spacing.
+        dl = (self.rMax-self.rMin)/(self.nLayers-1) # Constant linear spacing.
 
         # Fill up shells...
         shells = np.linspace(self.rMin,self.rMax,self.nLayers)
@@ -80,7 +80,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                 continue
             # With stacks...
             dG = dl/r
-            nGs = pi/dG
+            nGs = int(pi/dG)+1 # yes, +1, linspace includes end points
             stacks = np.linspace(0.0,pi,nGs)
             for G in stacks:
                 if G==0.0 or G==pi:
@@ -90,11 +90,10 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                     continue
                 # Full of slices.
                 dq = dl/(r*sin(G))
-                nqs = 2*pi/dq
-                slices = np.linspace(0.0,2*pi,nqs)
+                nqs = int(2*pi/dq)+1 # yes, +1, linspace includes end points
+                slices = np.linspace(0.0,2*pi,nqs)[1:] # 0=2pi
+                slices += np.random.uniform(0,pi/4)
                 for q in slices:
-                    if q==0.0:
-                        continue # We'll use the 2pi angle.
                     self.x.append(r*sin(G)*cos(q))
                     self.y.append(r*sin(G)*sin(q))
                     self.z.append(r*cos(G))
