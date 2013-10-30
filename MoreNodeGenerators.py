@@ -34,14 +34,20 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
 
         # Store key parameters in the generator object.
         self.nLayers = nLayers
-        self.rho = rho # we'll convert this to a list later
+        self.rho = rho # we'll convert this to a list later.
         self.rMin = rMin
         self.rMax = rMax
         self.nNodePerh = nNodePerh
 
-        # Generate lists for position, mass, and H
-        (self.x, self.y, self.z, self.m, self.H) = \
-                self.generate_equally_spaced_shells()
+        # Create the required lists (empty).
+        self.x=[]
+        self.y=[]
+        self.z=[]
+        self.m=[]
+        self.H=[]
+
+        # Fill lists with calculate positions, masses, Hs.
+        self._generate_equally_spaced_shells()
 
         # Make rho into a list.
         self.rho = [self.rho] * len(self.m)
@@ -55,7 +61,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     # The actual generator algorithm
     #---------------------------------------------------------------------------
-    def generate_equally_spaced_shells(self):
+    def _generate_equally_spaced_shells(self):
         """Given shel spacing, fill sphere with equally spaced nodes.
 
         The idea is simple. The requested number of equally spaced shells defines
@@ -63,28 +69,51 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         sphere by filling up slices first, then stacks, then shells.
         """
         dl = (self.rMax-self.rMin)/self.nLayers # Constant linear spacing.
-        
+
         # Fill up shells...
-        import pdb
-#        pdb.set_trace()
         shells = np.linspace(self.rMin,self.rMax,self.nLayers)
         for r in shells:
+            if r==0.0:
+                self.x.append(0.0)
+                self.y.append(0.0)
+                self.z.append(0.0)
+                continue
             # With stacks...
             dG = dl/r
             nGs = pi/dG
             stacks = np.linspace(0.0,pi,nGs)
             for G in stacks:
+                if G==0.0 or G==pi:
+                    self.x.append(0.0)
+                    self.y.append(0.0)
+                    self.z.append(r*cos(G))
+                    continue
                 # Full of slices.
                 dq = dl/(r*sin(G))
-                slices = np.arange(0,2*pi,dq)
+                nqs = 2*pi/dq
+                slices = np.linspace(0.0,2*pi,nqs)
                 for q in slices:
-                    print r,G,q
+                    if q==0.0:
+                        continue # We'll use the 2pi angle.
+                    self.x.append(r*sin(G)*cos(q))
+                    self.y.append(r*sin(G)*sin(q))
+                    self.z.append(r*cos(G))
                     pass
                 pass
             pass
+
+        # Assign smoothing tensor and mass.
+        h0 = 1.0/(dl*self.nNodePerh)
+        nominalH = SymTensor3d(h0, 0.0, 0.0,
+                               0.0, h0, 0.0,
+                               0.0, 0.0, h0)
+        self.H = [nominalH]*len(self.x)
         
-        x,y,z,m,H=[1],[2],[3],[4],[SymTensor3d()]
-        return x, y, z, m, H
+        totalMass = self.rho*4.0*pi/3.0 * (self.rMax**3 - self.rMin**3)
+        nominalMassPerNode = totalMass / len(self.x)
+        self.m = [nominalMassPerNode]*len(self.x)
+        
+        # And Bob's our uncle.
         pass
 
     #---------------------------------------------------------------------------
