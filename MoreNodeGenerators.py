@@ -62,7 +62,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
     # The actual generator algorithm
     #---------------------------------------------------------------------------
     def _generate_equally_spaced_shells(self):
-        """Given shel spacing, fill sphere with equally spaced nodes.
+        """Given shell spacing, fill sphere with equally spaced nodes.
 
         The idea is simple. The requested number of equally spaced shells defines
         the linear spacing between nodes. Use that linear spacing to fill the
@@ -88,7 +88,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                     self.y.append(0.0)
                     self.z.append(r*cos(G))
                     continue
-                # Full of slices.
+                # Made of slices.
                 dq = dl/(r*sin(G))
                 nqs = int(2*pi/dq)+1 # yes, +1, linspace includes end points
                 slices = np.linspace(0.0,2*pi,nqs)[1:] # 0=2pi
@@ -113,7 +113,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         self.m = [nominalMassPerNode]*len(self.x)
         
         # And Bob's our uncle.
-        pass
+        pass # end of method.
 
     #---------------------------------------------------------------------------
     # Required methods from NodeGeneratorBase
