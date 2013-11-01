@@ -24,6 +24,7 @@ z = nodes[:,4]
 r = np.sqrt(x**2 + y**2 + z**2)
 P = nodes[:,10] * 1e-9 # pressure in GPa
 
+plt.figure()
 plt.plot(r,P,'.')
 plt.xlabel('Radius [m]')
 plt.ylabel('Pressure [GPa]')

@@ -20,6 +20,7 @@ if (nodes.ndim != 2) or (nodes.shape[1] != shelpers.nb_fnl_columns):
 print "Plotting nodes from file", sys.argv[1]
 P = nodes[:,10] * 1e-9 # pressure in GPa
 
+plt.figure()
 plt.hist(P,)
 plt.xlabel('Pressure [GPa]')
 plt.ylabel('Count')

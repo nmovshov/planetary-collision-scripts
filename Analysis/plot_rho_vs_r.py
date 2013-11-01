@@ -24,6 +24,7 @@ z = nodes[:,4]
 r = np.sqrt(x**2 + y**2 + z**2)
 rho = nodes[:,9]
 
+plt.figure()
 plt.plot(r,rho,'.')
 plt.xlabel('Radius [m]')
 plt.ylabel('Density [kg/m^3]')
