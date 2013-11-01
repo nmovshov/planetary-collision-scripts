@@ -30,5 +30,4 @@ plt.ylabel('Pressure [Pa]')
 plt.title(sys.argv[1])
 plt.grid()
 plt.show()
-plt.close()
 print "Done."

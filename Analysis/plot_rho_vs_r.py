@@ -30,5 +30,4 @@ plt.ylabel('Density [kg/m^3]')
 plt.title(sys.argv[1])
 plt.grid()
 plt.show()
-plt.close()
 print "Done."
