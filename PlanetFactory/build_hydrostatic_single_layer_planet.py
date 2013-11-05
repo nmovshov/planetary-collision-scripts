@@ -13,7 +13,7 @@
 # path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
-import sys, os
+import sys, os, shutil
 import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
@@ -159,6 +159,7 @@ jobDir = os.path.join(baseDir,
 restartDir = os.path.join(jobDir, 'restarts', 'proc-%04i' % mpi.rank)
 vizDir = os.path.join(jobDir, 'viz')
 outDir = os.path.join(jobDir, 'output')
+logDir = os.path.join(jobDir, 'logs')
 restartName = os.path.join(restartDir, jobName)
 
 # Check if the necessary directories exist.  If not, create them.
@@ -171,6 +172,8 @@ if mpi.rank == 0:
         os.makedirs(restartDir)
     if not os.path.exists(outDir):
         os.makedirs(outDir)
+    if not os.path.exists(logDir):
+        os.makedirs(logDir)
 mpi.barrier()
 if not os.path.exists(restartDir):
     os.makedirs(restartDir)
@@ -179,6 +182,9 @@ mpi.barrier()
 # If we're restarting, find the set of most recent restart files.
 if restoreCycle is None:
     restoreCycle = findLastRestart(restartName)
+
+# Here's a quick way to save a record of parameters used in this run.
+shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 
 #-------------------------------------------------------------------------------
 # NAV Node construction
