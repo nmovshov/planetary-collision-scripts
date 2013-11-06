@@ -69,8 +69,9 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         sphere by filling up slices first, then stacks, then shells.
         
         The nodes are places in the center of the shells, so that if rMin and
-        rMax specify the boundaries of the sphere, the nodes will be placed in 
-        exactly nLayers radial distances from rMin+dl/2 to rMax-dl/2.
+        rMax specify the boundaries of the sphere, the node at rMin is the center
+        of the shell extending from rMin-dl/2 to rMin+dl/2, and similarly for
+        rMax. (Therefor the "surface" of the planet would be at rMax+dl/2.)
 
         The stacks are built by placing a node at the "north" and "south" poles,
         and as many equally spaced nodes as needed in between such that the
@@ -80,9 +81,9 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         all being at a "prime meridian." Instead each is shifted a linear dl from
         the last.
 
-        As long as dl/rMax is small, each node should be separated from its six
-        nearest neighbors by almost orthogonal segments of length dl, so that its
-        volume is approximately dl^3.
+        TODO: The volume element associated with each node should be calculated.
+        at the moment, all nodes are given an equal mass, but this is a rough
+        approximation.
         """
         dl = (self.rMax-self.rMin)/(self.nLayers-1) # Constant linear spacing.
 
@@ -124,6 +125,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                                0.0, 0.0, h0)
         self.H = [nominalH]*len(self.x)
         
+        #TODO: improve this!
         totalMass = self.rho*4.0*pi/3.0 * (self.rMax**3 - self.rMin**3)
         nominalMassPerNode = totalMass / len(self.x)
         self.m = [nominalMassPerNode]*len(self.x)
