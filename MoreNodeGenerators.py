@@ -65,8 +65,24 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         """Given shell spacing, fill sphere with equally spaced nodes.
 
         The idea is simple. The requested number of equally spaced shells defines
-        the linear spacing between nodes. Use that linear spacing to fill the
+        the linear spacing between nodes, dl. Use that linear spacing to fill the
         sphere by filling up slices first, then stacks, then shells.
+        
+        The nodes are places in the center of the shells, so that if rMin and
+        rMax specify the boundaries of the sphere, the nodes will be placed in 
+        exactly nLayers radial distances from rMin+dl/2 to rMax-dl/2.
+
+        The stacks are built by placing a node at the "north" and "south" poles,
+        and as many equally spaced nodes as needed in between such that the
+        linear distance between nodes on the great circle is close to dl.
+
+        Then each stack is divided to equally spaced slices. But the slices don't
+        all being at a "prime meridian." Instead each is shifted a linear dl from
+        the last.
+
+        As long as dl/rMax is small, each node should be separated from its six
+        nearest neighbors by almost orthogonal segments of length dl, so that its
+        volume is approximately dl^3.
         """
         dl = (self.rMax-self.rMin)/(self.nLayers-1) # Constant linear spacing.
 
