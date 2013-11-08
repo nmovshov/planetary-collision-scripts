@@ -45,6 +45,9 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         self.z=[]
         self.m=[]
         self.H=[]
+        
+        # Convenience fields
+        self.V=[] # Volume associated with node.
 
         # Fill lists with calculate positions, masses, Hs.
         self._generate_equally_spaced_shells()
@@ -75,45 +78,56 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
 
         The stacks are built by placing a node at the "north" and "south" poles,
         and as many equally spaced nodes as needed in between such that the
-        linear distance between nodes on the great circle is close to dl.
+        linear distance between nodes on the great circle is close to dl. These
+        colatitudes mark the _center_ of the stack.
 
-        Then each stack is divided to equally spaced slices. But the slices don't
-        all being at a "prime meridian." Instead each is shifted a linear dl from
+        Each stack is then divided to equally spaced slices. But the slices don't
+        all begin at a "prime meridian." Instead each is shifted a linear dl from
         the last.
 
         TODO: The volume element associated with each node should be calculated.
         at the moment, all nodes are given an equal mass, but this is a rough
-        approximation.
+        approximation. The V field is wrong somehow.
         """
         dl = (self.rMax-self.rMin)/(self.nLayers-1) # Constant linear spacing.
 
         # Fill up shells...
+        dr = dl
         shells = np.linspace(self.rMin,self.rMax,self.nLayers)
         for r in shells:
             if r==0.0:
                 self.x.append(0.0)
                 self.y.append(0.0)
                 self.z.append(0.0)
+                self.V.append(4.0*pi/3.0 * (dr/2.0)**3)
                 continue
             # With stacks...
             dG = dl/r
-            nGs = int(pi/dG)+1 # yes, +1, linspace includes end points
+            nGs = int(pi/dG)
             stacks = np.linspace(0.0,pi,nGs)
             for G in stacks:
                 if G==0.0 or G==pi:
                     self.x.append(0.0)
                     self.y.append(0.0)
                     self.z.append(r*cos(G))
+                    self.V.append(pi*r**3 * 
+                                  (2.0/3.0 + 1.0/3.0*cos(dG/2.0)**3 - cos(dG/2.0)))
                     continue
                 # Made of slices.
                 dq = dl/(r*sin(G))
-                nqs = int(2*pi/dq)+1 # yes, +1, linspace includes end points
-                slices = np.linspace(0.0,2*pi,nqs)[1:] # 0=2pi
-                slices += np.random.uniform(0,pi/4)
+                nqs = int(2*pi/dq)
+                slices = np.linspace(0.0,2*pi,nqs+1)[1:] # 0=2pi
+                #slices += np.random.uniform(0,pi/4)
+                G0=G-dG/2.0
+                G1=G+dG/2.0
+                V_slice = 1.0/nqs * pi*r**3 * (
+                          cos(G0) - cos(G1) + 1.0/3.0*cos(G1)**3 - 
+                                               1.0/3.0*cos(G0)**3)
                 for q in slices:
                     self.x.append(r*sin(G)*cos(q))
                     self.y.append(r*sin(G)*sin(q))
                     self.z.append(r*cos(G))
+                    self.V.append(V_slice)
                     pass
                 pass
             pass
