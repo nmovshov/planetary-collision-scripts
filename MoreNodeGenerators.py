@@ -167,13 +167,10 @@ class HexagonalClosePacking(NodeGeneratorBase):
 
     #---------------------------------------------------------------------------
     # The constructor
-    # Constructor parameters mirror those of the older GenerateNodeDistribution3d
-    # class for ease of transition. But I don't attempt to provide a complete
-    # drop-in substitute.
     #---------------------------------------------------------------------------
-    def __init__(self, nx, ny, nz, rho,
-                 xmin = (0.0, 0.0, 0.0), # Bottom left corner
-                 xmax = (1.0, 1.0, 1.0), # Top right corner
+    def __init__(self, nx, rho,
+                 xMin = 0.0,
+                 xMax = 1.0,
                  rMin = 0.0,
                  rMax = 1e200,
                  nNodePerh = 2.01,
@@ -181,25 +178,20 @@ class HexagonalClosePacking(NodeGeneratorBase):
         """Constructor docstring."""
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
-        assert type(nx)==type(ny)==type(nz) == int
-        assert nx > 0
-        assert ny > 0
-        assert nz > 0
-        assert isinstance(xmin,(tuple,list)) and type(xmin[0]) == float
-        assert isinstance(xmax,(tuple,list)) and type(xmax[0]) == float
-        assert len(xmin) == len(xmax) == 3
-        assert type(rho)==type(rMin)==type(rMax)==type(nNodePerh) == float
-        assert rho > 0.0
+        assert isinstance(nx,int) and nx > 0
+        assert isinstance(rho,float) and rho > 0.0
+        assert isinstance(xMin,float) and isinstance(xMax,float)
+        assert xMax > xMin
+        assert isinstance(rMin,float) and isinstance(rMax,float)
         assert rMax > rMin >= 0.0
-        assert nNodePerh >= 1.0
+        assert isinstance(nNodePerh,float) and nNodePerh >= 1.0
+        assert True # place holder for eos
 
         # Store key parameters in the generator object.
         self.nx = nx
-        self.ny = ny
-        self.nz = nz
         self.rho = rho
-        self.xmin = xmin
-        self.xmax = xmax
+        self.xMin = xMin
+        self.xMax = xMax
         self.rMin = rMin
         self.rMax = rMax
         self.nNodePerh = nNodePerh
@@ -231,7 +223,10 @@ class HexagonalClosePacking(NodeGeneratorBase):
     # The actual generator algorithm
     #---------------------------------------------------------------------------
     def _generate_hcp_lattice(self):
-        """Docstring for method."""
+        """Here we generate hp lattice positions. Each node will have 12 nearest
+           neighbors, all a distance d from it, where d, the lattice spacing, is
+           the diameter of the spheres that can be placed on the lattice in
+           closest packing."""
 
         print "alo"
 
