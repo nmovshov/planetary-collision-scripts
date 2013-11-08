@@ -49,7 +49,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         # Convenience fields
         self.V=[] # Volume associated with node.
 
-        # Fill lists with calculate positions, masses, Hs.
+        # Fill lists with calculated positions, masses, Hs.
         self._generate_equally_spaced_shells()
 
         # Make rho into a list.
@@ -139,6 +139,73 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         
         # And Bob's our uncle.
         pass # end of method.
+
+    #---------------------------------------------------------------------------
+    # Required methods from NodeGeneratorBase
+    #---------------------------------------------------------------------------
+    def localPosition(self, i):
+        assert i >= 0 and i < len(self.x)
+        assert len(self.x) == len(self.y) == len(self.z)
+        return Vector3d(self.x[i], self.y[i], self.z[i])
+
+    def localMass(self, i):
+        assert i >= 0 and i < len(self.m)
+        return self.m[i]
+
+    def localMassDensity(self, i):
+        assert i >= 0 and i < len(self.rho)
+        return self.rho[i]
+
+    def localHtensor(self, i):
+        assert i >= 0 and i < len(self.H)
+        return self.H[i]
+
+
+class HexagonalClosePacking(NodeGeneratorBase):
+    """Put nodes on HCP layers and optionally chisel out a sphere."""
+
+    #---------------------------------------------------------------------------
+    # The constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, rho,
+                 nNodePerh = 2.01,):
+
+        # Some assertions for convenience. Not supposed to be an airtight seal.
+        assert nNodePerh >= 1.0
+
+        # Store key parameters in the generator object.
+        self.rho = rho
+        self.nNodePerh = nNodePerh
+
+        # Create the required lists (empty).
+        self.x=[]
+        self.y=[]
+        self.z=[]
+        self.m=[]
+        self.H=[]
+
+        # Fill lists with calculated positions, masses, Hs.
+        self._generate_hcp_lattice()
+
+        # Make rho into a list.
+        self.rho = [self.rho] * len(self.m)
+
+        # Have the base class break up the serial node distribution
+        # for parallel cases.
+        NodeGeneratorBase.__init__(self, True,
+                                   self.x, self.y, self.z, self.m, self.H)
+        pass
+
+    #---------------------------------------------------------------------------
+    # The actual generator algorithm
+    #---------------------------------------------------------------------------
+    def _generate_hcp_lattice(self):
+        """Docstring for method."""
+
+        print "alo"
+
+        # And Bob's our uncle.
+        pass
 
     #---------------------------------------------------------------------------
     # Required methods from NodeGeneratorBase
