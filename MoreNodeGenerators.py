@@ -87,7 +87,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
 
         TODO: The volume element associated with each node should be calculated.
         at the moment, all nodes are given an equal mass, but this is a rough
-        approximation. The V field is wrong somehow.
+        approximation. The V field is not yet implemented.
         """
         dl = (self.rMax-self.rMin)/(self.nLayers-1) # Constant linear spacing.
 
@@ -99,7 +99,6 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                 self.x.append(0.0)
                 self.y.append(0.0)
                 self.z.append(0.0)
-                self.V.append(4.0*pi/3.0 * (dr/2.0)**3)
                 continue
             # With stacks...
             dG = dl/r
@@ -110,8 +109,6 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                     self.x.append(0.0)
                     self.y.append(0.0)
                     self.z.append(r*cos(G))
-                    self.V.append(pi*r**3 * 
-                                  (2.0/3.0 + 1.0/3.0*cos(dG/2.0)**3 - cos(dG/2.0)))
                     continue
                 # Made of slices.
                 dq = dl/(r*sin(G))
@@ -120,14 +117,10 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                 #slices += np.random.uniform(0,pi/4)
                 G0=G-dG/2.0
                 G1=G+dG/2.0
-                V_slice = 1.0/nqs * pi*r**3 * (
-                          cos(G0) - cos(G1) + 1.0/3.0*cos(G1)**3 - 
-                                               1.0/3.0*cos(G0)**3)
                 for q in slices:
                     self.x.append(r*sin(G)*cos(q))
                     self.y.append(r*sin(G)*sin(q))
                     self.z.append(r*cos(G))
-                    self.V.append(V_slice)
                     pass
                 pass
             pass
