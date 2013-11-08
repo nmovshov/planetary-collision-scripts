@@ -22,12 +22,13 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
     def __init__(self, nLayers, rho,
                  rMin = 0.0,
                  rMax = 1.0,
-                 nNodePerh = 2.01,):
+                 nNodePerh = 2.01,
+                 EOS = None,):
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
         assert type(nLayers) == int
         assert nLayers > 1
-        assert type(rho)==type(rMin)==type(rMax)==type(nNodePerh)==float
+        assert type(rho)==type(rMin)==type(rMax)==type(nNodePerh) == float
         assert rho > 0.0
         assert rMax > rMin >= 0.0
         assert nNodePerh >= 1.0
@@ -167,15 +168,31 @@ class HexagonalClosePacking(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     # The constructor
     #---------------------------------------------------------------------------
-    def __init__(self, rho,
-                 nNodePerh = 2.01,):
+    def __init__(self, nx, ny, nz, rho,
+                 scale = (1.0, 1.0, 1.0),
+                 rMin = 0.0,
+                 rMax = 1e200,
+                 nNodePerh = 2.01,
+                 EOS = None,):
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
+        assert type(nx)==type(ny)==type(nz) == int
+        assert isinstance(scale,(tuple,list)) and type(scale[0]) == float
+        assert len(scale) == 3
+        assert type(rho)==type(rMin)==type(rMax)==type(nNodePerh) == float
+        assert rMax > rMin >= 0.0
         assert nNodePerh >= 1.0
 
         # Store key parameters in the generator object.
+        self.nx = nx
+        self.ny = ny
+        self.nz = nz
         self.rho = rho
+        self.scale = scale
+        self.rMin = rMin
+        self.rMax = rMax
         self.nNodePerh = nNodePerh
+        self.EOS = EOS
 
         # Create the required lists (empty).
         self.x=[]
