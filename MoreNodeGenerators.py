@@ -167,19 +167,29 @@ class HexagonalClosePacking(NodeGeneratorBase):
 
     #---------------------------------------------------------------------------
     # The constructor
+    # Constructor parameters mirror those of the older GenerateNodeDistribution3d
+    # class for ease of transition. But I don't attempt to provide a complete
+    # drop-in substitute.
     #---------------------------------------------------------------------------
     def __init__(self, nx, ny, nz, rho,
-                 scale = (1.0, 1.0, 1.0),
+                 xmin = (0.0, 0.0, 0.0), # Bottom left corner
+                 xmax = (1.0, 1.0, 1.0), # Top right corner
                  rMin = 0.0,
                  rMax = 1e200,
                  nNodePerh = 2.01,
                  EOS = None,):
+        """Constructor docstring."""
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
         assert type(nx)==type(ny)==type(nz) == int
-        assert isinstance(scale,(tuple,list)) and type(scale[0]) == float
-        assert len(scale) == 3
+        assert nx > 0
+        assert ny > 0
+        assert nz > 0
+        assert isinstance(xmin,(tuple,list)) and type(xmin[0]) == float
+        assert isinstance(xmax,(tuple,list)) and type(xmax[0]) == float
+        assert len(xmin) == len(xmax) == 3
         assert type(rho)==type(rMin)==type(rMax)==type(nNodePerh) == float
+        assert rho > 0.0
         assert rMax > rMin >= 0.0
         assert nNodePerh >= 1.0
 
@@ -188,7 +198,8 @@ class HexagonalClosePacking(NodeGeneratorBase):
         self.ny = ny
         self.nz = nz
         self.rho = rho
-        self.scale = scale
+        self.xmin = xmin
+        self.xmax = xmax
         self.rMin = rMin
         self.rMax = rMax
         self.nNodePerh = nNodePerh
@@ -200,6 +211,9 @@ class HexagonalClosePacking(NodeGeneratorBase):
         self.z=[]
         self.m=[]
         self.H=[]
+
+        # Convenience fields.
+        self.V = []
 
         # Fill lists with calculated positions, masses, Hs.
         self._generate_hcp_lattice()
