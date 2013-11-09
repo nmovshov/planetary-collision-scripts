@@ -163,7 +163,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
 
 
 class HexagonalClosePacking(NodeGeneratorBase):
-    """Put nodes on HCP layers and optionally chisel out a sphere."""
+    """Put nodes on HCP lattice and optionally chisel out a sphere."""
 
     #---------------------------------------------------------------------------
     # The constructor
@@ -175,7 +175,32 @@ class HexagonalClosePacking(NodeGeneratorBase):
                  rMax = 1e200,
                  nNodePerh = 2.01,
                  EOS = None,):
-        """Constructor docstring."""
+        """Class constructor for the HCP lattice node generator.
+           
+          Parameters
+          ----------
+          nx : int > 0
+              Number of nodes across domain. There are no corresponding ny or nz
+              because we want to ensure a cubic lattice, with equally spaced nodes
+              in all directions.
+          rho : float > 0
+              Density used to assign node masses. For now, this is a constant.
+          xMin : float, optional
+              Left edge of lattice. Default is 0.0.
+          xMax : float, optional
+              Right edge of lattice. Default is 1.0.
+          rMin : float >=0, optional
+              After lattice is built, nodes whose distance from the center of the
+              lattice is less than rMin will be culled. Default is 0.0.
+          rMax : float > 0, optional
+              After lattice is built, nodes whose distance from the center of the
+              lattice is greater than rMax will be culled. Default is 1e200.
+          nNodePerh : float > 1.0, optional
+              Nodes are assigned an inverse smoothing length of 1/(d*nNodePerh),
+              where d is the lattice spacing. Default is 2.01.
+          EOS : Spheral.SolidMaterial.SolidEquationOfState, optional.
+              Place holder, for future use. Default is None.
+        """
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
         assert isinstance(nx,int) and nx > 0
