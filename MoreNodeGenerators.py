@@ -169,8 +169,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
     # The constructor
     #---------------------------------------------------------------------------
     def __init__(self, nx, rho,
-                 xMin = 0.0,
-                 xMax = 1.0,
+                 scale = 1.0,
                  rMin = 0.0,
                  rMax = 1e200,
                  nNodePerh = 2.01,
@@ -179,7 +178,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
            generated coordinates are those of the CENTER of the node. Also note
            that because the lines and layers of the HCP lattice do not end at
            equal coordinate limits, the volume enclosed by the lattice is only
-           approximately equal to (xMax-xMin)**3. 
+           approximately equal to scale**3. 
            
           Parameters
           ----------
@@ -189,10 +188,11 @@ class HexagonalClosePacking(NodeGeneratorBase):
               in all directions.
           rho : float > 0
               Density used to assign node masses. For now, this is a constant.
-          xMin : float, optional
-              Left edge of lattice. Default is 0.0.
-          xMax : float, optional
-              Right edge of lattice. Default is 1.0.
+          scale : float > 0, optional
+              Linear scale of lattice. The lattice will be built with one corner
+              placed at (0,0,0) and the opposite corner at (scale,scale,scale),
+              and then translated to put the lattice center at (0,0,0), to make it
+              simpler for a user to place the lattice in a domain. Default is 1.0.
           rMin : float >=0, optional
               After lattice is built, nodes whose distance from the center of the
               lattice is less than rMin will be culled. Default is 0.0.
@@ -209,18 +209,15 @@ class HexagonalClosePacking(NodeGeneratorBase):
         # Some assertions for convenience. Not supposed to be an airtight seal.
         assert isinstance(nx,int) and nx > 1
         assert isinstance(rho,float) and rho > 0.0
-        assert isinstance(xMin,float) and isinstance(xMax,float)
-        assert xMax > xMin
+        assert isinstance(scale,float) and scale > 0.0
         assert isinstance(rMin,float) and isinstance(rMax,float)
         assert rMax > rMin >= 0.0
         assert isinstance(nNodePerh,float) and nNodePerh >= 1.0
-        assert True # place holder for eos
 
         # Store key parameters in the generator object.
         self.nx = nx
         self.rho = rho
-        self.xMin = xMin
-        self.xMax = xMax
+        self.scale = scale
         self.rMin = rMin
         self.rMax = rMax
         self.nNodePerh = nNodePerh
@@ -234,8 +231,8 @@ class HexagonalClosePacking(NodeGeneratorBase):
         self.H=[]
 
         # I use a volume field to facilitate modifying mass post construction.
-        self.lattice_spacing = (self.xMax-self.xMin)/(self.nx)
-        self.lattice_volume = (self.xMax-self.xMin)**3
+        self.lattice_spacing = scale/(self.nx)
+        self.lattice_volume = scale**3
         self.V = []
 
         # Fill lists with calculated positions, masses, Hs.
@@ -281,10 +278,10 @@ class HexagonalClosePacking(NodeGeneratorBase):
                         x = r + r*np.mod(k,2) + i*xstep
                     else:
                         x = d - r*np.mod(k,2) + i*xstep
-                    self.x.append(x)
-                    self.y.append(y)
-                    self.z.append(z)
 
+                    self.x.append(x - self.scale/2.0)
+                    self.y.append(y - self.scale/2.0)
+                    self.z.append(z - self.scale/2.0)
                     pass
                 pass
             pass
