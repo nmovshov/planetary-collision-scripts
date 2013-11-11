@@ -65,3 +65,5 @@ integrator.appendPhysicsPackage(hydro)
 
 # Create the controller.
 control = sph.SpheralController(integrator, WT)
+control.vizBaseName = 'test'
+control.vizDir = '.'

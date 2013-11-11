@@ -175,7 +175,11 @@ class HexagonalClosePacking(NodeGeneratorBase):
                  rMax = 1e200,
                  nNodePerh = 2.01,
                  EOS = None,):
-        """Class constructor for the HCP lattice node generator.
+        """Class constructor for the HCP lattice node generator. Note that the
+           generated coordinates are those of the CENTER of the node. Also note
+           that because the lines and layers of the HCP lattice do not end at
+           equal coordinate limits, the volume enclosed by the lattice is only
+           approximately equal to (xMax-xMin)**3. 
            
           Parameters
           ----------
@@ -230,6 +234,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
         self.H=[]
 
         # I use a volume field to facilitate modifying mass post construction.
+        self.lattice_spacing = (self.xMax-self.xMin)/(self.nx)
         self.V = []
 
         # Fill lists with calculated positions, masses, Hs.
@@ -254,8 +259,8 @@ class HexagonalClosePacking(NodeGeneratorBase):
            closest packing.
         """
 
-        lattice_spacing = (self.xMax-self.xMin)/(self.nx-1)
-        d = lattice_spacing
+        d = self.lattice_spacing
+        r = d/2
         xstep = d
         ystep = sqrt(3)/2 * d
         zstep = sqrt(6)/3 * d
@@ -264,17 +269,17 @@ class HexagonalClosePacking(NodeGeneratorBase):
         nz = int(nx * xstep/zstep) + 1
         
         for k in range(nz):
-            z = 0.0 + k*zstep
+            z = r + k*zstep
             for j in range(ny):
                 if np.mod(k,2)==0:
-                    y = 0.0 + j*ystep
+                    y = r + j*ystep
                 else:
-                    y = d*sqrt(3)/6 + j*ystep
+                    y = r + d*sqrt(3)/6 + j*ystep
                 for i in range(nx):
                     if np.mod(j,2)==0:
-                        x = 0.0 + i*xstep
+                        x = r + r*np.mod(k,2) + i*xstep
                     else:
-                        x = d/2 + i*xstep
+                        x = d - r*np.mod(k,2) + i*xstep
                     self.x.append(x)
                     self.y.append(y)
                     self.z.append(z)
