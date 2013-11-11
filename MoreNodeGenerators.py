@@ -47,7 +47,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         self.m=[]
         self.H=[]
         
-        # Convenience fields
+        # I use a volume field to facilitate modifying mass post construction.
         self.V=[] # Volume associated with node.
 
         # Fill lists with calculated positions, masses, Hs.
@@ -203,7 +203,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
         """
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
-        assert isinstance(nx,int) and nx > 0
+        assert isinstance(nx,int) and nx > 1
         assert isinstance(rho,float) and rho > 0.0
         assert isinstance(xMin,float) and isinstance(xMax,float)
         assert xMax > xMin
@@ -229,7 +229,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
         self.m=[]
         self.H=[]
 
-        # Convenience fields.
+        # I use a volume field to facilitate modifying mass post construction.
         self.V = []
 
         # Fill lists with calculated positions, masses, Hs.
@@ -248,12 +248,46 @@ class HexagonalClosePacking(NodeGeneratorBase):
     # The actual generator algorithm
     #---------------------------------------------------------------------------
     def _generate_hcp_lattice(self):
-        """Here we generate hp lattice positions. Each node will have 12 nearest
+        """Here we generate hcp lattice positions. Each node will have 12 nearest
            neighbors, all a distance d from it, where d, the lattice spacing, is
            the diameter of the spheres that can be placed on the lattice in
-           closest packing."""
+           closest packing.
+        """
 
-        print "alo"
+        lattice_spacing = (self.xMax-self.xMin)/(self.nx-1)
+        d = lattice_spacing
+        xstep = d
+        ystep = sqrt(3)/2 * d
+        zstep = sqrt(6)/3 * d
+        nx = self.nx
+        ny = int(nx * xstep/ystep) + 1
+        nz = int(nx * xstep/zstep) + 1
+        
+        for k in range(nz):
+            z = 0.0 + k*zstep
+            for j in range(ny):
+                if np.mod(k,2)==0:
+                    y = 0.0 + j*ystep
+                else:
+                    y = d*sqrt(3)/6 + j*ystep
+                for i in range(nx):
+                    if np.mod(j,2)==0:
+                        x = 0.0 + i*xstep
+                    else:
+                        x = d/2 + i*xstep
+                    self.x.append(x)
+                    self.y.append(y)
+                    self.z.append(z)
+
+                    self.m.append(1.0)
+                    h0 = 1.0
+                    H0 = SymTensor3d(h0, 0.0, 0.0,
+                               0.0, h0, 0.0,
+                               0.0, 0.0, h0)
+                    self.H.append(H0)
+                    pass
+                pass
+            pass
 
         # And Bob's our uncle.
         pass
