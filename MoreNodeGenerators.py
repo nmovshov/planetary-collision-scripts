@@ -235,6 +235,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
 
         # I use a volume field to facilitate modifying mass post construction.
         self.lattice_spacing = (self.xMax-self.xMin)/(self.nx)
+        self.lattice_volume = (self.xMax-self.xMin)**3
         self.V = []
 
         # Fill lists with calculated positions, masses, Hs.
@@ -284,15 +285,22 @@ class HexagonalClosePacking(NodeGeneratorBase):
                     self.y.append(y)
                     self.z.append(z)
 
-                    self.m.append(1.0)
-                    h0 = 1.0
-                    H0 = SymTensor3d(h0, 0.0, 0.0,
-                               0.0, h0, 0.0,
-                               0.0, 0.0, h0)
-                    self.H.append(H0)
                     pass
                 pass
             pass
+
+        # Assign masses and smoothing tensors.
+        nominalCellVolume = self.lattice_volume/len(self.x)
+        self.V = [nominalCellVolume] * len(self.x)
+
+        nominalCellMass = nominalCellVolume*self.rho
+        self.m = [nominalCellMass] * len(self.x)
+
+        h0 = 1.0/(d*self.nNodePerh)
+        nominalH = SymTensor3d(h0,  0.0, 0.0,
+                               0.0, h0,  0.0,
+                               0.0, 0.0, h0)
+        self.H = [nominalH] * len(self.x)
 
         # And Bob's our uncle.
         pass
