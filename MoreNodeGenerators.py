@@ -257,6 +257,13 @@ class HexagonalClosePacking(NodeGeneratorBase):
            closest packing.
         """
 
+        loc_x = []
+        loc_y = []
+        loc_z = []
+        loc_V = []
+        loc_m = []
+        loc_H = []
+
         d = self.lattice_spacing
         r = d/2
         xstep = d
@@ -286,29 +293,35 @@ class HexagonalClosePacking(NodeGeneratorBase):
                     else:
                         x = d - r*np.mod(k,2) + i*xstep
 
-                    self.x.append(x)
-                    self.y.append(y)
-                    self.z.append(z)
-                    self.V.append(nominalCellVolume)
-                    self.m.append(nominalCellMass)
-                    self.H.append(nominalH)
+                    loc_x.append(x)
+                    loc_y.append(y)
+                    loc_z.append(z)
+                    loc_V.append(nominalCellVolume)
+                    loc_m.append(nominalCellMass)
+                    loc_H.append(nominalH)
                     pass
                 pass
             pass
 
         # Translate the lattice to put the CoM at the origin. We do this in a
         # separate step to keep the original HCP calculation cleaner.
-        xCM = sum(self.x)/len(self.x)
-        yCM = sum(self.y)/len(self.y)
-        zCM = sum(self.z)/len(self.z)
-        self.x = [x-xCM for x in self.x]
-        self.y = [y-yCM for y in self.y]
-        self.z = [z-zCM for z in self.z]
+        xCM = sum(loc_x)/len(loc_x)
+        yCM = sum(loc_y)/len(loc_y)
+        zCM = sum(loc_z)/len(loc_z)
+        loc_x = [x-xCM for x in loc_x]
+        loc_y = [y-yCM for y in loc_y]
+        loc_z = [z-zCM for z in loc_z]
 
         # Finally, chisel away a spherical shell.
-        for k in range(len(self.x)):
-            R = hypot(self.x[k], hypot(self.y[k], self.z[k]))
-            if R < self.rMin or R > self.rMax:
+        for k in range(len(loc_x)):
+            R = hypot(loc_x[k], hypot(loc_y[k], loc_z[k]))
+            if self.rMin <= R <= self.rMax:
+                self.x.append(loc_x[k])
+                self.y.append(loc_y[k])
+                self.z.append(loc_z[k])
+                self.V.append(loc_V[k])
+                self.m.append(loc_m[k])
+                self.H.append(loc_H[k])
                 pass
             pass
         
