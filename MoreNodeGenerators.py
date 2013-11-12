@@ -216,7 +216,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
 
         # Store key parameters in the generator object.
         self.nx = nx
-        self.rho = rho
+        self.rho = rho # will become a list when we get the node count.
         self.scale = scale
         self.rMin = rMin
         self.rMax = rMax
@@ -296,8 +296,8 @@ class HexagonalClosePacking(NodeGeneratorBase):
                 pass
             pass
 
-        # Finally, translate the lattice to put the CoM at the origin. We do this
-        # in a separate step to keep the original HCP calculation cleaner.
+        # Translate the lattice to put the CoM at the origin. We do this in a
+        # separate step to keep the original HCP calculation cleaner.
         xCM = sum(self.x)/len(self.x)
         yCM = sum(self.y)/len(self.y)
         zCM = sum(self.z)/len(self.z)
@@ -305,6 +305,13 @@ class HexagonalClosePacking(NodeGeneratorBase):
         self.y = [y-yCM for y in self.y]
         self.z = [z-zCM for z in self.z]
 
+        # Finally, chisel away a spherical shell.
+        for k in range(len(self.x)):
+            R = hypot(self.x[k], hypot(self.y[k], self.z[k]))
+            if R < self.rMin or R > self.rMax:
+                pass
+            pass
+        
         # And Bob's our uncle.
         pass
 
