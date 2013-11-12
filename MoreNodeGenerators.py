@@ -279,9 +279,9 @@ class HexagonalClosePacking(NodeGeneratorBase):
                     else:
                         x = d - r*np.mod(k,2) + i*xstep
 
-                    self.x.append(x - self.scale/2.0)
-                    self.y.append(y - self.scale/2.0)
-                    self.z.append(z - self.scale/2.0)
+                    self.x.append(x)
+                    self.y.append(y)
+                    self.z.append(z)
                     pass
                 pass
             pass
@@ -298,6 +298,15 @@ class HexagonalClosePacking(NodeGeneratorBase):
                                0.0, h0,  0.0,
                                0.0, 0.0, h0)
         self.H = [nominalH] * len(self.x)
+
+        # Finally, translate the lattice to put the CoM at the origin. We do this
+        # in a separate step to keep the original HCP calculation cleaner.
+        xCM = sum(self.x)/len(self.x)
+        yCM = sum(self.y)/len(self.y)
+        zCM = sum(self.z)/len(self.z)
+        self.x = [x-xCM for x in self.x]
+        self.y = [y-yCM for y in self.y]
+        self.z = [z-zCM for z in self.z]
 
         # And Bob's our uncle.
         pass
