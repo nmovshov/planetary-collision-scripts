@@ -266,6 +266,13 @@ class HexagonalClosePacking(NodeGeneratorBase):
         ny = int(nx * xstep/ystep) + 1
         nz = int(nx * xstep/zstep) + 1
         
+        nominalCellVolume = self.lattice_volume/(nx*ny*nz)
+        nominalCellMass = nominalCellVolume * self.rho
+        h0 = 1.0/(d*self.nNodePerh)
+        nominalH = SymTensor3d(h0,  0.0, 0.0,
+                               0.0, h0,  0.0,
+                               0.0, 0.0, h0)
+        
         for k in range(nz):
             z = r + k*zstep
             for j in range(ny):
@@ -282,22 +289,12 @@ class HexagonalClosePacking(NodeGeneratorBase):
                     self.x.append(x)
                     self.y.append(y)
                     self.z.append(z)
+                    self.V.append(nominalCellVolume)
+                    self.m.append(nominalCellMass)
+                    self.H.append(nominalH)
                     pass
                 pass
             pass
-
-        # Assign masses and smoothing tensors.
-        nominalCellVolume = self.lattice_volume/len(self.x)
-        self.V = [nominalCellVolume] * len(self.x)
-
-        nominalCellMass = nominalCellVolume*self.rho
-        self.m = [nominalCellMass] * len(self.x)
-
-        h0 = 1.0/(d*self.nNodePerh)
-        nominalH = SymTensor3d(h0,  0.0, 0.0,
-                               0.0, h0,  0.0,
-                               0.0, 0.0, h0)
-        self.H = [nominalH] * len(self.x)
 
         # Finally, translate the lattice to put the CoM at the origin. We do this
         # in a separate step to keep the original HCP calculation cleaner.
