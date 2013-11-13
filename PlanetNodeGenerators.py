@@ -14,7 +14,7 @@ procID = mpi.rank
 nProcs = mpi.procs
 
 class EqualSpacingSphericalShells(NodeGeneratorBase):
-    """Aiming for spherically symmetric distribution of equally spaced nodes."""
+    """Put nodes on spherical shells keeping equal nearest-neighbor spacing."""
 
     #---------------------------------------------------------------------------
     # The constructor
@@ -24,21 +24,52 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                  rMax = 1.0,
                  nNodePerh = 2.01,
                  EOS = None,):
+        """Class constructor for the spherical shells node generator. 
+
+        The generated coordinates are those of the CENTER of the node. So, for
+        example, no node will be at rMin or rMax. Also note that the volume of
+        space associated with each node is NOT equal. For low resolution runs,
+        this can result in large mass differences between nodes. The effect of
+        that is unknown though.
+
+        Parameters
+        ----------
+        nLayers : int > 1
+            Number of layers, or shells. The use does not specify a number of
+            stacks or slices because these will be determined by the equal
+            spacing requirement. Note: while this parameter is basically the 
+            one controlling run resolution, its meaning is different than the
+            nx parameter for cubic grids, and the resulting number of nodes
+            is usually higher.
+        rho : float > 0
+            Density used to assign node masses. For now, this is a constant.
+        rMin : float >=0, optional
+            Inner edge of domain. NOT the coordinate of innermost node!
+            Default is 0.0.
+        rMax : float > 0, optional
+            Outermost edge of domain. NOT the coordinate of outermost node!
+            Default is 1.0.
+        nNodePerh : float > 1.0, optional
+            Nodes are assigned an inverse smoothing length of 1/(dl*nNodePerh),
+            where dl is the calculated node spacing. Default is 2.01.
+        EOS : Spheral.SolidMaterial.SolidEquationOfState, optional.
+            Place holder, for future use. Default is None.
+        """
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
-        assert type(nLayers) == int
-        assert nLayers > 1
-        assert type(rho)==type(rMin)==type(rMax)==type(nNodePerh) == float
-        assert rho > 0.0
+        assert isinstance(nLayers,int) and nLayers > 1
+        assert isinstance(rho,float) and rho > 0.0
+        assert isinstance(rMin,float) and isinstance(rMax,float)
         assert rMax > rMin >= 0.0
-        assert nNodePerh >= 1.0
+        assert isinstance(nNodePerh,float) and nNodePerh >= 1.0
 
         # Store key parameters in the generator object.
         self.nLayers = nLayers
-        self.rho = rho # we'll convert this to a list later.
+        self.rho = rho # will become a list when we get the node count.
         self.rMin = rMin
         self.rMax = rMax
         self.nNodePerh = nNodePerh
+        self.EOS = EOS
 
         # Create the required lists (empty).
         self.x=[]
@@ -47,8 +78,10 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         self.m=[]
         self.H=[]
         
-        # I use a volume field to facilitate modifying mass post construction.
-        self.V=[] # Volume associated with node.
+        # Convenience and diagnostic fields. (Don't overdo.)
+        self.linear_spacing = 0.0
+        self.domain_volume = 4*pi/3*rho*(rMax**3-rMin**3)
+        self.V = [] 
 
         # Fill lists with calculated positions, masses, Hs.
         self._generate_equally_spaced_shells()
@@ -66,77 +99,77 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
     # The actual generator algorithm
     #---------------------------------------------------------------------------
     def _generate_equally_spaced_shells(self):
-        """Given shell spacing, fill sphere with equally spaced nodes.
+        """Fill a spherical domain with equally spaced nodes.
 
         The idea is simple. The requested number of equally spaced shells defines
         the linear spacing between nodes, dl. Use that linear spacing to fill the
-        sphere by filling up slices first, then stacks, then shells.
+        sphere, by filling up slices first, then stacks, then shells.
         
-        The nodes are places in the center of the shells, so that if rMin and
-        rMax specify the boundaries of the sphere, the node at rMin is the center
-        of the shell extending from rMin-dl/2 to rMin+dl/2, and similarly for
-        rMax. (Therefor the "surface" of the planet would be at rMax+dl/2.)
+        The nodes are places in the _center_ of the shells, so that if rMin and
+        rMax specify the boundaries of the domain, then a node at rMin+dl/2 is the
+        center of the shell extending from rMin to rMin+dl. And similarly, a node
+        placed at rMax-dl/2 is the center of the shell extending from rMax-dl to
+        rMax.
 
-        The stacks are built by placing a node at the "north" and "south" poles,
+        The stacks are built by placing nodes near the "north" and "south" poles,
         and as many equally spaced nodes as needed in between such that the
         linear distance between nodes on the great circle is close to dl. These
         colatitudes mark the _center_ of the stack.
 
         Each stack is then divided to equally spaced slices. But the slices don't
-        all begin at a "prime meridian." Instead each is shifted a linear dl from
-        the last.
-
-        TODO: The volume element associated with each node should be calculated.
-        at the moment, all nodes are given an equal mass, but this is a rough
-        approximation. The V field is not yet implemented.
+        all begin at a "prime meridian." Instead each is shifted a random angle.
         """
-        dl = (self.rMax-self.rMin)/(self.nLayers-1) # Constant linear spacing.
+
+        loc_x = []
+        loc_y = []
+        loc_z = []
+        loc_V = []
+        loc_m = []
+        loc_H = []
+
+        self.linear_spacing = (self.rMax-self.rMin)/(self.nLayers) 
+        h0 = 1.0/(self.linear_spacing*self.nNodePerh)
+        nominalH = SymTensor3d(h0,  0.0, 0.0,
+                               0.0, h0,  0.0,
+                               0.0, 0.0, h0)
 
         # Fill up shells...
-        dr = dl
-        shells = np.linspace(self.rMin,self.rMax,self.nLayers)
+        dr = self.linear_spacing
+        shells = np.linspace(self.rMin+dr/2, self.rMax-dr/2, self.nLayers)
         for r in shells:
-            if r==0.0:
-                self.x.append(0.0)
-                self.y.append(0.0)
-                self.z.append(0.0)
-                continue
             # With stacks...
-            dG = dl/r
-            nGs = int(pi/dG)
-            stacks = np.linspace(0.0,pi,nGs)
+            dG = dr/r
+            nGs = max(int(pi/dG), 2)
+            stacks = np.linspace(0.0+dG/2, pi-dG/2 ,nGs)
             for G in stacks:
-                if G==0.0 or G==pi:
-                    self.x.append(0.0)
-                    self.y.append(0.0)
-                    self.z.append(r*cos(G))
-                    continue
                 # Made of slices.
-                dq = dl/(r*sin(G))
-                nqs = int(2*pi/dq)
-                slices = np.linspace(0.0,2*pi,nqs+1)[1:] # 0=2pi
-                #slices += np.random.uniform(0,pi/4)
-                G0=G-dG/2.0
-                G1=G+dG/2.0
+                dq = dr/(r*sin(G))
+                nqs = max(int(2*pi/dq), 2)
+                dq = 2*pi/nqs # A little bootstrapping for the smallest stacks...
+                slices = np.linspace(0.0+dq/2, 2*pi-dq/2, nqs)
+                slices += np.random.uniform(0,pi/4)
                 for q in slices:
-                    self.x.append(r*sin(G)*cos(q))
-                    self.y.append(r*sin(G)*sin(q))
-                    self.z.append(r*cos(G))
+                    r0, r1 = r - dr/2, r + dr/2
+                    G0, G1 = G - dG/2, G + dG/2
+                    q0, q1 = q - dq/2, q + dq/2
+                    dV = (1./3 * (r1**3-r0**3) * (cos(G0)-cos(G1)) * (q1-q0))
+                    loc_x.append(r*sin(G)*cos(q))
+                    loc_y.append(r*sin(G)*sin(q))
+                    loc_z.append(r*cos(G))
+                    loc_V.append(dV)
+                    loc_m.append(self.rho * dV)
+                    loc_H.append(nominalH)
                     pass
                 pass
             pass
 
-        # Assign smoothing tensor and mass.
-        h0 = 1.0/(dl*self.nNodePerh)
-        nominalH = SymTensor3d(h0, 0.0, 0.0,
-                               0.0, h0, 0.0,
-                               0.0, 0.0, h0)
-        self.H = [nominalH]*len(self.x)
-        
-        #TODO: improve this!
-        totalMass = self.rho*4.0*pi/3.0 * (self.rMax**3 - self.rMin**3)
-        nominalMassPerNode = totalMass / len(self.x)
-        self.m = [nominalMassPerNode]*len(self.x)
+        # Save into the object's fields.
+        self.x = loc_x
+        self.y = loc_y
+        self.z = loc_z
+        self.V = loc_V
+        self.m = loc_m
+        self.H = loc_H
         
         # And Bob's our uncle.
         pass # end of method.
@@ -174,36 +207,38 @@ class HexagonalClosePacking(NodeGeneratorBase):
                  rMax = 1e200,
                  nNodePerh = 2.01,
                  EOS = None,):
-        """Class constructor for the HCP lattice node generator. Note that the
-           generated coordinates are those of the CENTER of the node. Also note
-           that because the lines and layers of the HCP lattice do not end at
-           equal coordinate limits, the volume enclosed by the lattice is only
-           approximately equal to scale**3. 
+        """Class constructor for the HCP lattice node generator. 
+        
+        The generated coordinates are those of the CENTER of the node. Also note
+        that because the lines and layers of the HCP lattice do not end at equal
+        coordinate limits, the volume enclosed by the lattice is only 
+        approximately equal to scale**3. 
            
-          Parameters
-          ----------
-          nx : int > 0
-              Number of nodes across domain. There are no corresponding ny or nz
-              because we want to ensure a cubic lattice, with equally spaced nodes
-              in all directions.
-          rho : float > 0
-              Density used to assign node masses. For now, this is a constant.
-          scale : float > 0, optional
-              Linear scale of lattice. The lattice will be built with one corner
-              placed at (0,0,0) and the opposite corner at (scale,scale,scale),
-              and then translated to put the lattice center at (0,0,0), to make it
-              simpler for a user to place the lattice in a domain. Default is 1.0.
-          rMin : float >=0, optional
-              After lattice is built, nodes whose distance from the center of the
-              lattice is less than rMin will be culled. Default is 0.0.
-          rMax : float > 0, optional
-              After lattice is built, nodes whose distance from the center of the
-              lattice is greater than rMax will be culled. Default is 1e200.
-          nNodePerh : float > 1.0, optional
-              Nodes are assigned an inverse smoothing length of 1/(d*nNodePerh),
-              where d is the lattice spacing. Default is 2.01.
-          EOS : Spheral.SolidMaterial.SolidEquationOfState, optional.
-              Place holder, for future use. Default is None.
+        Parameters
+        ----------
+        nx : int > 0
+            Number of nodes across domain. There are no corresponding ny or nz
+            because we want to ensure a cubic lattice with equally spaced nodes
+            in all directions.
+        rho : float > 0
+            Density used to assign node masses. For now, this is a constant.
+        scale : float > 0, optional
+            Linear scale of lattice. The lattice will be built with one corner
+            placed at (0,0,0) and the opposite corner at (scale,scale,scale),
+            and then translated to put the lattice center of mass at (0,0,0).
+            This makes it simpler for a user to place the lattice in her 
+            domain. Default is 1.0.
+        rMin : float >=0, optional
+            After lattice is built, nodes whose distance from the center of the
+            lattice is less than rMin will be culled. Default is 0.0.
+        rMax : float > 0, optional
+            After lattice is built, nodes whose distance from the center of the
+            lattice is greater than rMax will be culled. Default is 1e200.
+        nNodePerh : float > 1.0, optional
+            Nodes are assigned an inverse smoothing length of 1/(d*nNodePerh),
+            where d is the lattice spacing. Default is 2.01.
+        EOS : Spheral.SolidMaterial.SolidEquationOfState, optional.
+            Place holder, for future use. Default is None.
         """
 
         # Some assertions for convenience. Not supposed to be an airtight seal.
@@ -230,7 +265,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
         self.m=[]
         self.H=[]
 
-        # I use a volume field to facilitate modifying mass post construction.
+        # Convenience and diagnostic fields. (Don't overdo.)
         self.lattice_spacing = scale/(self.nx)
         self.lattice_volume = scale**3
         self.V = []
@@ -251,10 +286,11 @@ class HexagonalClosePacking(NodeGeneratorBase):
     # The actual generator algorithm
     #---------------------------------------------------------------------------
     def _generate_hcp_lattice(self):
-        """Here we generate hcp lattice positions. Each node will have 12 nearest
-           neighbors, all a distance d from it, where d, the lattice spacing, is
-           the diameter of the spheres that can be placed on the lattice in
-           closest packing.
+        """Generate hcp lattice positions. 
+
+        Each node will have 12 nearest neighbors, all a distance d from it, where
+        d, the lattice spacing, is the diameter of the spheres that can be placed
+        on the lattice in closest packing.
         """
 
         loc_x = []
@@ -326,7 +362,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
             pass
         
         # And Bob's our uncle.
-        pass
+        pass # end of method.
 
     #---------------------------------------------------------------------------
     # Required methods from NodeGeneratorBase
