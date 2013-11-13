@@ -117,8 +117,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
         colatitudes mark the _center_ of the stack.
 
         Each stack is then divided to equally spaced slices. But the slices don't
-        all begin at a "prime meridian." Instead each is shifted a linear dl from
-        the last.
+        all begin at a "prime meridian." Instead each is shifted a random angle.
         """
 
         loc_x = []
@@ -148,7 +147,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                 nqs = max(int(2*pi/dq), 2)
                 dq = 2*pi/nqs # A little bootstrapping for the smallest stacks...
                 slices = np.linspace(0.0+dq/2, 2*pi-dq/2, nqs)
-                #slices += np.random.uniform(0,pi/4)
+                slices += np.random.uniform(0,pi/4)
                 for q in slices:
                     r0, r1 = r - dr/2, r + dr/2
                     G0, G1 = G - dG/2, G + dG/2
@@ -158,7 +157,7 @@ class EqualSpacingSphericalShells(NodeGeneratorBase):
                     loc_y.append(r*sin(G)*sin(q))
                     loc_z.append(r*cos(G))
                     loc_V.append(dV)
-                    loc_m.append(loc_rho * dV)
+                    loc_m.append(self.rho * dV)
                     loc_H.append(nominalH)
                     pass
                 pass
