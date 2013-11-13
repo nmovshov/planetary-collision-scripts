@@ -409,6 +409,10 @@ control.appendPeriodicWork(cooldown,cooldownFrequency)
 # The simulation can be run for a specified number of steps, or a specified time
 # in seconds.
 #-------------------------------------------------------------------------------
+# Save initial state in a flattened node list (.fnl) file.
+mOutput(control.totalSteps, control.time(), control.lastDt())
+
+# And go.
 if not steps is None:
     control.step(steps)
     control.dropRestartFile()
