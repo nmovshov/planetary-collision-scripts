@@ -30,8 +30,7 @@ from VoronoiDistributeNodes import distributeNodes3d # the load distributer
 #-------------------------------------------------------------------------------
 # First, create an equation of state.
 units = sph.PhysicalConstants(1.0,1.0,1.0)
-etamin, etamax = 0.01, 100.0
-eos = sph.TillotsonEquationOfState('pure ice',etamin,etamax,units)
+eos = shelpers.construct_eos_for_material('h2oice',units)
 
 # Create an empty node list.
 nodes = sph.makeFluidNodeList('nodelist', eos)
