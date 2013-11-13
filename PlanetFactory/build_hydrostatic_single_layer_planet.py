@@ -17,6 +17,7 @@ import sys, os, shutil
 import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
+import PlanetNodeGenerators # New experimental node generators
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
@@ -213,23 +214,43 @@ nodeSet = [planet]
 
 # Unless restarting, create the generator and set initial field values.
 if restoreCycle is None:
-    # Start with the stock generator.
-    planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                                          rhoPlanet,
-                                          distributionType = 'lattice',
-                                          xmin = (-rPlanet, -rPlanet, -rPlanet),
-                                          xmax = ( rPlanet,  rPlanet,  rPlanet),
-                                          rmin = 0.0,
-                                          rmax = rPlanet,
-                                          nNodePerh = nPerh)
-
-    # We disturb the lattice symmetry to avoid artificial singularities.
-    for k in range(planetGenerator.localNumNodes()):
-        planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        planetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        planetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+    # Create a basic, usually constant density generator.
+    generator_to_use = 'hex' # for experimentation, remove when settled
+    if generator_to_use == 'old':
+        planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
+                                              rhoPlanet,
+                                              distributionType = 'lattice',
+                                              xmin = (-rPlanet, -rPlanet, -rPlanet),
+                                              xmax = ( rPlanet,  rPlanet,  rPlanet),
+                                              rmin = 0.0,
+                                              rmax = rPlanet,
+                                              nNodePerh = nPerh)
+        for k in range(planetGenerator.localNumNodes()):
+            planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            planetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            planetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            pass
+        pass
+    elif generator_to_use == 'hex':
+        planetGenerator = PlanetNodeGenerators.HexagonalClosePacking(
+                            nx = nxPlanet,
+                            rho = rhoPlanet,
+                            scale = 2*rPlanet,
+                            rMin = 0.0,
+                            rMax = rPlanet,
+                            nNodePerh = nPerh)
+        pass
+    else:
+        print "unknown generator type"
+        sys.exit(1)
         pass
 
+    # Tweak density profile if possible, to start closer to equilibrium.
+    if shelpers.material_dictionary[matPlanet.lower()]['eos_type'] == 'Tillotson':
+        print "alo"
+        sys.exit(0)
+        pass
+    
     # Fill node list using generator and distribute to ranks.
     print "Starting node distribution..."
     distributeNodes3d((planet, planetGenerator))
@@ -365,6 +386,10 @@ control.appendPeriodicWork(cooldown,cooldownFrequency)
 # The simulation can be run for a specified number of steps, or a specified time
 # in seconds.
 #-------------------------------------------------------------------------------
+# Save initial state in a flattened node list (.fnl) file.
+mOutput(control.totalSteps, control.time(), control.lastDt())
+
+# And go.
 if not steps is None:
     control.step(steps)
     control.dropRestartFile()
@@ -382,16 +407,16 @@ else:
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
 # Print current planet's (approximate) vitals.
-mdict = shelpers.spickle_node_list(planet,silent=True)
-plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
-plan_arr += max([max(x) for x in mdict['h']])
-plan_rho = max(mdict['rho'])
-plan_pee = max(mdict['p'])
-cout = sys.stdout.write
-cout("\nplanet vitals\n".upper())
-cout("R = {:.4e} m \n".format(plan_arr))
-cout("rho_c = {:.4e} kg/m^3\n".format(plan_rho))
-cout("P_c = {:.4e} Pa\n".format(plan_pee))
+#mdict = shelpers.spickle_node_list(planet,silent=True)
+#plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
+#plan_arr += max([max(x) for x in mdict['h']])
+#plan_rho = max(mdict['rho'])
+#plan_pee = max(mdict['p'])
+#cout = sys.stdout.write
+#cout("\nplanet vitals\n".upper())
+#cout("R = {:.4e} m \n".format(plan_arr))
+#cout("rho_c = {:.4e} kg/m^3\n".format(plan_rho))
+#cout("P_c = {:.4e} Pa\n".format(plan_pee))
 
 #-------------------------------------------------------------------------------
 # NAV Final thoughts
