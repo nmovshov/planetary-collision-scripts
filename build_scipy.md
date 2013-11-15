@@ -11,7 +11,7 @@ interpreter instead of the system Python. Here are the packages and how to
 install them.
 
 + NumPy (http://www.numpy.org)
-  The fundumental package providing N-dimensional arrays, array manipulation,
+  The fundamental package providing N-dimensional arrays, array manipulation,
   linear algebra, and element-wise math functions, among other things. It is
   included in the Spheral build so you don't need to do anything.
 
