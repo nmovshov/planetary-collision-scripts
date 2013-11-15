@@ -28,10 +28,12 @@ install them.
 + Matplotlib (http://matplotlib.org)
   A 2D plotting library with many routines similar in syntax and usage to
   MATLAB's most common plotting commands. Not as good as the real MATLAB, but
-  works in a pinch. Install by:
+  works in a pinch. Sadly, the github hosted version doesn't work, and
+Sourceforge doesn't allow curl downloads. So, you'll need to manually download
+a tar.gz file from [the website](http://matplotlib.org/downloads.html). Then:
 
-        <download and untar>
-        cd matplotlib-version-number
+        tar -xvzf matplotlib-x.x.x.tar.gz
+        cd matplotlib-x.x.x
         /path/to/spheral/bin/python setup.py install
         
   and test by starting Spheral's Python and typing `import matplotlib`.
@@ -44,8 +46,11 @@ install them.
         cd ipython
         /path/to/spheral/bin/python setup.py install
 
-  You may want to put a convenient shortcut in your .rc file:
+  This will put an executable `ipython` file in the Spheral bin directory that 
+  you can launch from there, or better yer put a convenient shortcut to in your
+  rc file:
   
+        alias spy "/path/to/spheral/bin/python"
         alias spi "/path/to/spheral/bin/ipython"
         
 That's all.
