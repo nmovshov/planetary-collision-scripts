@@ -19,10 +19,10 @@ install them.
   Yes it has the same name as the entire stack. This core library provides
   user friendly numerical routines. Install by:
 
-    git clone http://
-    cd scipy
-    /path/to/spheral/bin/python setup.py install
-
+        git clone https://github.com/scipy/scipy.git
+        cd scipy
+        /path/to/spheral/bin/python setup.py install
+  
   and test by starting Spheral's Python and typing `import scipy`.
 
 + Matplotlib (http://matplotlib.org)
