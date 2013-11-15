@@ -1,4 +1,4 @@
-Setting up a SciPy stack to work with spheral's python
+Setting up a SciPy stack to work with Spheral's python
 =======================================================
 
 SciPy (http://scipy.org) is a collection of useful enhancements to Python that
