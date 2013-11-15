@@ -1,4 +1,4 @@
-Instalation instructions
+Installation instructions
 =========================
 
 There isn't anything to install, but it will help if you add the base directory
@@ -9,8 +9,8 @@ to start using the scripts:
         
         git clone https://github.com/nmovshov/ucsc-spheral-scripts.git
         
-+ We'll call this newly created, top-level directory `<uss>`. Add the path to `<uss>`
-  to your `PYTHONPATH` variable, In your `.bashrc` or `.cshrc` file put:
++ We'll call this newly created, top-level directory `<uss>`. Add the path to 
+  `<uss>` to your `PYTHONPATH` variable, In your `.bashrc` or `.cshrc` file put:
         
         export PYTHONPATH = "path/to/<uss>:"
 
@@ -24,3 +24,6 @@ to start using the scripts:
 
         cd <uss>
         git pull
+  
+  and be sure to look in `build_spheral.md` and `build_scipy.md` for
+  instructions on installing those (required) packages as well.
