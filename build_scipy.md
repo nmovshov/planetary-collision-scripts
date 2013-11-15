@@ -27,17 +27,25 @@ install them.
 
 + Matplotlib (http://matplotlib.org)
   A 2D plotting library with many routines similar in syntax and usage to
-MATLAB's most common plotting commands. Not as good as the real MATLAB, but
-works in a pinch. Install by:
+  MATLAB's most common plotting commands. Not as good as the real MATLAB, but
+  works in a pinch. Install by:
+
+        <download and untar>
+        cd matplotlib-version-number
+        /path/to/spheral/bin/python setup.py install
+        
+  and test by starting Spheral's Python and typing `import matplotlib`.
 
 + IPython (http://ipython.org)
   An enhanced interactive shell. Much better than the default Python
-interactive interpreter. Very useful for debugging scripts. Install by:
+  interactive interpreter. Very useful for debugging scripts. Install by:
 
-    git clone https://github.com/ipython/ipython.git
-    cd ipython
-    /path/to/spheral/bin/python setup.py install
+        git clone https://github.com/ipython/ipython.git
+        cd ipython
+        /path/to/spheral/bin/python setup.py install
 
   You may want to put a convenient shortcut in your .rc file:
-
-    alias spi '/path/to/spheral/bin/ipython'
+  
+        alias spi "/path/to/spheral/bin/ipython"
+        
+That's all.
