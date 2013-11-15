@@ -218,24 +218,32 @@ if restoreCycle is None:
     # Create a basic, usually constant density generator.
     if generator_type == 'old':
         planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                                              rhoPlanet,
-                                              distributionType = 'lattice',
-                                              xmin = (-rPlanet, -rPlanet, -rPlanet),
-                                              xmax = ( rPlanet,  rPlanet,  rPlanet),
-                                              rmin = 0.0,
-                                              rmax = rPlanet,
-                                              nNodePerh = nPerh)
+                            rhoPlanet,
+                            distributionType = 'lattice',
+                            xmin = (-rPlanet, -rPlanet, -rPlanet),
+                            xmax = ( rPlanet,  rPlanet,  rPlanet),
+                            rmin = 0.0,
+                            rmax = rPlanet,
+                            nNodePerh = nPerh)
         for k in range(planetGenerator.localNumNodes()):
             planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
             planetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
             planetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
             pass
         pass
-    elif generator_type== 'hcp':
+    elif generator_type == 'hcp':
         planetGenerator = PlanetNodeGenerators.HexagonalClosePacking(
                             nx = nxPlanet,
                             rho = rhoPlanet,
                             scale = 2*rPlanet,
+                            rMin = 0.0,
+                            rMax = rPlanet,
+                            nNodePerh = nPerh)
+        pass
+    elif generator_type == 'shells':
+        planetGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                            nLayers = nxPlanet,
+                            rho = rhoPlanet,
                             rMin = 0.0,
                             rMax = rPlanet,
                             nNodePerh = nPerh)
