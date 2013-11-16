@@ -100,6 +100,7 @@ assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
         "dashpot cooling method requires frequency=1"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
+assert generator_type in ['hcp', 'shells', 'old']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -275,6 +276,7 @@ if restoreCycle is None:
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
     pass
+
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
 for n in nodeSet:
@@ -414,16 +416,7 @@ else:
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
 # Print current planet's (approximate) vitals.
-#mdict = shelpers.spickle_node_list(planet,silent=True)
-#plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
-#plan_arr += max([max(x) for x in mdict['h']])
-#plan_rho = max(mdict['rho'])
-#plan_pee = max(mdict['p'])
-#cout = sys.stdout.write
-#cout("\nplanet vitals\n".upper())
-#cout("R = {:.4e} m \n".format(plan_arr))
-#cout("rho_c = {:.4e} kg/m^3\n".format(plan_rho))
-#cout("P_c = {:.4e} Pa\n".format(plan_pee))
+#TODO
 
 #-------------------------------------------------------------------------------
 # NAV Final thoughts
