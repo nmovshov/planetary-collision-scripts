@@ -13,10 +13,11 @@
 # path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
-import sys, os
+import sys, os, shutil
 import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
+import PlanetNodeGenerators # New experimental node generators
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
@@ -46,12 +47,12 @@ gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
 cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
-cooldownPower = 1.0          # Dimensionless cooldown "strength" >=0
+cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
 cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 20                # Nodes across diameter of planet (run "resolution")
+nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or advance a number of steps rather than to a time
 goalTime = 8*gravTime        # Time to advance to (sec)
 dtInit = 0.2                 # Initial guess for time step (sec)
@@ -61,11 +62,12 @@ outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
 
 # Node list parameters
-nPerh = 1.51                 # Nominal number of nodes per smoothing scale
+nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1e-6*rPlanet          # Lower bound on smoothing length
 hmax = 2e+0*rPlanet          # Upper bound on smoothing length
 rhomin = 1e-6*rhoPlanet      # Lower bound on node density
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density
+generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 
 # Gravity parameters
 softLength = 1.0/nxPlanet    # Fraction of planet radius as softening length
@@ -104,6 +106,7 @@ assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 assert rPlanet > rCore, "core means it's inside"
 assert matMantle != matCore, "why not use the single material script then?"
+assert generator_type in ['hcp', 'shells', 'old']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -241,37 +244,79 @@ nodeSet = [core, mantle]
 
 # Unless restarting, create the generator and set initial field values.
 if restoreCycle is None:
-    # Start with the stock generator.
-    nxCore = int(nxPlanet*(rCore/rPlanet))
-    coreGenerator   = GenerateNodeDistribution3d(nxCore, nxCore, nxCore,
-                                          rhoCore,
-                                          distributionType = 'lattice',
-                                          xmin = (-rCore, -rCore, -rCore),
-                                          xmax = ( rCore,  rCore,  rCore),
-                                          rmin = 0.0,
-                                          rmax = rCore,
-                                          nNodePerh = nPerh)
-    mantleGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                                          rhoMantle,
-                                          distributionType = 'lattice',
-                                          xmin = (-rPlanet, -rPlanet, -rPlanet),
-                                          xmax = ( rPlanet,  rPlanet,  rPlanet),
-                                          rmin = rCore,
-                                          rmax = rPlanet,
-                                          nNodePerh = nPerh)
-
-    # We disturb the lattice symmetry to avoid artificial singularities.
-    for k in range(coreGenerator.localNumNodes()):
-        coreGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        coreGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        coreGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+    # Create a basic, usually constant density generator.
+    if generator_type == 'old':
+        nxCore = int(nxPlanet*(rCore/rPlanet))
+        coreGenerator   = GenerateNodeDistribution3d(nxCore, nxCore, nxCore,
+                                              rhoCore,
+                                              distributionType = 'lattice',
+                                              xmin = (-rCore, -rCore, -rCore),
+                                              xmax = ( rCore,  rCore,  rCore),
+                                              rmin = 0.0,
+                                              rmax = rCore,
+                                              nNodePerh = nPerh)
+        mantleGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
+                                              rhoMantle,
+                                              distributionType = 'lattice',
+                                              xmin = (-rPlanet, -rPlanet, -rPlanet),
+                                              xmax = ( rPlanet,  rPlanet,  rPlanet),
+                                              rmin = rCore,
+                                              rmax = rPlanet,
+                                              nNodePerh = nPerh)
+        for k in range(coreGenerator.localNumNodes()):
+            coreGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            coreGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            coreGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            pass
+        for k in range(mantleGenerator.localNumNodes()):
+            mantleGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            mantleGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            mantleGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            pass
         pass
-    for k in range(mantleGenerator.localNumNodes()):
-        mantleGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        mantleGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        mantleGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+    elif generator_type == 'hcp':
+        coreGenerator   = PlanetNodeGenerators.HexagonalClosePacking(
+                            nx = nxPlanet,
+                            rho = rhoCore,
+                            scale = 2*rPlanet,
+                            rMin = 0.0,
+                            rMax = rCore,
+                            nNodePerh = nPerh)
+        mantleGenerator = PlanetNodeGenerators.HexagonalClosePacking(
+                            nx = nxPlanet,
+                            rho = rhoMantle,
+                            scale = 2*rPlanet,
+                            rMin = rCore,
+                            rMax = rPlanet,
+                            nNodePerh = nPerh)
+        pass
+    elif generator_type == 'shells':
+        core_layers = int(nxPlanet * rCore/rPlanet)
+        mantle_layers = nxPlanet - core_layers
+        coreGenerator   = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                            nLayers = core_layers,
+                            rho = rhoCore,
+                            rMin = 0.0,
+                            rMax = rCore,
+                            nNodePerh = nPerh)
+        mantleGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                            nLayers = mantle_layers,
+                            rho = rhoMantle,
+                            rMin = rCore,
+                            rMax = rPlanet,
+                            nNodePerh = nPerh)
+        pass
+    else:
+        print "unknown generator type"
+        sys.exit(1)
         pass
 
+    # Tweak density profile if possible, to start closer to equilibrium.
+    if shelpers.material_dictionary[matCore.lower()]['eos_type'] == 'Tillotson' and \
+       shelpers.material_dictionary[matMantle.lower()]['eos_type'] == 'Tillotson':
+        #TODO
+        pass
+    
     # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."
     distributeNodes3d((core, coreGenerator),
@@ -409,6 +454,10 @@ control.appendPeriodicWork(cooldown,cooldownFrequency)
 # The simulation can be run for a specified number of steps, or a specified time
 # in seconds.
 #-------------------------------------------------------------------------------
+# Save initial state in a flattened node list (.fnl) file.
+mOutput(control.totalSteps, control.time(), control.lastDt())
+
+# And go.
 if not steps is None:
     control.step(steps)
     control.dropRestartFile()
@@ -426,16 +475,7 @@ else:
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
 # Print current planet's (approximate) vitals.
-#mdict = shelpers.spickle_node_list(planet,silent=True)
-#plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
-#plan_arr += max([max(x) for x in mdict['h']])
-#plan_rho = max(mdict['rho'])
-#plan_pee = max(mdict['p'])
-#cout = sys.stdout.write
-#cout("\nplanet vitals\n".upper())
-#cout("R = {:.4e} m \n".format(plan_arr))
-#cout("rho_c = {:.4e} kg/m^3\n".format(plan_rho))
-#cout("P_c = {:.4e} Pa\n".format(plan_pee))
+#TODO
 
 #-------------------------------------------------------------------------------
 # NAV Final thoughts

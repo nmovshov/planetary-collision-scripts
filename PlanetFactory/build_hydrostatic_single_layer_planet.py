@@ -17,6 +17,7 @@ import sys, os, shutil
 import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
+import PlanetNodeGenerators # New experimental node generators
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
@@ -42,12 +43,12 @@ gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
 cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
-cooldownPower = 1.0          # Dimensionless cooldown "strength" >=0
+cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
 cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 20                # Nodes across diameter of planet (run "resolution")
+nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or advance a number of steps rather than to a time
 goalTime = 8*gravTime        # Time to advance to (sec)
 dtInit = 0.2                 # Initial guess for time step (sec)
@@ -57,11 +58,12 @@ outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
 
 # Node list parameters
-nPerh = 1.51                 # Nominal number of nodes per smoothing scale
+nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1e-6*rPlanet          # Lower bound on smoothing length
 hmax = 2e+0*rPlanet          # Upper bound on smoothing length
 rhomin = 1e-6*rhoPlanet      # Lower bound on node density
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density
+generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 
 # Gravity parameters
 softLength = 1.0/nxPlanet    # Fraction of planet radius as softening length
@@ -98,6 +100,7 @@ assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
         "dashpot cooling method requires frequency=1"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
+assert generator_type in ['hcp', 'shells', 'old']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -213,23 +216,49 @@ nodeSet = [planet]
 
 # Unless restarting, create the generator and set initial field values.
 if restoreCycle is None:
-    # Start with the stock generator.
-    planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                                          rhoPlanet,
-                                          distributionType = 'lattice',
-                                          xmin = (-rPlanet, -rPlanet, -rPlanet),
-                                          xmax = ( rPlanet,  rPlanet,  rPlanet),
-                                          rmin = 0.0,
-                                          rmax = rPlanet,
-                                          nNodePerh = nPerh)
-
-    # We disturb the lattice symmetry to avoid artificial singularities.
-    for k in range(planetGenerator.localNumNodes()):
-        planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        planetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        planetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+    # Create a basic, usually constant density generator.
+    if generator_type == 'old':
+        planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
+                            rhoPlanet,
+                            distributionType = 'lattice',
+                            xmin = (-rPlanet, -rPlanet, -rPlanet),
+                            xmax = ( rPlanet,  rPlanet,  rPlanet),
+                            rmin = 0.0,
+                            rmax = rPlanet,
+                            nNodePerh = nPerh)
+        for k in range(planetGenerator.localNumNodes()):
+            planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            planetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            planetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            pass
+        pass
+    elif generator_type == 'hcp':
+        planetGenerator = PlanetNodeGenerators.HexagonalClosePacking(
+                            nx = nxPlanet,
+                            rho = rhoPlanet,
+                            scale = 2*rPlanet,
+                            rMin = 0.0,
+                            rMax = rPlanet,
+                            nNodePerh = nPerh)
+        pass
+    elif generator_type == 'shells':
+        planetGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                            nLayers = nxPlanet,
+                            rho = rhoPlanet,
+                            rMin = 0.0,
+                            rMax = rPlanet,
+                            nNodePerh = nPerh)
+        pass
+    else:
+        print "unknown generator type"
+        sys.exit(1)
         pass
 
+    # Tweak density profile if possible, to start closer to equilibrium.
+    if shelpers.material_dictionary[matPlanet.lower()]['eos_type'] == 'Tillotson':
+        #TODO
+        pass
+    
     # Fill node list using generator and distribute to ranks.
     print "Starting node distribution..."
     distributeNodes3d((planet, planetGenerator))
@@ -247,6 +276,7 @@ if restoreCycle is None:
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
     pass
+
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
 for n in nodeSet:
@@ -365,6 +395,10 @@ control.appendPeriodicWork(cooldown,cooldownFrequency)
 # The simulation can be run for a specified number of steps, or a specified time
 # in seconds.
 #-------------------------------------------------------------------------------
+# Save initial state in a flattened node list (.fnl) file.
+mOutput(control.totalSteps, control.time(), control.lastDt())
+
+# And go.
 if not steps is None:
     control.step(steps)
     control.dropRestartFile()
@@ -382,16 +416,7 @@ else:
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
 # Print current planet's (approximate) vitals.
-mdict = shelpers.spickle_node_list(planet,silent=True)
-plan_arr = max([hypot(x[0],hypot(x[1],x[2])) for x in mdict['x']])
-plan_arr += max([max(x) for x in mdict['h']])
-plan_rho = max(mdict['rho'])
-plan_pee = max(mdict['p'])
-cout = sys.stdout.write
-cout("\nplanet vitals\n".upper())
-cout("R = {:.4e} m \n".format(plan_arr))
-cout("rho_c = {:.4e} kg/m^3\n".format(plan_rho))
-cout("P_c = {:.4e} Pa\n".format(plan_pee))
+#TODO
 
 #-------------------------------------------------------------------------------
 # NAV Final thoughts
