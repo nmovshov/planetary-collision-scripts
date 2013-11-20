@@ -291,8 +291,9 @@ if restoreCycle is None:
                             nNodePerh = nPerh)
         pass
     elif generator_type == 'shells':
-        core_layers = int(nxPlanet * rCore/rPlanet)
-        mantle_layers = nxPlanet - core_layers
+        nLayers = nxPlanet/2
+        core_layers = int(nLayers * rCore/rPlanet)
+        mantle_layers = nLayers - core_layers
         coreGenerator   = PlanetNodeGenerators.EqualSpacingSphericalShells(
                             nLayers = core_layers,
                             rho = rhoCore,

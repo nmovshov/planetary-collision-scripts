@@ -7,7 +7,7 @@
 # and impact parameter. In spheral terms, the target and impactor are of type
 # FluidNodeList, and the only physics package attached to the integrator is the
 # hydro package. Although the target and impactor may select a solid material 
-# equation-of-state, they do not possess any elastic strength, and no damage 
+# equation of state, they do not possess any elastic strength, and no damage 
 # model is attached. No gravity is at play either.
 #
 # Although this type of collision is not really physically relevant, it may 
@@ -18,10 +18,11 @@
 # path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
-import sys, os
+import sys, os, shutil
 import random
 import mpi # Mike's simplified mpi wrapper
 import shelpers # My module of some helper functions
+import PlanetNodeGenerators # New experimental node generators
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
@@ -39,49 +40,56 @@ jobDesc = "Pure hydro collision of fluid, single material spheres."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
-rTarget = 1200.0           # Target radius (m)
-rhoTarget = 2700.0         # Target initial density (kg/m^3)
-matTarget = 'basalt'       # Target material (see <uss>/MATERIALS.md for options)
+rTarget = 1000e3             # Target radius (m)
+rhoTarget = 2700.0           # Target initial density (kg/m^3)
+matTarget = 'basalt'         # Target material (see <uss>/MATERIALS.md for options)
 mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
 
 # Impactor parameters
-rImpactor = 600.0          # Impactor radius (m)
-rhoImpactor = 2700.0       # Impactor initial density (kg/m^3)
-matImpactor = 'basalt'     # Impactor material (see <uss>/MATERIALS.md for options)
+rImpactor = 500e3            # Impactor radius (m)
+rhoImpactor = 2700.0         # Impactor initial density (kg/m^3)
+matImpactor = 'basalt'       # Impactor material (see <uss>/MATERIALS.md for options)
 mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
 # Collision parameters
-vImpact = 1000             # Impact velocity (m/s)
-angleImpact = 30           # Impact angle to normal (degrees)
+vImpact = 1000               # Impact velocity (m/s)
+angleImpact = 30             # Impact angle to normal (degrees)
 
 # Times, simulation control, and output
-nxTarget = 20              # Nodes across diameter of target (run "resolution")
-steps = None               # None or advance a number of steps rather than to a time
-goalTime = 2               # Time to advance to (sec)
-dtInit = 0.02              # Initial guess for time step (sec)
-vizTime = 1                # Time frequency for dropping viz files (sec)
-vizCycle = None            # Cycle frequency for dropping viz files
-outTime = None             # Time between running output routine (sec)
-outCycle = None            # Cycles between running output routine
+nxTarget = 20                # Nodes across diameter of target (run "resolution")
+steps = None                 # None or advance a number of steps rather than to a time
+goalTime = 20                # Time to advance to (sec)
+dtInit = 0.02                # Initial guess for time step (sec)
+vizTime = 1                  # Time frequency for dropping viz files (sec)
+vizCycle = None              # Cycle frequency for dropping viz files
+outTime = vizTime            # Time between running output routine (sec)
+outCycle = None              # Cycles between running output routine
 
 # Node list parameters
-nPerh = 1.51               # Nominal number of nodes per smoothing scale
-hmin = 1e-6*rTarget        # Lower bound on smoothing length
-hmax = 1e+1*rTarget        # Upper bound on smoothing length
-rhomin = 1e-4*rhoTarget    # Lower bound on node density
-rhomax = 1e+8*rhoTarget    # Upper bound on node density
+nPerh = 2.01                 # Nominal number of nodes per smoothing scale
+hmin = 1e-6*rTarget          # Lower bound on smoothing length
+hmax = 1e+0*rTarget          # Upper bound on smoothing length
+rhomin = 1e-6*rhoTarget      # Lower bound on node density
+rhomax = 1e+8*rhoTarget      # Upper bound on node density
+generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 
 # More simulation parameters
-dtGrowth = 2.0             # Maximum growth factor for time step per cycle 
-dtMin = 0                  # Minimum allowed time step (sec)
-dtMax = 0.1*goalTime       # Maximum allowed time step (sec)
-verbosedt = False          # Verbose reporting of the time step criteria per cycle
-maxSteps = 800             # Maximum allowed steps for simulation advance
-statsStep = None           # Frequency for sampling conservation statistics and such
-redistributeStep = 2000    # Frequency to load balance problem from scratch
-restartStep = 200          # Frequency to drop restart files
-restoreCycle = None        # If None, latest available restart cycle is selected
-baseDir = jobName          # Base name for directory to store output in
+dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
+dtMin = 0                    # Minimum allowed time step (sec)
+dtMax = 0.1*goalTime         # Maximum allowed time step (sec)
+verbosedt = False            # Verbose reporting of the time step criteria per cycle
+maxSteps = 800               # Maximum allowed steps for simulation advance
+statsStep = None             # Frequency for sampling conservation statistics and such
+redistributeStep = 8000      # Frequency to load balance problem from scratch
+restartStep = 200            # Frequency to drop restart files
+restoreCycle = None          # If None, latest available restart cycle is selected
+baseDir = jobName            # Base name for directory to store output in
+
+# Cooldown mechanism (normally disabled, with cooldownFrequency = None)
+cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
+cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
+cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
+                             # * With 'stomp' method, 0<=power<=1
 
 #-------------------------------------------------------------------------------
 # NAV Assertions

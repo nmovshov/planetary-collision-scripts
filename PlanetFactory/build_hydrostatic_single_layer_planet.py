@@ -243,7 +243,7 @@ if restoreCycle is None:
         pass
     elif generator_type == 'shells':
         planetGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
-                            nLayers = nxPlanet,
+                            nLayers = nxPlanet/2,
                             rho = rhoPlanet,
                             rMin = 0.0,
                             rMax = rPlanet,
