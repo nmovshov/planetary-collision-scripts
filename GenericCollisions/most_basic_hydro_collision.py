@@ -340,7 +340,7 @@ if restoreCycle is None:
         vel[k].x = -vImpact
         pass
 
-    pass
+    pass # end restoreCycle branching
 
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
@@ -408,6 +408,7 @@ control = SpheralController(integrator, WT,
 # NAV Periodic, mid-run actions
 # Here we register optional work to be done mid-run. Mid-run processes can be time
 # or cycle based. Here we use:
+#  * cooldown() - slow and cool internal nodes [cycle based]
 #  * output() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
@@ -421,11 +422,41 @@ if not outCycle is None:
 if not outTime is None:
     control.appendPeriodicTimeWork(mOutput,outTime)
 
+def cooldown(stepsSoFar,timeNow,dt):
+    nbGlobalNodes = mpi.allreduce(sum([nl.numInternalNodes for nl in nodeSet]),
+                                  mpi.SUM)
+    massScale = mPlanet/nbGlobalNodes
+    timeScale = 0.1*gravTime
+    dashpotParameter = cooldownPower*massScale/timeScale
+    for nl in nodeSet:
+        v = nl.velocity()
+        m = nl.mass()
+        u = nl.specificThermalEnergy()
+        if cooldownMethod == 'dashpot':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - min(dashpotParameter*dt/m[k], 1)
+                u[k] *= 0.0 #TODO: maybe improve this
+                pass
+            pass
+        elif cooldownMethod == 'stomp':
+            for k in range(nl.numInternalNodes):
+                v[k] *= 1.0 - cooldownPower
+                u[k] *= 0.0 #TODO maybe improve this
+                pass
+            pass
+        pass
+    pass
+control.appendPeriodicWork(cooldown,cooldownFrequency)
+
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
 # The simulation can be run for a specified number of steps, or a specified time
 # in seconds.
 #-------------------------------------------------------------------------------
+# Save initial state in a flattened node list (.fnl) file.
+mOutput(control.totalSteps, control.time(), control.lastDt())
+
+# And go.
 if not steps is None:
     control.step(steps)
     control.dropRestartFile()

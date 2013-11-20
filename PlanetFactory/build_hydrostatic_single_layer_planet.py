@@ -275,7 +275,7 @@ if restoreCycle is None:
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
     
-    pass
+    pass # end restoreCycle branching
 
 # The spheral controller needs a DataBase object to hold the node lists.
 db = DataBase()
