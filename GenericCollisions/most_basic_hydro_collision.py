@@ -98,9 +98,21 @@ cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
 # use their own assertions, so here we can validate just our own stuff. Another
 # valid option would be to simply not worry about it, and let exceptions happen.
 #-------------------------------------------------------------------------------
+assert rTarget >= rImpactor
+assert vImpact >= 0.
 assert 0 <= angleImpact < 90, "give impact angle in first quadrant (in degrees)"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
+assert generator_type in ['hcp', 'shells', 'old']
+if cooldownFrequency is not None:
+    print "WARNING - damping is enabled, is this on purpose?"
+    assert 0 <= cooldownPower, "cool DOWN not up"
+    if cooldownMethod is 'stomp':
+        assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
+    assert type(cooldownFrequency) is int and cooldownFrequency > 0, "very funny"
+    assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
+    assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
+            "dashpot cooling method requires frequency=1"
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -140,16 +152,13 @@ units = PhysicalConstants(1.0, # unit length in meters
                           1.0, # unit mass in kilograms
                           1.0) # unit time in seconds
 
-# Optionally, provide non-default values to the following
-etamin, etamax = 0.94, 100.0
-
 # Construct and verify target eos
-eosTarget = shelpers.construct_eos_for_material(matTarget,units,etamin,etamax)
+eosTarget = shelpers.construct_eos_for_material(matTarget,units)
 assert eosTarget is not None
 assert eosTarget.valid()
 
 # Construct and verify impactor eos
-eosImpactor = shelpers.construct_eos_for_material(matImpactor,units,etamin,etamax)
+eosImpactor = shelpers.construct_eos_for_material(matImpactor,units)
 assert eosImpactor is not None
 assert eosImpactor.valid()
 
@@ -206,7 +215,7 @@ shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 # NAV Node construction
 # Here we create and populate a node list with initial conditions. In spheral, the
 # construction order is as follows:
-# 1. Create an empty node list with fields that match the size and type of problem.
+# 1. Create an empty node list with fields matching the size and type of problem.
 # 2. Create a "generator" that will decide what values to give all field variables
 #    of node i. Normally we start with one of the simple, stock generators, and
 #    modify the x,y,z,vx,vy,vz,rho,U values to suit our initial conditions.
