@@ -248,21 +248,21 @@ if restoreCycle is None:
     if generator_type == 'old':
         nxCore = int(nxPlanet*(rCore/rPlanet))
         coreGenerator   = GenerateNodeDistribution3d(nxCore, nxCore, nxCore,
-                                              rhoCore,
-                                              distributionType = 'lattice',
-                                              xmin = (-rCore, -rCore, -rCore),
-                                              xmax = ( rCore,  rCore,  rCore),
-                                              rmin = 0.0,
-                                              rmax = rCore,
-                                              nNodePerh = nPerh)
+                            rhoCore,
+                            distributionType = 'lattice',
+                            xmin = (-rCore, -rCore, -rCore),
+                            xmax = ( rCore,  rCore,  rCore),
+                            rmin = 0.0,
+                            rmax = rCore,
+                            nNodePerh = nPerh)
         mantleGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                                              rhoMantle,
-                                              distributionType = 'lattice',
-                                              xmin = (-rPlanet, -rPlanet, -rPlanet),
-                                              xmax = ( rPlanet,  rPlanet,  rPlanet),
-                                              rmin = rCore,
-                                              rmax = rPlanet,
-                                              nNodePerh = nPerh)
+                            rhoMantle,
+                            distributionType = 'lattice',
+                            xmin = (-rPlanet, -rPlanet, -rPlanet),
+                            xmax = ( rPlanet,  rPlanet,  rPlanet),
+                            rmin = rCore,
+                            rmax = rPlanet,
+                            nNodePerh = nPerh)
         for k in range(coreGenerator.localNumNodes()):
             coreGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
             coreGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)

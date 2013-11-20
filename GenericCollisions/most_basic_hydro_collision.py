@@ -260,36 +260,48 @@ if restoreCycle is None:
                                                            m_per_node_target,
                                                            m_per_node_imp)
 
-    # Start with the stock generators.
-    targetGenerator   = GenerateNodeDistribution3d(nxTarget, nxTarget, nxTarget,
-                                   rhoTarget,
-                                   distributionType = 'lattice',
-                                   xmin = (-rTarget, -rTarget, -rTarget),
-                                   xmax = ( rTarget,  rTarget,  rTarget),
-                                   rmin = 0.0,
-                                   rmax = rTarget,
-                                   nNodePerh = nPerh
-                                   )
-    impactorGenerator = GenerateNodeDistribution3d(nxImp, nxImp, nxImp,
-                                   rhoImpactor,
-                                   distributionType = 'lattice',
-                                   xmin = (-rImpactor, -rImpactor, -rImpactor),
-                                   xmax = ( rImpactor,  rImpactor,  rImpactor),
-                                   rmin = 0.0,
-                                   rmax = rImpactor,
-                                   nNodePerh = nPerh
-                                   )
-
-    # Disturb the lattice symmetry to avoid artificial singularities.
-    for k in range(targetGenerator.localNumNodes()):
-        targetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        targetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        targetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+    # Create a basic, usually constant density generator.
+    if generator_type == 'old':
+        targetGenerator   = GenerateNodeDistribution3d(nxTarget, nxTarget, nxTarget,
+                              rhoTarget,
+                              distributionType = 'lattice',
+                              xmin = (-rTarget, -rTarget, -rTarget),
+                              xmax = ( rTarget,  rTarget,  rTarget),
+                              rmin = 0.0,
+                              rmax = rTarget,
+                              nNodePerh = nPerh)
+        impactorGenerator = GenerateNodeDistribution3d(nxImp, nxImp, nxImp,
+                              rhoImpactor,
+                              distributionType = 'lattice',
+                              xmin = (-rImpactor, -rImpactor, -rImpactor),
+                              xmax = ( rImpactor,  rImpactor,  rImpactor),
+                              rmin = 0.0,
+                              rmax = rImpactor,
+                              nNodePerh = nPerh)
+        for k in range(targetGenerator.localNumNodes()):
+            targetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            targetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            targetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            pass
+        for k in range(impactorGenerator.localNumNodes()):
+            impactorGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            impactorGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            impactorGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            pass
         pass
-    for k in range(impactorGenerator.localNumNodes()):
-        impactorGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        impactorGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-        impactorGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+    elif generator_type == 'hcp':
+        pass
+    elif generator_type == 'shells':
+        pass
+    else:
+        print "unknown generator type"
+        sys.exit(1)
+        pass
+
+    # Tweak density profile is possible, to start closer to equilibrium.
+    if shelpers.material_dictionary[matTarget.lower()]['eos_type'] == 'Tillotson' and \
+       shelpers.material_dictionary[matImpactor.lower()]['eos_type'] == 'Tillotson':
+        #TODO
         pass
 
     # Place the impactor at the point of impact. It is coming from the 
