@@ -49,7 +49,7 @@ cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
 
 # Times, simulation control, and output
 nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
-steps = None                 # None or advance a number of steps rather than to a time
+steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 8*gravTime        # Time to advance to (sec)
 dtInit = 0.2                 # Initial guess for time step (sec)
 vizTime = 0.4*gravTime       # Time frequency for dropping viz files (sec)
@@ -76,9 +76,9 @@ G = MKS().G
 dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
 dtMin = 0                    # Minimum allowed time step (sec)
 dtMax = 0.1*goalTime         # Maximum allowed time step (sec)
-verbosedt = False            # Verbose reporting of the time step criteria per cycle
+verbosedt = False            # Verbose reporting of the time step criteria 
 maxSteps = 2400              # Maximum allowed steps for simulation advance
-statsStep = None             # Frequency for sampling conservation statistics and such
+statsStep = None             # Frequency for sampling conservation statistics etc.
 redistributeStep = 8000      # Frequency to load balance problem from scratch
 restartStep = 200            # Frequency to drop restart files
 restoreCycle = None          # If None, latest available restart cycle is selected
