@@ -290,8 +290,34 @@ if restoreCycle is None:
             pass
         pass
     elif generator_type == 'hcp':
+        targetGenerator   = PlanetNodeGenerators.HexagonalClosePacking(
+                              nx = nxTarget,
+                              rho = rhoTarget,
+                              scale = 2*rTarget,
+                              rMin = 0.0,
+                              rMax = rTarget,
+                              nNodePerh = nPerh)
+        impactorGenerator = PlanetNodeGenerators.HexagonalClosePacking(
+                              nx = nxImp,
+                              rho = rhoImpactor,
+                              scale = 2*rImpactor,
+                              rMin = 0.0,
+                              rMax = rImpactor,
+                              nNodePerh = nPerh)
         pass
     elif generator_type == 'shells':
+        targetGenerator   = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                              nLayers = nxTarget/2,
+                              rho = rhoTarget,
+                              rMin = 0.0,
+                              rMax = rTarget,
+                              nNodePerh = nPerh)
+        impactorGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                              nLayers = nxImp/2,
+                              rho = rhoImpactor,
+                              rMin = 0.0,
+                              rMax = rImpactor,
+                              nNodePerh = nPerh)
         pass
     else:
         print "unknown generator type"
