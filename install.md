@@ -1,25 +1,30 @@
 Installation instructions
 =========================
 
-There isn't anything to install, but it will help if you add the base directory
-to your `PYTHONPATH` environment variable. For completeness, here is what you do
-to start using the scripts:
+There isn't anything to install, but it will help if you add an environment variable
+that holds the absolute path to the base directory (wherever you downloaded this package to).
+This will allow you to run copies of the scripts from outside the repo clone without modifying
+anything. Here is my suggested setup:
 
 + Use your git client to download the scripts:  
         
         git clone https://github.com/nmovshov/ucsc-spheral-scripts.git
         
-+ We'll call this newly created, top-level directory `<uss>`. Add the path to 
-  `<uss>` to your `PYTHONPATH` variable, In your `.bashrc` or `.cshrc` file put:
++ We'll call this newly created, top-level directory `<uss>`. Add the absolute path to 
+  this directory to variable called `USSBASE` in your `.bashrc` or `.cshrc` file:
         
-        export PYTHONPATH = "path/to/<uss>:"
+        export USSBASE = "path/to/<uss>"
 
   or  
   
-        setenv PYTHONPATH "path/to/<uss>:"
+        setenv USSBASE "path/to/<uss>"
   
   respectively.
   
++ Now you can run the scripts from where they are located, or better yet, copy a script
+  to any location, like `Project_Name/runs`, rename it and edit with your settings, and run
+  from there.
+
 + That's it. But be sure to update the scripts often:
 
         cd <uss>
