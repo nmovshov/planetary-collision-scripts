@@ -14,12 +14,14 @@ from math import *
 import sys, os
 import random
 import mpi # Mike's simplified mpi wrapper
-import shelpers # My module of some helper functions
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d
+ussbase = '' # Edit this with full path to <uss> if you see an ImportError.
+sys.path += ['..',ussbase,os.getenv('USSBASE','')]
+import shelpers # My module of some helper functions
 
 #-------------------------------------------------------------------------------
 # NAV SETUP

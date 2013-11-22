@@ -2,11 +2,13 @@
 #-------------------------------------------------------------------------------
 # Quick and dirty plot of density vs. radius of nodes read from .fnl file.
 #-------------------------------------------------------------------------------
-import sys
+import sys, os
 import numpy as np
 import scipy as sp
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+ussbase = '' # Edit this with full path to <uss> if you see an ImportError.
+sys.path += ['..',ussbase,os.getenv('USSBASE','')]
 import shelpers
 
 if len(sys.argv)==1:

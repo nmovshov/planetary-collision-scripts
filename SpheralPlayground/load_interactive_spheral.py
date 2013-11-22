@@ -14,14 +14,18 @@
 #  q - the sph artificial viscosity object
 #  hydro - the hydro physics package
 #  integrator - the time integrator
+#  control - the spheral controller
 #-------------------------------------------------------------------------------
 from math import *
 import sys, os
 import mpi # Mike's simplified mpi wrapper
-import shelpers # My module of some helper functions
 import SolidSpheral3d as sph # The top-level spheral module importer
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d # basic nl-gens
 from VoronoiDistributeNodes import distributeNodes3d # the load distributer
+
+ussbase = '' # Edit this with full path to <uss> if you see an ImportError.
+sys.path += ['..',ussbase,os.getenv('USSBASE','')]
+import shelpers # My module of some helper functions
 
 #-------------------------------------------------------------------------------
 # Construct a minimal spheral simulation structure, consisting of a node list, a
