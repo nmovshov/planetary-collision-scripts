@@ -26,7 +26,8 @@ units = sph.PhysicalConstants(1.0,   # Unit length in meters
 mats = ['Granite', 'Basalt', 'Nylon', 'Pure Ice', '30% Silicate Ice', 'Water']
 etamin, etamax = 0.94, 10.0
 pext, pmin, pmax = 0.0, -1e200, 1e200 # these are actually the defaults
-EOSes = [sph.TillotsonEquationOfState(mat, etamin, etamax, units,
+EOSes = [sph.TillotsonEquationOfState(mat, 1e-20, 1e20, units,
+         etamin_solid = etamin,
          externalPressure = pext, minimumPressure = pmin, maximumPressure = pmax)
          for mat in mats]
 granite  = EOSes[0]
