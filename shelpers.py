@@ -17,6 +17,16 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     defined in the global shelpers.material_dictionary. This dictionary also includes
     additional arguments to be passed to the constructor, when necessary.
 
+    The etamin and etamax optional arguments have slightly different meaning 
+    depending on which EOS constructor is actually used. Currently implemented
+    constructors are:
+      Tillotson : the value of etamin is passed to the etamin_solid parameter of
+                  the constructor. This is used to limit tensional pressure when
+                  the material is no longer solid. (Note that the spheral 
+                  constructor also has an etamin parameter, which is used to 
+                  prevent underflows in the pressure computation.)
+      ANEOS : Not yet implemented.
+
     All uss runs should use this method to create equations of state, instead of
     calling the spheral constructors directly, in order to allow automatic record
     keeping of what material was used in a given run. This also allows reusing 
@@ -42,7 +52,8 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
 
     if mat_dict['eos_type'] == 'Tillotson':
         eos = eos_constructor(eos_arguments['materialName'],
-                              etamin, etamax, units)
+                              1e-20, 1e20, units,
+                              etamin_solid=etamin)
         eos.uid = mat_dict['eos_id']
         pass
     else:
