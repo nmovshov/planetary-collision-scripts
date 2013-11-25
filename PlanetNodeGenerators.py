@@ -351,7 +351,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
         # Finally, chisel away a spherical shell.
         for k in range(len(loc_x)):
             R = hypot(loc_x[k], hypot(loc_y[k], loc_z[k]))
-            if self.rMin <= R <= self.rMax:
+            if self.rMin+r <= R <= self.rMax-r:
                 self.x.append(loc_x[k])
                 self.y.append(loc_y[k])
                 self.z.append(loc_z[k])
