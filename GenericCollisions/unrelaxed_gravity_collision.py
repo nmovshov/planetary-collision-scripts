@@ -61,7 +61,7 @@ angleImpact = 30             # Impact angle to normal (degrees)
 
 # Times, simulation control, and output
 nxTarget = 20                # Nodes across diameter of target (run "resolution")
-steps = 6                 # None or number of steps to advance (overrides time)
+steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 2*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
 vizTime = 0.2*gravTime       # Time frequency for dropping viz files (sec)
