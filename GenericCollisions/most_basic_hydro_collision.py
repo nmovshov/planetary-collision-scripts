@@ -165,9 +165,9 @@ assert eosImpactor is not None
 assert eosImpactor.valid()
 
 # Optionally, provide non-default values to the following
-eosTarget.etamin = 0.94 # default is 0.94
+eosTarget.etamin_solid = 0.94 # default is 0.94
 eosTarget.minimumPressure = 0.0 # default is 1e-200
-eosImpactor.etamin = 0.94 # default is 0.94
+eosImpactor.etamin_solid = 0.94 # default is 0.94
 eosImpactor.minimumPressure = 0.0 # default is 1e-200
 
 #-------------------------------------------------------------------------------

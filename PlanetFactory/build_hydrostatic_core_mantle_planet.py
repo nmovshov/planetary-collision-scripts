@@ -158,9 +158,9 @@ assert eosMantle is not None
 assert eosMantle.valid()
 
 # Optionally, provide non-default values to the following
-eosCore.etamin = 0.94 # default is 0.94
+eosCore.etamin_solid = 0.94 # default is 0.94
 eosCore.minimumPressure = 0.0 # default is 1e-200
-eosMantle.etamin = 0.94 # default is 0.94
+eosMantle.etamin_solid = 0.94 # default is 0.94
 eosMantle.minimumPressure = 0.0 # default is 1e-200
 
 #-------------------------------------------------------------------------------
