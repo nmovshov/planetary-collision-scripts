@@ -7,7 +7,9 @@
 + Ask Mike
     - Visit often crashes with more than one node list
     - Strange shock at core/mantle boundary of identical material
++ Enhancements
+    - Add node list id legend to .fnl headers
 + Other
     - Syncronize out-of-date benchmark scripts
     - Make ats-ready test to include in spheral build
-    - Move PlanetaryNodeListGenerators to spheral.
+    - Move PlanetaryNodeListGenerators to spheral
