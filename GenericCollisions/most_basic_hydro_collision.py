@@ -180,6 +180,7 @@ jobDir = os.path.join(baseDir,
                        'eosTarget=%d' % eosTarget.uid,
                        'rImpactor=%0.2g' % rImpactor,
                        'eosImpactor=%d' % eosImpactor.uid,
+                       'vImpact=%0.2g' % vImpact,
                        'nxTarget=%i' % nxTarget,
                        'np=%i' % mpi.procs,
                        )
