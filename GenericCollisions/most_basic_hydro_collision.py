@@ -56,13 +56,14 @@ mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 # Collision parameters
 vImpact = 1000               # Impact velocity (m/s)
 angleImpact = 30             # Impact angle to normal (degrees)
+crossTime = 2*rTarget/vImpact
 
 # Times, simulation control, and output
 nxTarget = 20                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 20                # Time to advance to (sec)
+goalTime = 10*crossTime      # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
-vizTime = 1                  # Time frequency for dropping viz files (sec)
+vizTime = 0.1*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
@@ -70,9 +71,9 @@ outCycle = None              # Cycles between running output routine
 # Node list parameters
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1e-6*rTarget          # Lower bound on smoothing length
-hmax = 1e+0*rTarget          # Upper bound on smoothing length
-rhomin = 1e-6*rhoTarget      # Lower bound on node density
-rhomax = 1e+8*rhoTarget      # Upper bound on node density
+hmax = 2e-1*rTarget          # Upper bound on smoothing length
+rhomin = 1e-3*rhoTarget      # Lower bound on node density 
+rhomax = 1e+6*rhoTarget      # Upper bound on node density 
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 
 # More simulation parameters
