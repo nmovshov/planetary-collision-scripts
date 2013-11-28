@@ -14,8 +14,8 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
 
     construct_eos_for_material(mtag,units) calls the appropriate spheral eos
     constructor for the material identified by mtag, which must be one of the keys
-    defined in the global shelpers.material_dictionary. This dictionary also includes
-    additional arguments to be passed to the constructor, when necessary.
+    defined in the global shelpers.material_dictionary. This dictionary also 
+    includes additional arguments to be passed to the constructor, when necessary.
 
     The etamin and etamax optional arguments have slightly different meaning 
     depending on which EOS constructor is actually used. Currently implemented
@@ -112,8 +112,8 @@ def spickle_node_list(nl,filename=None,silent=False):
 
     # Zip fields so that we have all fields for each node in the same tuple.
     #  We do this so we can concatenate everything in a single reduction operation,
-    #  to ensure that all fields in one record in the final list belong to the same
-    #  node.
+    #  to ensure that all fields in one record in the final list belong to the 
+    #  same node.
     localFields = zip(xloc, vloc, mloc, rloc, uloc, ploc, Tloc, Hloc)
 
     # Do a SUM reduction on all ranks.
@@ -176,12 +176,12 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
     pflatten_node_list(nl,filename) extracts field variables from all nodes of nl,
     which must be a valid node list, and writes them as a rectangular table into
     the text file filename. (A short header is also written, using the # comment
-    character so the resulting file can be easily read with, e.g., numpy.loadtext.)
-    The file will be overwritten if it exists. If filename has the .gz extension
-    it will be compressed using gzip.
+    character so the resulting file can be easily read with numpy.loadtext.) The
+    file will be overwritten if it exists. If filename has the .gz extension it
+    will be compressed using gzip.
 
-    pflatten_node_list(...,do_header=False) omits the header and appends the flattened
-    nl to the end of the file if one exists.
+    pflatten_node_list(...,do_header=False) omits the header and appends the 
+    flattened nl to the end of the file if one exists.
 
     pflatten_node_list(...,nl_id=id) places the integer id in the first column
     of every node (row) in the node list. This can be used when appending multiple
@@ -194,9 +194,9 @@ def pflatten_node_list(nl,filename,do_header=True,nl_id=0,silent=False):
 
     The p in pflatten is for 'parallel', a reminder that all nodes will be
     processed in their local rank, without ever being communicated or collected
-    in a single process. Each mpi rank will wait its turn to access the output file,
-    so the writing is in fact serial, but avoids bandwidth and memory waste and
-    is thus suitable for large node lists from high-res runs.
+    in a single process. Each mpi rank will wait its turn to access the output 
+    file, so the writing is in fact serial, but avoids bandwidth and memory waste
+    and is thus suitable for large node lists from high-res runs.
 
     See also: spickle_node_list
     """
@@ -284,9 +284,9 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
     """Flatten a list of node lists to a rectangular ascii file.
 
     pflatten_node_list_list(nls,filename) writes meta data about the node lists
-    in nls, which must be either a list or a tuple of valid node lists, to a header
-    of the file filename, and then calls pflatten_node_list(nl,filename) for each
-    nl in nls.
+    in nls, which must be either a list or a tuple of valid node lists, to a 
+    header of the file filename, and then calls pflatten_node_list(nl,filename)
+    for each nl in nls.
 
     pflatten_node_list_list(...,do_header=False) omits the header.
 
