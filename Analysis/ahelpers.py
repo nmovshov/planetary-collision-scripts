@@ -31,9 +31,45 @@ class FNLMeta:
     hmax_col = 14
     pass
 
+class FNLData:
+    """An empty struct that can be used to hold essential node list data."""
+    pass
+
+def load_fnl(filename):
+    """Load node list data from file and parse out to a struct."""
+
+    # Read raw data
+    assert isinstance(filename, str)
+    try:
+        data = np.loadtxt(filename)
+    except:
+        print "ERROR: Could not read data from file {}".format(filename)
+        return None
+    if (data.ndim != 2) or (data.shape[1] != FNLMeta.nb_columns):
+        print "ERROR: {} does not appear to be a valid flattened node list.".format(
+                filename)
+        return None
+
+    fnl = FNLData()
+    fnl.id =   data[:,  FNLMeta.nl_id_col]
+    fnl.eos =  data[:, FNLMeta.eos_id_col]
+    fnl.x =    data[:,      FNLMeta.x_col]
+    fnl.y =    data[:,      FNLMeta.y_col]
+    fnl.z =    data[:,      FNLMeta.z_col]
+    fnl.vx =   data[:,     FNLMeta.vx_col]
+    fnl.vy =   data[:,     FNLMeta.vy_col]
+    fnl.vz =   data[:,     FNLMeta.vz_col]
+    fnl.m =    data[:,      FNLMeta.m_col]
+    fnl.rho =  data[:,    FNLMeta.rho_col]
+    fnl.P =    data[:,      FNLMeta.P_col]
+    fnl.T =    data[:,      FNLMeta.T_col]
+    fnl.U =    data[:,      FNLMeta.U_col]
+    fnl.hmin = data[:,   FNLMeta.hmin_col]
+    fnl.hmax = data[:,   FNLMeta.hmax_col]
+
+    return fnl
+
 def _test():
     print "alo"
-    fnl=FNLMeta()
-    print fnl.nb_columns
     pass
 
