@@ -36,7 +36,18 @@ class FNLData:
     pass
 
 def load_fnl(filename):
-    """Load node list data from file and parse out to a struct."""
+    """Load node list data from file and parse out to a struct.
+    
+    The file filename is assumed to contain data from one or more node lists that
+    have been flattened using shelpers.pflatten_node_list_list. Minimal checking
+    is applied, but I assume a responsible user. A list of flattened node lists
+    will have one ore more node lists identified by consecutive, integer, zero-
+    based id. This method will return a tuple of FNLData structs, with convenient
+    field names. If you know in advance the number of node lists in the file, you
+    can use tuple unpacking to get individual FNLData structs. In the case of a
+    file containing a single node list, a single struct is returned instead of a
+    tuple.
+    """
 
     # Read raw data
     assert isinstance(filename, str)
@@ -50,24 +61,32 @@ def load_fnl(filename):
                 filename)
         return None
 
-    fnl = FNLData()
-    fnl.id =   data[:,  FNLMeta.nl_id_col]
-    fnl.eos =  data[:, FNLMeta.eos_id_col]
-    fnl.x =    data[:,      FNLMeta.x_col]
-    fnl.y =    data[:,      FNLMeta.y_col]
-    fnl.z =    data[:,      FNLMeta.z_col]
-    fnl.vx =   data[:,     FNLMeta.vx_col]
-    fnl.vy =   data[:,     FNLMeta.vy_col]
-    fnl.vz =   data[:,     FNLMeta.vz_col]
-    fnl.m =    data[:,      FNLMeta.m_col]
-    fnl.rho =  data[:,    FNLMeta.rho_col]
-    fnl.P =    data[:,      FNLMeta.P_col]
-    fnl.T =    data[:,      FNLMeta.T_col]
-    fnl.U =    data[:,      FNLMeta.U_col]
-    fnl.hmin = data[:,   FNLMeta.hmin_col]
-    fnl.hmax = data[:,   FNLMeta.hmax_col]
+    nbLists = int(max(data[:,0])) + 1
+    fnl = tuple([FNLData() for k in range(nbLists)])
 
-    return fnl
+    for k in range(nbLists):
+        kmask = data[:,FNLMeta.nl_id_col]==k
+
+        fnl[k].id =   data[kmask,  FNLMeta.nl_id_col]
+        fnl[k].eos =  data[kmask, FNLMeta.eos_id_col]
+        fnl[k].x =    data[kmask,      FNLMeta.x_col]
+        fnl[k].y =    data[kmask,      FNLMeta.y_col]
+        fnl[k].z =    data[kmask,      FNLMeta.z_col]
+        fnl[k].vx =   data[kmask,     FNLMeta.vx_col]
+        fnl[k].vy =   data[kmask,     FNLMeta.vy_col]
+        fnl[k].vz =   data[kmask,     FNLMeta.vz_col]
+        fnl[k].m =    data[kmask,      FNLMeta.m_col]
+        fnl[k].rho =  data[kmask,    FNLMeta.rho_col]
+        fnl[k].P =    data[kmask,      FNLMeta.P_col]
+        fnl[k].T =    data[kmask,      FNLMeta.T_col]
+        fnl[k].U =    data[kmask,      FNLMeta.U_col]
+        fnl[k].hmin = data[kmask,   FNLMeta.hmin_col]
+        fnl[k].hmax = data[kmask,   FNLMeta.hmax_col]
+
+    if len(fnl)>1:
+        return fnl
+    else:
+        return fnl[0]
 
 def _test():
     print "alo"
