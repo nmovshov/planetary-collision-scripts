@@ -82,6 +82,7 @@ def load_fnl(filename):
         fnl[k].U =    data[kmask,      FNLMeta.U_col]
         fnl[k].hmin = data[kmask,   FNLMeta.hmin_col]
         fnl[k].hmax = data[kmask,   FNLMeta.hmax_col]
+        fnl[k].nbNodes = sum(kmask)
 
     if len(fnl)>1:
         return fnl
