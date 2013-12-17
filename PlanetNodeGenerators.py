@@ -233,7 +233,8 @@ class HexagonalClosePacking(NodeGeneratorBase):
             lattice is less than rMin will be culled. Default is 0.0.
         rMax : float > 0, optional
             After lattice is built, nodes whose distance from the center of the
-            lattice is greater than rMax will be culled. Default is 1e200.
+            lattice is greater than or equal to rMax will be culled. Default is 
+            1e200.
         nNodePerh : float > 1.0, optional
             Nodes are assigned an inverse smoothing length of 1/(d*nNodePerh),
             where d is the lattice spacing. Default is 2.01.
@@ -351,7 +352,7 @@ class HexagonalClosePacking(NodeGeneratorBase):
         # Finally, chisel away a spherical shell.
         for k in range(len(loc_x)):
             R = hypot(loc_x[k], hypot(loc_y[k], loc_z[k]))
-            if self.rMin <= R <= self.rMax:
+            if self.rMin <= R < self.rMax:
                 self.x.append(loc_x[k])
                 self.y.append(loc_y[k])
                 self.z.append(loc_z[k])
