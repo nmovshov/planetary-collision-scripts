@@ -8,7 +8,7 @@ import sys, os, shutil
 import numpy as np
 import scipy as sp
 import matplotlib as mpl
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 class FNLMeta:
     """A struct with info about the layout of .fnl files."""
@@ -41,7 +41,7 @@ def load_fnl(filename):
     The file filename is assumed to contain data from one or more node lists that
     have been flattened using shelpers.pflatten_node_list_list. Minimal checking
     is applied, but I assume a responsible user. A list of flattened node lists
-    will have one ore more node lists identified by consecutive, integer, zero-
+    will have one or more node lists identified by consecutive, integer, zero-
     based id. This method will return a tuple of FNLData structs, with convenient
     field names. If you know in advance the number of node lists in the file, you
     can use tuple unpacking to get individual FNLData structs. In the case of a
@@ -83,11 +83,31 @@ def load_fnl(filename):
         fnl[k].hmin = data[kmask,   FNLMeta.hmin_col]
         fnl[k].hmax = data[kmask,   FNLMeta.hmax_col]
         fnl[k].nbNodes = sum(kmask)
+        fnl[k].r = np.hypot(fnl[k].x,np.hypot(fnl[k].y,fnl[k].z))
 
     if len(fnl)>1:
         return fnl
     else:
         return fnl[0]
+
+def plot_P_vs_r(fnl):
+    """Plot pressure of nodes against distance from origin."""
+
+    assert isinstance(fnl,(FNLData,tuple))
+    if isinstance(fnl,FNLData):
+        fnl = (fnl,)
+
+    fig = plt.figure()
+    axe = plt.axes()
+    plt.xlabel('Radius [m]')
+    plt.ylabel('Pressure [GPa]')
+    plt.grid()
+    for nl in fnl:
+        assert isinstance(nl,FNLData)
+        plt.plot(nl.r,nl.P/1e9,'.')
+        pass
+    plt.show(block=False)
+    return (fig,axe)
 
 def _test():
     print "alo"
