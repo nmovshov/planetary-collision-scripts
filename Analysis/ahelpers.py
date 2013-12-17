@@ -109,6 +109,29 @@ def plot_P_vs_r(fnl):
     plt.show(block=False)
     return (fig,axe)
 
+def plot_P_vs_r_output(dirname):
+    """Plot P(r) for all fnl files in a directory."""
+
+    assert isinstance(dirname,str)
+    assert os.path.isdir(dirname)
+
+#    _files = [f for f in os.listdir(dirname) if f.endswith(('.fnl','.fnl.gz'))]
+#    _files.sort()
+#    fnls = [load_fnl(f) for f in _files]
+#
+#    fig = plt.figure()
+#    nb_rows = np.ceil(np.sqrt(len(fnls)))
+#    nb_cols = np.ceil(len(fnls)/nb_rows)
+#    for k in range(len(fnls)):
+#        axe = plt.subplot(nb_rows,nb_cols,k+1)
+#        for nl in fnls[k]:
+#            plt.plot(nl.r,nl.P/1e9,'.')
+#            pass
+#        pass
+#
+#    plt.show(block=False)    
+#    return fig
+
 def _test():
     print "alo"
     pass
