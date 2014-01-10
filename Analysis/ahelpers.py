@@ -129,7 +129,7 @@ def plot_P_vs_r_output(dirname):
         fnl = all_fnls[k]
         if isinstance(fnl,FNLData):
             fnl = (fnl,)
-        axe = plt.subplot(nb_rows,nb_cols,k+1)
+        plt.subplot(nb_rows,nb_cols,k+1)
         for nl in fnl:
             plt.plot(nl.r,nl.P/1e9,'.')
             pass
