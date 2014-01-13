@@ -314,11 +314,8 @@ if restoreCycle is None:
         sys.exit(1)
         pass
 
-    # Tweak density profile if possible, to start closer to equilibrium.
-    if shelpers.material_dictionary[matCore.lower()]['eos_type'] == 'Tillotson' and \
-       shelpers.material_dictionary[matMantle.lower()]['eos_type'] == 'Tillotson':
-        #TODO
-        pass
+    # Tweak density profile to start closer to equilibrium.
+    shelpers.hydrostaticize_two_layer_planet(coreGenerator, mantleGenerator)
     
     # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."

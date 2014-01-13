@@ -9,6 +9,31 @@ import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
 import SolidSpheral3d as sph
 
+def hydrostaticize_two_layer_planet(inner, outer):
+    """Modify densities in node generators to approximate hydrostatic equilibrium.
+
+    Assuming a barely compressible, two-layer planet, a pressure profile in
+    hydrostatic equilibrium can be found by integrating the hydrostatic equation
+    with constant density. The equation of state can then be inverted to provide
+    a density profile consistent with this pressure profile. Although the 
+    resulting pressure/density state is not strictly self consistent, it may be
+    used as a good approximation for small planets that are not expected to be
+    highly compressed.
+
+    This function takes in two node generators of the hcp class, and modifies the
+    density and mass of nodes in each to match a hydrostatic state. To invert the
+    equation of state this function uses the scipy solver.
+    """
+
+    # Make sure we are not wasting our time.
+    assert true
+
+    # And Bob's our uncle
+    return
+    # End function hydrostaticize_two_layer_planet
+    
+
+
 def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     """Return a spheral EOS object for a material identified by tag.
 
@@ -63,6 +88,7 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     # And Bob's our uncle
     return eos
     # End function construct_eos_for_material
+
 
 def spickle_node_list(nl,filename=None,silent=False):
     """Pack physical field variables from a node list in a dict and pickle.
