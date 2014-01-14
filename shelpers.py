@@ -7,9 +7,11 @@
 import sys, os
 import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
+import numpy as np
+import scipy as sp
 import SolidSpheral3d as sph
 
-def hydrostaticize_two_layer_planet(inner, outer):
+def hydrostaticize_two_layer_planet(inner, outer, G=6.674e-11):
     """Modify densities in node generators to approximate hydrostatic equilibrium.
 
     Assuming a barely compressible, two-layer planet, a pressure profile in
@@ -26,13 +28,54 @@ def hydrostaticize_two_layer_planet(inner, outer):
     """
 
     # Make sure we are not wasting our time.
-    assert true
+    import PlanetNodeGenerators as PNG
+    assert isinstance(inner, PNG.HexagonalClosePacking), "must be HCP generator"
+    assert isinstance(outer, PNG.HexagonalClosePacking), "must be HCP generator"
+
+    # Setup local variables
+    R = outer.rMax
+    rc = inner.rMax
+    rhoc = inner.rho[0]
+    rhom = outer.rho[0]
+    assert 0 < rc < R
+    assert rhom < rhoc
+    r_inner = np.hypot(inner.x, np.hypot(inner.y, inner.z))
+    r_outer = np.hypot(outer.x, np.hypot(outer.y, outer.z))
+
+    # Step one - calculate pressure profile
+    c2 = 4*np.pi/3*G*(0.5*rhom**2*R**2 - rhom*(rhoc - rhom)*rc**3/R)
+    c1 = 4*np.pi/3*G*(0.5*rhoc**2 - 1.5*rhom**2 + rhoc*rhom)*rc**2 + c2
+    p_inner = np.ones(r_inner.size)*np.NaN
+    p_outer = np.ones(r_outer.size)*np.NaN
+    for k in range(r_inner.size):
+        p_inner[k] = c1 - 4*np.pi/3*G*0.5*rhoc**2*r_inner[k]**2
+    for k in range(r_outer.size):
+        p_outer[k] = c2 - 4*np.pi/3*G*(0.5*rhom**2*r_outer[k]**2 - 
+                                       rhom*(rhoc - rhom)*rc**3/r_outer[k])
+    assert np.all(np.isfinite(p_inner))
+    assert np.all(np.isfinite(p_outer))
+
+    # Step two - use root finding to invert eos and get a density
+    from scipy.optimize import brentq
+    def f(x,p,eos):
+        return p - eos.pressure(x,0)
+    for k in range(r_inner.size):
+        eos = inner.EOS
+        inner.rho[k] = brentq(f, eos.referenceDensity/2, eos.referenceDensity*2, 
+                              args=(p_inner[k],eos))
+        inner.m[k] = inner.rho[k]*inner.V[k]
+    for k in range(r_outer.size):
+        eos = outer.EOS
+        outer.rho[k] = brentq(f, eos.referenceDensity/2, eos.referenceDensity*2, 
+                              args=(p_outer[k],eos))
+        outer.m[k] = outer.rho[k]*outer.V[k]
+    assert np.all(np.isfinite(inner.rho))
+    assert np.all(np.isfinite(outer.rho))
 
     # And Bob's our uncle
-    return
+    return 
     # End function hydrostaticize_two_layer_planet
     
-
 
 def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     """Return a spheral EOS object for a material identified by tag.

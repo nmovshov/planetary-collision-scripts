@@ -15,6 +15,7 @@
 from math import *
 import sys, os, shutil
 import random
+import scipy # must be called before spheral is imported
 import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
@@ -315,6 +316,8 @@ if restoreCycle is None:
         pass
 
     # Tweak density profile to start closer to equilibrium.
+    coreGenerator.EOS = eosCore
+    mantleGenerator.EOS = eosMantle
     shelpers.hydrostaticize_two_layer_planet(coreGenerator, mantleGenerator)
     
     # Fill node lists using generators and distribute to ranks.
