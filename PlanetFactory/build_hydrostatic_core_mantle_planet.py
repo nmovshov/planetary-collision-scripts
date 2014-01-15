@@ -66,18 +66,20 @@ outCycle = None              # Cycles between running output routine
 
 # Node list parameters
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
-hmin = 1e-6*rPlanet          # Lower bound on smoothing length
-hmax = 2e+0*rPlanet          # Upper bound on smoothing length
+hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
+hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomin = 1e-6*rhoPlanet      # Lower bound on node density
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
+hmin *= nPerh*2*rPlanet/nxPlanet
+hmax *= nPerh*2*rPlanet/nxPlanet
 
 # Gravity parameters
-softLength = 1.0/nxPlanet    # Fraction of planet radius as softening length
-opening = 1.0                # Dimensionless opening parameter for gravity tree walk
+softLength = 1.0             # Gravity softening length (fraction of nominal H)
+opening = 1.0                # Opening parameter for gravity tree walk
 fdt = 0.1                    # Time step multiplier (dt=fdt*sqrt(softlength/a))
-softLength *= rPlanet
 G = MKS().G
+softLength *= nPerh*2*rPlanet/nxPlanet
 
 # More simulation parameters
 dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
@@ -98,17 +100,17 @@ baseDir = jobName            # Base name for directory to store output in
 # use their own assertions, so here we can validate just our own stuff. Another
 # valid option would be to simply not worry about it, and let exceptions happen.
 #-------------------------------------------------------------------------------
-assert 0 <= cooldownPower, "cool DOWN not up"
-if cooldownMethod is 'stomp':
-    assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
-assert type(cooldownFrequency) is int and cooldownFrequency > 0, "very funny"
-assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
-assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
-        "dashpot cooling method requires frequency=1"
+if cooldownFrequency is not None:
+    assert 0 <= cooldownPower, "cool DOWN not up"
+    if cooldownMethod is 'stomp':
+        assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
+    assert type(cooldownFrequency) is int and cooldownFrequency > 0, "very funny"
+    assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
+    assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
+            "dashpot cooling method requires frequency=1"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 assert rPlanet > rCore, "core means it's inside"
-assert matMantle != matCore, "why not use the single material script then?"
 assert generator_type in ['hcp', 'shells', 'old']
 
 #-------------------------------------------------------------------------------
