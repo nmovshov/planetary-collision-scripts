@@ -51,15 +51,15 @@ gravTime = 1/sqrt(MKS().G*rhoPlanet)
 # Cooldown mechanism
 cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
 cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
-cooldownFrequency = None        # Cycles between application (use 1 with dashpot)
+cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
 nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 100        # Time to advance to (sec)
+goalTime = 1*gravTime        # Time to advance to (sec)
 dtInit = 0.2                 # Initial guess for time step (sec)
-vizTime = 5       # Time frequency for dropping viz files (sec)
+vizTime = 0.2*gravTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
