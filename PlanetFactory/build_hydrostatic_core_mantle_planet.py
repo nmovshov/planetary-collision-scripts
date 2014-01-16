@@ -51,15 +51,15 @@ gravTime = 1/sqrt(MKS().G*rhoPlanet)
 # Cooldown mechanism
 cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
 cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
-cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
+cooldownFrequency = None        # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
 nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 8*gravTime        # Time to advance to (sec)
+goalTime = 100        # Time to advance to (sec)
 dtInit = 0.2                 # Initial guess for time step (sec)
-vizTime = 0.4*gravTime       # Time frequency for dropping viz files (sec)
+vizTime = 5       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
@@ -68,8 +68,8 @@ outCycle = None              # Cycles between running output routine
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
-rhomin = 1e-6*rhoPlanet      # Lower bound on node density
-rhomax = 1e+1*rhoPlanet      # Upper bound on node density
+rhomin = 1e-1*rhoPlanet      # Lower bound on node density (kg/m^3)
+rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet

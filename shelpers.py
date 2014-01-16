@@ -38,7 +38,7 @@ def hydrostaticize_two_layer_planet(inner, outer, G=6.674e-11):
     rhoc = inner.rho[0]
     rhom = outer.rho[0]
     assert 0 < rc < R
-    assert rhom < rhoc
+    assert rhom <= rhoc
     r_inner = np.hypot(inner.x, np.hypot(inner.y, inner.z))
     r_outer = np.hypot(outer.x, np.hypot(outer.y, outer.z))
 
