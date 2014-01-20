@@ -1,13 +1,17 @@
 #! /proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Set up a two-layer, fluid planet and run to hydrostatic equilibrium.
+# Run two fluid, self-gravitating, hydrostatic spheres into each other.
+# 
+# This script launches a basic gravity regime collision. Two spherical, fluid
+# objects of arbitrary size and (approximately) in hydrostatic equilibrium, 
+# collide with some specified velocity and impact parameter. In spheral terms, the
+# target and impactor are of type FluidNodeList. The only physics packages 
+# attached to the integrator are the hydro package and the gravity package.
+# Although the target and impactor may select a solid material equation of state,
+# they do not possess any elastic strength, and no damage model is attached. 
 #
-# This script serves as a template for equilibrating a fluid, two-layer  planet,
-# specifying core and mantle radius and density.
-# Copy this file to a separate folder and modify with choices of layer densities,
-# radii, and materials. The parameter nxPlanet controls the run resolution. You
-# will need to consider the expected time scale to run to, and you may need to
-# tweak the cooldown frequency and strength as the planet approaches equilibrium.
+# This script can be used to model collision of medium sized bodies that are 
+# undifferentiated or when the inner structure is unimportant.
 #
 # To run as an executable script, check that the shebang line points to the full
 # path to spheral's python.
@@ -33,33 +37,34 @@ import PlanetNodeGenerators # New experimental node generators
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = 'coremantle'
-jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
+jobName = 'hydrocollision'
+jobDesc = "Simple collision of fluid, self-gravitating spheres."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
-# Planet parameters
-rPlanet = 1000e3             # Initial guess for outer planet radius (m)
-rCore = 500e3                # Initial guess for core radius (m)
-matMantle = 'h2oice'         # Mantle material (see <uss>/MATERIALS.md for options)
-rhoMantle = 916.             # Initial guess for mantle density (kg/m^3)
-matCore = 'granite'          # Core material (see <uss>/MATERIALS.md for options)
-rhoCore = 2680.              # Initial guess for core density (kg/m^3)
-mPlanet = (4.0*pi/3.0) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3-rCore**3))
-rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
-gravTime = 1/sqrt(MKS().G*rhoPlanet)
+# Target parameters
+rTarget = 1000e3             # Target radius (m)
+rhoTarget = 920.0            # Target approximate bulk density (kg/m^3)
+matTarget = 'h2oice'         # Target material (see <uss>/MATERIALS.md for options)
+mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
+gravTime = 1/sqrt(MKS().G*rhoTarget)
 
-# Cooldown mechanism
-cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
-cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
-cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
-                             # * With 'stomp' method, 0<=power<=1
+# Impactor parameters
+rImpactor = 500e3            # Impactor radius (m)
+rhoImpactor = 920.0          # Impactor initial density (kg/m^3)
+matImpactor = 'h2oice'       # Impactor material (see <uss>/MATERIALS.md for options)
+mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
+
+# Collision parameters
+vImpact = 3000               # Impact velocity (m/s)
+angleImpact = 0              # Impact angle to normal (degrees)
+crossTime = 2*rTarget/vImpact
 
 # Times, simulation control, and output
-nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
+nxTarget = 20                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 1*gravTime        # Time to advance to (sec)
-dtInit = 0.2                 # Initial guess for time step (sec)
-vizTime = 0.2*gravTime       # Time frequency for dropping viz files (sec)
+goalTime = 10*crossTime      # Time to advance to (sec)
+dtInit = 0.02                # Initial guess for time step (sec)
+vizTime = 0.1*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
@@ -68,11 +73,11 @@ outCycle = None              # Cycles between running output routine
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
-rhomin = 1e-1*rhoPlanet      # Lower bound on node density (kg/m^3)
-rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
+rhomax = 1e+1*rhoTarget      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
-hmin *= nPerh*2*rPlanet/nxPlanet
-hmax *= nPerh*2*rPlanet/nxPlanet
+hmin *= nPerh*2*rTarget/nxTarget
+hmax *= nPerh*2*rTarget/nxTarget
+rhomin = mTarget/nxTarget**3/hmax**3
 
 # Gravity parameters
 softLength = 1.0             # Gravity softening length (fraction of nominal H)
@@ -93,6 +98,12 @@ restartStep = 200            # Frequency to drop restart files
 restoreCycle = None          # If None, latest available restart cycle is selected
 baseDir = jobName            # Base name for directory to store output in
 
+# Cooldown mechanism (normally disabled, with cooldownFrequency = None)
+cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
+cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
+cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
+                             # * With 'stomp' method, 0<=power<=1
+
 #-------------------------------------------------------------------------------
 # NAV Assertions
 # This is a good place for a quick abort if some bad parameter choices are going
@@ -100,7 +111,14 @@ baseDir = jobName            # Base name for directory to store output in
 # use their own assertions, so here we can validate just our own stuff. Another
 # valid option would be to simply not worry about it, and let exceptions happen.
 #-------------------------------------------------------------------------------
+assert rTarget >= rImpactor
+assert vImpact >= 0.
+assert 0 <= angleImpact < 90, "give impact angle in first quadrant (in degrees)"
+assert (outTime is None) or (outCycle is None),\
+        "output on both time and cycle is confusing"
+assert generator_type in ['hcp', 'shells', 'old']
 if cooldownFrequency is not None:
+    print "WARNING - damping is enabled, is this on purpose?"
     assert 0 <= cooldownPower, "cool DOWN not up"
     if cooldownMethod is 'stomp':
         assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
@@ -108,10 +126,6 @@ if cooldownFrequency is not None:
     assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
     assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
             "dashpot cooling method requires frequency=1"
-assert (outTime is None) or (outCycle is None),\
-        "output on both time and cycle is confusing"
-assert rPlanet > rCore, "core means it's inside"
-assert generator_type in ['hcp', 'shells', 'old']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -140,31 +154,32 @@ rigorousBoundaries = False
 
 #-------------------------------------------------------------------------------
 # NAV Equation of state
-# Here we construct equation-of-state objects, one per node list. The choice of 
-# eos is determined by the  material string (see <uss>MATERIALS.md for options).
+# Here we construct equation-of-state objects, one per node list. In this case,
+# one each for the target and impactor. The choice of eos is determined by the 
+# material string (see <uss>MATERIALS.md for available options).
 #-------------------------------------------------------------------------------
-eosCore, eosMantle = None, None
+eosTarget, eosImpactor = None, None
 
 # Most eos constructors need to know about units. We usually use MKS.
 units = PhysicalConstants(1.0, # unit length in meters
                           1.0, # unit mass in kilograms
                           1.0) # unit time in seconds
 
-# Construct and verify core eos
-eosCore = shelpers.construct_eos_for_material(matCore,units)
-assert eosCore is not None
-assert eosCore.valid()
+# Construct and verify target eos
+eosTarget = shelpers.construct_eos_for_material(matTarget,units)
+assert eosTarget is not None
+assert eosTarget.valid()
 
-# Construct and verify mantle eos
-eosMantle = shelpers.construct_eos_for_material(matMantle,units)
-assert eosMantle is not None
-assert eosMantle.valid()
+# Construct and verify impactor eos
+eosImpactor = shelpers.construct_eos_for_material(matImpactor,units)
+assert eosImpactor is not None
+assert eosImpactor.valid()
 
 # Optionally, provide non-default values to the following
-eosCore.etamin_solid = 0.94 # default is 0.94
-eosCore.minimumPressure = 0.0 # default is 1e-200
-eosMantle.etamin_solid = 0.94 # default is 0.94
-eosMantle.minimumPressure = 0.0 # default is 1e-200
+eosTarget.etamin_solid = 0.94 # default is 0.94
+eosTarget.minimumPressure = 0.0 # default is 1e-200
+eosImpactor.etamin_solid = 0.94 # default is 0.94
+eosImpactor.minimumPressure = 0.0 # default is 1e-200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -172,11 +187,12 @@ eosMantle.minimumPressure = 0.0 # default is 1e-200
 #-------------------------------------------------------------------------------
 # Name directories and files.
 jobDir = os.path.join(baseDir, 
-                       'rPlanet=%0.2g' % rPlanet,
-                       'rCore=%0.2g' % rCore,
-                       'eosCore=%d' % eosCore.uid,
-                       'eosMantle=%d' % eosMantle.uid,
-                       'nxPlanet=%i' % nxPlanet,
+                       'rTarget=%0.2g' % rTarget,
+                       'eosTarget=%d' % eosTarget.uid,
+                       'rImpactor=%0.2g' % rImpactor,
+                       'eosImpactor=%d' % eosImpactor.uid,
+                       'vImpact=%0.2g' % vImpact,
+                       'nxTarget=%i' % nxTarget,
                        'np=%i' % mpi.procs,
                        )
 restartDir = os.path.join(jobDir, 'restarts', 'proc-%04i' % mpi.rank)
@@ -221,111 +237,128 @@ shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 #    will be used to fill values in the node list, and then discarded. 
 #-------------------------------------------------------------------------------
 # Create the node lists.
-core   = makeFluidNodeList('core', eosCore, 
-                           nPerh = nPerh, 
-                           xmin = -10.0*rCore*Vector.one, # (probably unnecessary)
-                           xmax =  10.0*rCore*Vector.one, # (probably unnecessary)
-                           hmin = hmin,
-                           hmax = hmax,
-                           rhoMin = rhomin,
-                           rhoMax = rhomax,
-                           hminratio = hminratio,
-                           )
-core.eos_id = eosCore.uid
+target   = makeFluidNodeList('target', eosTarget, 
+                             nPerh = nPerh, 
+                             xmin = -10.0*rTarget*Vector.one, # (probably unnecessary)
+                             xmax =  10.0*rTarget*Vector.one, # (probably unnecessary)
+                             hmin = hmin,
+                             hmax = hmax,
+                             rhoMin = rhomin,
+                             rhoMax = rhomax,
+                             hminratio = hminratio,
+                             )
+target.eos_id = eosTarget.uid
 
-mantle = makeFluidNodeList('mantle', eosMantle, 
-                           nPerh = nPerh, 
-                           xmin = -10.0*rPlanet*Vector.one, # (probably unnecessary)
-                           xmax =  10.0*rPlanet*Vector.one, # (probably unnecessary)
-                           hmin = hmin,
-                           hmax = hmax,
-                           rhoMin = rhomin,
-                           rhoMax = rhomax,
-                           hminratio = hminratio,
-                           )
-mantle.eos_id = eosMantle.uid
+impactor = makeFluidNodeList('impactor', eosImpactor, 
+                             nPerh = nPerh, 
+                             xmin = -10.0*rImpactor*Vector.one, # (probably unnecessary)
+                             xmax =  10.0*rImpactor*Vector.one, # (probably unnecessary)
+                             hmin = hmin,
+                             hmax = hmax,
+                             rhoMin = rhomin,
+                             rhoMax = rhomax,
+                             hminratio = hminratio,
+                             )
+impactor.eos_id = eosImpactor.uid
 
-nodeSet = [core, mantle]
+nodeSet = [target, impactor]
 
 # Unless restarting, create the generators and set initial field values.
 if restoreCycle is None:
+    # Determine appropriate resolution for impactor.
+    m_per_node_target = 1.0 * mTarget / (nxTarget**3)
+    nxImp = max(2, int((mImpactor/m_per_node_target)**(1.0/3.0)))
+    m_per_node_imp = 1.0 * mImpactor / (nxImp**3)
+    print "Selected {} nodes across impactor.".format(nxImp)
+    print "Target node mass = {}; Impactor node mass = {}".format(
+                                                           m_per_node_target,
+                                                           m_per_node_imp)
+
     # Create a basic, usually constant density generator.
     if generator_type == 'old':
-        nxCore = int(nxPlanet*(rCore/rPlanet))
-        coreGenerator   = GenerateNodeDistribution3d(nxCore, nxCore, nxCore,
-                            rhoCore,
-                            distributionType = 'lattice',
-                            xmin = (-rCore, -rCore, -rCore),
-                            xmax = ( rCore,  rCore,  rCore),
-                            rmin = 0.0,
-                            rmax = rCore,
-                            nNodePerh = nPerh)
-        mantleGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                            rhoMantle,
-                            distributionType = 'lattice',
-                            xmin = (-rPlanet, -rPlanet, -rPlanet),
-                            xmax = ( rPlanet,  rPlanet,  rPlanet),
-                            rmin = rCore,
-                            rmax = rPlanet,
-                            nNodePerh = nPerh)
-        for k in range(coreGenerator.localNumNodes()):
-            coreGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            coreGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            coreGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        targetGenerator   = GenerateNodeDistribution3d(nxTarget, nxTarget, nxTarget,
+                              rhoTarget,
+                              distributionType = 'lattice',
+                              xmin = (-rTarget, -rTarget, -rTarget),
+                              xmax = ( rTarget,  rTarget,  rTarget),
+                              rmin = 0.0,
+                              rmax = rTarget,
+                              nNodePerh = nPerh)
+        impactorGenerator = GenerateNodeDistribution3d(nxImp, nxImp, nxImp,
+                              rhoImpactor,
+                              distributionType = 'lattice',
+                              xmin = (-rImpactor, -rImpactor, -rImpactor),
+                              xmax = ( rImpactor,  rImpactor,  rImpactor),
+                              rmin = 0.0,
+                              rmax = rImpactor,
+                              nNodePerh = nPerh)
+        for k in range(targetGenerator.localNumNodes()):
+            targetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            targetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            targetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
             pass
-        for k in range(mantleGenerator.localNumNodes()):
-            mantleGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            mantleGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            mantleGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
+        for k in range(impactorGenerator.localNumNodes()):
+            impactorGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            impactorGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
+            impactorGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
             pass
         pass
     elif generator_type == 'hcp':
-        coreGenerator   = PlanetNodeGenerators.HexagonalClosePacking(
-                            nx = nxPlanet,
-                            rho = rhoCore,
-                            scale = 2*rPlanet,
-                            rMin = 0.0,
-                            rMax = rCore,
-                            nNodePerh = nPerh)
-        mantleGenerator = PlanetNodeGenerators.HexagonalClosePacking(
-                            nx = nxPlanet,
-                            rho = rhoMantle,
-                            scale = 2*rPlanet,
-                            rMin = rCore,
-                            rMax = rPlanet,
-                            nNodePerh = nPerh)
+        targetGenerator   = PlanetNodeGenerators.HexagonalClosePacking(
+                              nx = nxTarget,
+                              rho = rhoTarget,
+                              scale = 2*rTarget,
+                              rMin = 0.0,
+                              rMax = rTarget,
+                              nNodePerh = nPerh)
+        impactorGenerator = PlanetNodeGenerators.HexagonalClosePacking(
+                              nx = nxImp,
+                              rho = rhoImpactor,
+                              scale = 2*rImpactor,
+                              rMin = 0.0,
+                              rMax = rImpactor,
+                              nNodePerh = nPerh)
         pass
     elif generator_type == 'shells':
-        nLayers = nxPlanet/2
-        core_layers = int(nLayers * rCore/rPlanet)
-        mantle_layers = nLayers - core_layers
-        coreGenerator   = PlanetNodeGenerators.EqualSpacingSphericalShells(
-                            nLayers = core_layers,
-                            rho = rhoCore,
-                            rMin = 0.0,
-                            rMax = rCore,
-                            nNodePerh = nPerh)
-        mantleGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
-                            nLayers = mantle_layers,
-                            rho = rhoMantle,
-                            rMin = rCore,
-                            rMax = rPlanet,
-                            nNodePerh = nPerh)
+        targetGenerator   = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                              nLayers = nxTarget/2,
+                              rho = rhoTarget,
+                              rMin = 0.0,
+                              rMax = rTarget,
+                              nNodePerh = nPerh)
+        impactorGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
+                              nLayers = nxImp/2,
+                              rho = rhoImpactor,
+                              rMin = 0.0,
+                              rMax = rImpactor,
+                              nNodePerh = nPerh)
         pass
     else:
         print "unknown generator type"
         sys.exit(1)
         pass
 
-    # Tweak density profile to start closer to equilibrium.
-    coreGenerator.EOS = eosCore
-    mantleGenerator.EOS = eosMantle
-    shelpers.hydrostaticize_two_layer_planet(coreGenerator, mantleGenerator)
-    
+    # Tweak density profile is possible, to start closer to equilibrium.
+    targetGenerator.EOS = eosTarget
+    impactorGenerator.EOS = eosImpactor
+    shelpers.hydrostaticize_one_layer_planet(targetGenerator)
+    shelpers.hydrostaticize_one_layer_planet(impactorGenerator)
+
+    # Place the impactor at the point of impact. It is coming from the 
+    # positive x direction in the xy plane.
+    displace = Vector((rTarget+rImpactor)*cos(pi/180.0*angleImpact),
+                      (rTarget+rImpactor)*sin(pi/180.0*angleImpact),
+                      0.0)
+    for k in range(impactorGenerator.localNumNodes()):
+        impactorGenerator.x[k] += displace.x
+        impactorGenerator.y[k] += displace.y
+        impactorGenerator.z[k] += displace.z
+        pass
+                                                       
     # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."
-    distributeNodes3d((core, coreGenerator),
-                      (mantle, mantleGenerator))
+    distributeNodes3d((target, targetGenerator),
+                      (impactor, impactorGenerator))
     nGlobalNodes = 0
     for n in nodeSet:
         print "Generator info for %s" % n.name
@@ -338,7 +371,15 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    print "Worst node mass ratio: {}".format(impactor.mass().max()/
+                                             target.mass().min())
     
+    # Launch the impactor
+    vel = impactor.velocity()
+    for k in range(impactor.numInternalNodes):
+        vel[k].x = -vImpact
+        pass
+
     pass # end restoreCycle branching
 
 # The spheral controller needs a DataBase object to hold the node lists.
@@ -478,9 +519,6 @@ else:
 #-------------------------------------------------------------------------------
 # Save final state in a flattened node list (.fnl) file.
 mOutput(control.totalSteps, control.time(), control.lastDt())
-
-# Print current planet's (approximate) vitals.
-#TODO
 
 #-------------------------------------------------------------------------------
 # NAV Final thoughts
