@@ -60,7 +60,7 @@ angleImpact = 0              # Impact angle to normal (degrees)
 crossTime = 2*rTarget/vImpact
 
 # Times, simulation control, and output
-nxTarget = 20                # Nodes across diameter of target (run "resolution")
+nxTarget = 40                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 10*crossTime      # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
@@ -84,7 +84,7 @@ softLength = 1.0             # Gravity softening length (fraction of nominal H)
 opening = 1.0                # Opening parameter for gravity tree walk
 fdt = 0.1                    # Time step multiplier (dt=fdt*sqrt(softlength/a))
 G = MKS().G
-softLength *= nPerh*2*rPlanet/nxPlanet
+softLength *= nPerh*2*rTarget/nxTarget
 
 # More simulation parameters
 dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
