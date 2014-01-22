@@ -56,7 +56,7 @@ mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
 # Collision parameters
 vImpact = 3000               # Impact velocity (m/s)
-angleImpact = 0              # Impact angle to normal (degrees)
+angleImpact = 2              # Impact angle to normal (degrees)
 crossTime = 2*rTarget/vImpact
 
 # Times, simulation control, and output
@@ -71,8 +71,8 @@ outCycle = None              # Cycles between running output routine
 
 # Node list parameters
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
-hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
-hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
+hmin = 0.001                 # Minimum smoothing length (fraction of nominal)
+hmax = 2.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoTarget      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 hmin *= nPerh*2*rTarget/nxTarget
@@ -104,6 +104,9 @@ cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
 cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
+# Node Culling mechanism (normally disabled, with cullingFrequency = None)
+cullingFrequency = None      # Cycles between application
+
 #-------------------------------------------------------------------------------
 # NAV Assertions
 # This is a good place for a quick abort if some bad parameter choices are going
@@ -118,7 +121,7 @@ assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 assert generator_type in ['hcp', 'shells', 'old']
 if cooldownFrequency is not None:
-    print "WARNING - damping is enabled, is this on purpose?"
+    print "WARNING - damping is enabled, is this intentional?"
     assert 0 <= cooldownPower, "cool DOWN not up"
     if cooldownMethod is 'stomp':
         assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
@@ -126,6 +129,9 @@ if cooldownFrequency is not None:
     assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
     assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
             "dashpot cooling method requires frequency=1"
+if cullingFrequency is not None:
+    print "WARNING - node culling is enabled, is this intentional?"
+    assert type(cullingFrequency) is int and cullingFrequency > 0
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -495,6 +501,24 @@ def cooldown(stepsSoFar,timeNow,dt):
     pass
 control.appendPeriodicWork(cooldown,cooldownFrequency)
 
+def cullnodes(stepsSoFar,timeNow,dt):
+    for nl in nodeSet:
+        v = nl.velocity()
+        u = nl.specificThermalEnergy()
+        bads = vector_of_int()
+        for k in range(nl.numInternalNodes):
+            if ( abs(v[k].magnitude()) > 10*vImpact or
+                 u[k] > 10*eosTarget.epsVapor):
+                bads.append(k)
+                pass
+            pass
+        nl.deleteNodes(bads)
+        if bads.size() > 0:
+            print "WARNING - deleted {} nodes from {}".format(bads.size(),nl.name)
+        pass
+    pass
+control.appendPeriodicWork(cullnodes,cullingFrequency)
+
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
 # The simulation can be run for a specified number of steps, or a specified time
@@ -507,6 +531,7 @@ mOutput(control.totalSteps, control.time(), control.lastDt())
 if not steps is None:
     control.step(steps)
     control.dropRestartFile()
+    control.dropViz()
 else:
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
