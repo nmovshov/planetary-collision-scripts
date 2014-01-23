@@ -529,10 +529,12 @@ mOutput(control.totalSteps, control.time(), control.lastDt())
 
 # And go.
 if not steps is None:
+    print "Advancing {} steps.".format(steps)
     control.step(steps)
     control.dropRestartFile()
     control.dropViz()
 else:
+    print "Running to {} seconds.".format(goalTime)
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
     control.dropViz()
