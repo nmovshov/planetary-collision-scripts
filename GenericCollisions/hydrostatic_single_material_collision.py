@@ -514,7 +514,8 @@ def cullnodes(stepsSoFar,timeNow,dt):
             pass
         nl.deleteNodes(bads)
         if bads.size() > 0:
-            print "WARNING - deleted {} nodes from {}".format(bads.size(),nl.name)
+            msg = "WARNING - deleted {} nodes from {}\n".format(bads.size(),nl.name)
+            sys.stderr.write(msg)
         pass
     pass
 control.appendPeriodicWork(cullnodes,cullingFrequency)
