@@ -73,7 +73,7 @@ rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use (must be 'hcp' for now)
 
 # Gravity parameters
-softLength = 1.0             # Gravity softening length (fraction of nominal H)
+softLength = 0.2             # Gravity softening length (fraction of nominal H)
 opening = 1.0                # Opening parameter for gravity tree walk
 fdt = 0.1                    # Time step multiplier (dt=fdt*sqrt(softlength/a))
 G = MKS().G
@@ -409,7 +409,8 @@ control = SpheralController(integrator, WT,
                             vizBaseName = jobName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime)
+                            vizTime = vizTime,
+                            vizDerivs = False)
 
 #-------------------------------------------------------------------------------
 # NAV Periodic, mid-run actions
@@ -465,9 +466,11 @@ mOutput(control.totalSteps, control.time(), control.lastDt())
 
 # And go.
 if not steps is None:
+    print "Advancing {} steps.".format(steps)
     control.step(steps)
     control.dropRestartFile()
 else:
+    print "Running to {} seconds.".format(goalTime)
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
     control.dropViz()
