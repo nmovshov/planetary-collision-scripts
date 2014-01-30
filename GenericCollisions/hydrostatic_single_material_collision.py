@@ -60,7 +60,7 @@ angleImpact = 2              # Impact angle to normal (degrees)
 crossTime = 2*rTarget/vImpact
 
 # Times, simulation control, and output
-nxTarget = 40                # Nodes across diameter of target (run "resolution")
+nxTarget = 20                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 10*crossTime      # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
@@ -505,10 +505,13 @@ def cullnodes(stepsSoFar,timeNow,dt):
     for nl in nodeSet:
         v = nl.velocity()
         u = nl.specificThermalEnergy()
+        C = db.connectivityMap()
         bads = vector_of_int()
         for k in range(nl.numInternalNodes):
-            if ( abs(v[k].magnitude()) > 10*vImpact or
-                 u[k] > 10*eosTarget.epsVapor):
+            if ( abs(v[k].magnitude()) > 10*vImpact  or
+                 u[k] > 10*eosTarget.epsVapor        or
+                 0 < C.numNeighborsForNode(nl,k) < 6
+               ):
                 bads.append(k)
                 pass
             pass
