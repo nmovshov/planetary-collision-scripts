@@ -447,8 +447,7 @@ def pflatten_node_list_list(nls,filename,do_header=True,silent=False):
         pass
 
     # And Bob's our uncle.
-    if not silent:
-        print "Done."
+    return
     # End function pflatten_node_list_list
 
 

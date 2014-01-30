@@ -514,7 +514,7 @@ def cullnodes(stepsSoFar,timeNow,dt):
             pass
         nl.deleteNodes(bads)
         if bads.size() > 0:
-            msg = "WARNING - deleted {} nodes from {}\n".format(bads.size(),nl.name)
+            msg = "\033[31mWARNING - deleted {} nodes from {}\n".format(bads.size(),nl.name)
             sys.stderr.write(msg)
         pass
     pass
