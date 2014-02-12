@@ -59,15 +59,15 @@ nxPlanet = 40                # Nodes across diameter of planet (run "resolution"
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
 dtInit = 0.2                 # Initial guess for time step (sec)
-vizTime = 0.2*gravTime       # Time frequency for dropping viz files (sec)
+vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
 
 # Node list parameters
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
-hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
-hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
+hmin = 0.1                   # Minimum smoothing length (fraction of nominal)
+hmax = 2.0                   # Maximum smoothing length (fraction of nominal)
 rhomin = 1e-1*rhoPlanet      # Lower bound on node density (kg/m^3)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
@@ -111,7 +111,7 @@ if cooldownFrequency is not None:
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 assert rPlanet > rCore, "core means it's inside"
-assert generator_type in ['hcp', 'shells', 'old']
+assert generator_type in ['hcp',]
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -220,11 +220,18 @@ shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 # 3. Distribute, using the (nodeList, generator) pair, among ranks. The generator
 #    will be used to fill values in the node list, and then discarded. 
 #-------------------------------------------------------------------------------
+# Distribute the resolution between core and mantle
+mass_rat = rhoCore/rhoMantle*rCore**3/(rPlanet**3 - rCore**3)
+NM = nxPlanet**3*pi/6*(1 - rCore**3/rPlanet**3)
+NC = NM * mass_rat
+nxCore = int((6/pi*NC)**(1./3))
+print "Selected {} nodes in the core.".format(nxCore)
+
 # Create the node lists.
 core   = makeFluidNodeList('core', eosCore, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rCore*Vector.one, # (probably unnecessary)
-                           xmax =  10.0*rCore*Vector.one, # (probably unnecessary)
+                           xmin = -10.0*rCore*Vector.one, 
+                           xmax =  10.0*rCore*Vector.one,
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,
@@ -235,8 +242,8 @@ core.eos_id = eosCore.uid
 
 mantle = makeFluidNodeList('mantle', eosMantle, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rPlanet*Vector.one, # (probably unnecessary)
-                           xmax =  10.0*rPlanet*Vector.one, # (probably unnecessary)
+                           xmin = -10.0*rPlanet*Vector.one, 
+                           xmax =  10.0*rPlanet*Vector.one, 
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,
@@ -281,9 +288,9 @@ if restoreCycle is None:
         pass
     elif generator_type == 'hcp':
         coreGenerator   = PlanetNodeGenerators.HexagonalClosePacking(
-                            nx = nxPlanet,
+                            nx = nxCore,
                             rho = rhoCore,
-                            scale = 2*rPlanet,
+                            scale = 2*rCore,
                             rMin = 0.0,
                             rMax = rCore,
                             nNodePerh = nPerh)
@@ -321,6 +328,29 @@ if restoreCycle is None:
     coreGenerator.EOS = eosCore
     mantleGenerator.EOS = eosMantle
     shelpers.hydrostaticize_two_layer_planet(coreGenerator, mantleGenerator)
+
+    # Rotate the core to avoid planes of artificial symmetry.
+    sp = scipy
+    theta = pi/3.51234
+    R1 = sp.array([(cos(theta), sin(theta), 0),
+                   (-sin(theta), cos(theta), 0),
+                   (0, 0, 1)])
+    theta = pi/3.51234
+    R2 = sp.array([(1, 0, 0),
+                   (0, cos(theta), sin(theta)),
+                   (0, -sin(theta), cos(theta))])
+    R = sp.dot(R1, R2)
+
+    for k in range(coreGenerator.localNumNodes()):
+        Xk = sp.array([(coreGenerator.x[k],
+                       coreGenerator.y[k],
+                       coreGenerator.z[k])]).transpose()
+        Xk = sp.dot(R, Xk)
+        coreGenerator.x[k] = Xk[0]
+        coreGenerator.y[k] = Xk[1]
+        coreGenerator.z[k] = Xk[2]
+        pass
+    del sp
     
     # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."
