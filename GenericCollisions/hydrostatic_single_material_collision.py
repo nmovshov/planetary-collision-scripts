@@ -504,13 +504,15 @@ control.appendPeriodicWork(cooldown,cooldownFrequency)
 def cullnodes(stepsSoFar,timeNow,dt):
     for nl in nodeSet:
         v = nl.velocity()
+        r = nl.positions()
         u = nl.specificThermalEnergy()
         C = db.connectivityMap()
         bads = vector_of_int()
         for k in range(nl.numInternalNodes):
-            if ( abs(v[k].magnitude()) > 10*vImpact  or
-                 u[k] > 10*eosTarget.epsVapor        or
-                 0 < C.numNeighborsForNode(nl,k) < 6
+            if ( abs(v[k].magnitude()) > 10*vImpact   or
+                 u[k] > 10*eosTarget.epsVapor         or
+                 0 < C.numNeighborsForNode(nl,k) < 10 or
+                 sqrt(r[k].x**2 + r[k].y**2 + r[k].z**2) > 20*rTarget
                ):
                 bads.append(k)
                 pass
@@ -518,7 +520,7 @@ def cullnodes(stepsSoFar,timeNow,dt):
         nl.deleteNodes(bads)
         if bads.size() > 0:
             sys.stderr.write("\033[31m")
-            msg = "WARNING - deleted {} nodes from {}\n".format(bads.size(),nl.name)
+            msg = "WARNING - cycle {} deleted {} nodes from {}\n".format(stepsSoFar,bads.size(),nl.name)
             sys.stderr.write(msg)
             sys.stderr.write("\033[0m")
         pass
