@@ -23,7 +23,7 @@ Config spheral:
 
     cd spheral/src
     ./boot
-    ./configure --with-opt=3
+    ./configure --with-opt=3 --without-opensubdiv --with-scipy --with-matplotlib
 
 Or, with ANEOS support (BYOA):
 
