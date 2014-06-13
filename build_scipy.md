@@ -13,27 +13,33 @@ install them.
 + NumPy (http://www.numpy.org)
   The fundamental package providing N-dimensional arrays, array manipulation,
   linear algebra, and element-wise math functions, among other things. It is
-  included in the Spheral build so you don't need to do anything.
+  included in the default Spheral build, so normally you don't need to do
+  anything. But if you see errors relating to BLAS read the section on BLAS
+  and LAPACK below.
 
 + SciPy (http://scipy.org/scipylib/)
   Yes it has the same name as the entire stack. This core library provides
-  user friendly numerical routines. Install by:
+  user friendly numerical routines. The Spheral build installs it if configured
+  with the `--with-scipy` option. Or, you can install without rebuilding Spheral
+  by:
 
-        git clone https://github.com/scipy/scipy.git
-        cd scipy
+        curl -k -L http://sourceforge.net/projects/scipy/files/scipy/0.14.0/scipy-0.14.0.tar.gz/download > scipy-0.14.0.tar.gz
+        tar -xvzf scipy-0.14.0.tar.gz
+        cd scipy-0.14.0
         /path/to/spheral/bin/python setup.py install
   
-  and test by starting Spheral's Python and typing `import scipy`.
+  and test by starting Spheral's Python and typing `import scipy`. If you see
+  errors relating to BLAS or LAPACK read the last section below.
 
 + Matplotlib (http://matplotlib.org)
   A 2D plotting library with many routines similar in syntax and usage to
   MATLAB's most common plotting commands. Not as good as the real MATLAB, but
-  works in a pinch. Sadly, the github hosted version doesn't work, and
-Sourceforge doesn't allow curl downloads. So, you'll need to manually download
-a tar.gz file from [the website](http://matplotlib.org/downloads.html). Then:
+  works in a pinch. The Spheral build will install it if configured with the
+  `--with-matplotlib` option. To install independently, use:
 
-        tar -xvzf matplotlib-x.x.x.tar.gz
-        cd matplotlib-x.x.x
+        curl -k -L http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz/download         > matplotlib-1.3.1.tar.gz
+        tar -xvzf matplotlib-1.3.1.tar.gz
+        cd matplotlib-1.3.1
         /path/to/spheral/bin/python setup.py install
         
   and test by starting Spheral's Python and typing `import matplotlib`.
