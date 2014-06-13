@@ -14,8 +14,8 @@ install them.
   The fundamental package providing N-dimensional arrays, array manipulation,
   linear algebra, and element-wise math functions, among other things. It is
   included in the default Spheral build, so normally you don't need to do
-  anything. But if you see errors relating to BLAS read the section on BLAS
-  and LAPACK below.
+  anything. But if you see errors relating to BLAS read the troubleshooting
+  section below.
 
 + SciPy (http://scipy.org/scipylib/)
   Yes it has the same name as the entire stack. This core library provides
@@ -29,7 +29,7 @@ install them.
         /path/to/spheral/bin/python setup.py install
   
   and test by starting Spheral's Python and typing `import scipy`. If you see
-  errors relating to BLAS or LAPACK read the last section below.
+  errors relating to BLAS or LAPACK read the troubleshooting section below.
 
 + Matplotlib (http://matplotlib.org)
   A 2D plotting library with many routines similar in syntax and usage to
