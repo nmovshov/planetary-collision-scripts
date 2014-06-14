@@ -60,3 +60,30 @@ install them.
         alias spi "/path/to/spheral/bin/ipython"
         
 That's all.
+
+### Troubleshooting
++ BLAS and LAPACK
+  The NumPy and Scipy libraries count on your system having several static and 
+  shared libraries in one of several standard paths. In particular, SciPy requires
+  the libraries `libblas.a`, `libblas.so`, `liblapack.a`, `liblapack.so` be available
+  while *NumPy* is built.
+  
+  Typically, these libraries will be found on your system in some standard location, 
+  like `/usr/lib` or `/usr/lib64` and the setup scripts will find them easily. However,
+  sometimes these libraries are put in a different location, and you need to tell the 
+  scripts where to find them. First locate the static libraries by
+
+        locate libblas.a
+        locate liblapack.a
+        
+  and put the locations into the environment variables `BLAS` and `LAPACK`. Then find
+  the shared libraries,
+  
+        locate libblas.so
+        locate liblapack.so
+        
+  and *add* the locations to the environment variable `LD_LIBRARY_PATH`. That should do
+  the trick.
+  
+  
+  
