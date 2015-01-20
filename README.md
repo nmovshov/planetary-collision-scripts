@@ -1,8 +1,8 @@
-ucsc-spheral-scripts
-======================
-**WARNING: work in progress, updated often!**
+Planetary Collision Scripts
+===========================
+Naor's Python scripts for initiating, driving, and analyzing spheral simulations.  
 
-Naor's Python scripts for driving spheral simulations.  
+**WARNING: work in progress, updated often!**
 
 [Spheral++](http://sourceforge.net/projects/spheral/) is a Lagrangian, ASPH based
 hydrocode coupled with an oct-tree gravitational code. Spheral is developed and
@@ -14,9 +14,9 @@ planetary collision modeling are:
   - Multiple equations of state  
 
 This collection of python scripts is an attempt to provide 'templates' to generic
-planetary collision simulations, including setting up, running, and analyzing
+planetary collision simulations including setting up, running, and analyzing
 simulation data, so that users can quickly start production runs without the need
-to learn the spheral api. For this reason I chose a script-like style of python
+to learn the spheral API. For this reason I chose a script-like style of python
 modules (where all the action happens in the init section). These scripts are
 meant to be used from the shell so they are documented with comments rather than
 doc strings. Users typically set a small number of parameters in (a copy of) the
@@ -26,7 +26,7 @@ be executed by the python interpreter built by spheral, not the system python!
 
 Maintained by: Naor Movshovitz (nmovshov@gmail.com)
 
-Directory: **(WARNING: work in progress, updated often!)**  
+Directory: **(Work in progress, updated often!)**  
   [MF=mostly functional; BV=beta version (use with care); PH=place holder]
   - `Benchmarks` - Tests of accuracy and performance.  
     + `Nakamura_Fujiwara.py` - Collision of two spheres with strength and damage,
