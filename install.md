@@ -11,15 +11,15 @@ setup:
         
         git clone https://github.com/nmovshov/ucsc-spheral-scripts.git
         
-+ We'll call this newly created, top-level directory `<uss>`. Add the absolute 
-  path to this directory to variable called `USSBASE` in your `.bashrc` or 
++ We'll call this newly created, top-level directory `<pcs>`. Add the absolute 
+  path to this directory to variable called `PCSBASE` in your `.bashrc` or 
   `.cshrc` file:
         
-        export USSBASE = "path/to/<uss>"
+        export PCSBASE = "path/to/<pcs>"
 
   or  
   
-        setenv USSBASE "path/to/<uss>"
+        setenv PCSBASE "path/to/<pcs>"
   
   respectively.
   
@@ -29,7 +29,7 @@ setup:
 
 + That's it. But be sure to update the scripts often:
 
-        cd <uss>
+        cd <pcs>
         git pull
   
   and be sure to look in `build_spheral.md` and `build_scipy.md` for 
