@@ -50,6 +50,7 @@ install them.
 
         git clone https://github.com/ipython/ipython.git
         cd ipython
+        git checkout 0.13.x
         /path/to/spheral/bin/python setup.py install
 
   This will put an executable `ipython` file in the Spheral bin directory that 
