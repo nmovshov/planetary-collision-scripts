@@ -18,27 +18,31 @@ switch method
         end
         
     case 'jutzi'
+        % In the RF of the particle with lowest potential remove particles with
+        % positive total energy. Repeat until stable.
         ind_bound = true(length(pos),1);
+        bU = bigG*potential(pos(:,1),pos(:,2),pos(:,3),m,ind_bound);
+        [~, ind] = min(bU);
+        VCM = vel(ind,:);
         nbb = -1;
         while nbb ~= sum(ind_bound)
             nbb = sum(ind_bound);
             bU = bigG*potential(pos(:,1),pos(:,2),pos(:,3),m,ind_bound);
-            [~, ind] = min(bU);
-            VCM = vel(ind,:);
             for j=1:length(pos)
                 V = vel(j,:) - VCM;
                 K = 0.5*(V*V');
-                if K + bU(j) >= 0, ind_bound(j) = false; end
+                if K + bU(j) > 0, ind_bound(j) = false; end
             end
         end
         
     case 'naor'
+        % Add particles bound to the particle with lowest potential. In the CM
+        % frame of this set, add particles bound to the set. Repeat until
+        % stable.
         ind_bound = false(length(pos),1);
-        % seed with deepest particle
         U = bigG*potential(pos(:,1),pos(:,2),pos(:,3),m);
         [~, ind] = min(U);
         ind_bound(ind) = true;
-        % build bottom-up
         nbb = -1;
         while nbb ~= sum(ind_bound)
             nbb = sum(ind_bound);
