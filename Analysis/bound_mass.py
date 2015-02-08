@@ -14,20 +14,55 @@ def _main():
     """Entry point when used as command line utility (recommended)."""
 
     # Parse command line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filename', help="name of file containing node list data")
-    parser.add_argument('-m','--method', help="choice of algorithm",
-                                         choices=['kory', 'jutzi', 'nmov'],
-                                         default='jutzi')
-    args = parser.parse_args()
+    args = _PCL()
     
     # Load node list data
+    cout("Reading file...")
     fnl = ahelpers.load_fnl(args.filename)
-    print fnl.nbNodes
+    cout("Done.\n")
+    pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
+    vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
+    m   = fnl.m
+    print "Found {} particles (in {} node lists) totaling {} kg.".format(
+        fnl.nbNodes, np.unique(fnl.id).size, sum(m))
 
+    # Dispatch to the work method
+    [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method)
+
+    # Report and exit
+    print "Found {} bound particles totaling {} kg.".format(
+        sum(ind_bound), M_bound)
+    print "M_bound / M_tot = {}.".format(M_bound/sum(m))
     return
 
-def bound_mass(pos, vel, m, length_scale, units=[1,1,1]):
+def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
+    """Given cloud of particles return largest gravitationally bound mass.
+
+    This function looks at a cloud of point masses with known positions and
+    velocities and attempts to find the largest (by mass) subset that is
+    gravitationally bound. There are different choices for the algorithm to use,
+    and all algorithms are only approximations. The only sure way of finding the
+    bound particles is to integrate the system in time for many gravitational time
+    scales.
+    This function is a dispatcher - the work is carried out in subfunctions.
+
+    """
+
+    # Some minimal assertions (NOT bullet-proof filter!)
+    pos = np.array(pos)
+    vel = np.array(vel)
+    m   = np.array(m)
+    units = np.array(units)
+    assert pos.ndim == 2 and pos.shape[1] == 3 and np.all(np.isreal(pos))
+    assert vel.ndim == 2 and vel.shape[1] == 3 and np.all(np.isreal(vel))
+    assert m.ndim == 1 and np.all(np.isreal(m)) and np.all(m > 0)
+    assert units.ndim == 1 and len(units) == 3 and np.all(units > 0)
+    assert len(pos) == len(vel) == len(m)
+
+    print method
+    return [sum(m), units]
+
+def bound_mass_v0(pos, vel, m, length_scale, units=[1,1,1]):
     """Given cloud of particles return largest gravitationally bound mass.
 
     This function looks at a cloud of point masses with known positions and 
@@ -160,6 +195,16 @@ def fast_clumps(pos, L):
     
     # That's it
     return labels
+
+def _PCL():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', help="name of file containing node list data")
+    parser.add_argument('-m','--method', help="choice of algorithm",
+                                         choices=['kory', 'jutzi', 'naor1', 'naor2'],
+                                         default='jutzi')
+    args = parser.parse_args()
+    return args
+    pass
 
 if __name__ == "__main__":
     _main()
