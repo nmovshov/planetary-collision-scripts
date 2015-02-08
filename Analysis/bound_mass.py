@@ -27,60 +27,6 @@ def _main():
 
     return
 
-def fast_clumps(pos, L):
-    """Partition a cloud of point masses into distinct clumps based on proximity.
-
-    This is the optimized version of nr3.eclazz functions, which partitions any
-    set (tree) into equivalence classes (connected components). See nr3.eclazz for
-    details of the algorithm. This function is a specialized version for the case
-    where the set is a cloud of particles with (x,y,z) coordinates and the
-    connectivity test is a simple euclidean distance threshold.
-
-    Parameters
-    ----------
-    pos : numpy.ndarray or list
-      An n-by-3 array of coordinates. A list of lists seems to work best.
-    L : float, positive
-      The distance threshold for the proximity test.
-
-    Returns
-    -------
-    labels : list of ints
-        A vector of integer labels. labels[k] is the clump that pos[k] belongs to.
-        There are len(np.unique(labels)) such clumps.
-    """
-    
-    # Some minimal assertions
-    assert isinstance(pos, (list, np.ndarray))
-    assert np.isreal(L) and np.isscalar(L) and L >= 0
-    if type(pos) is np.ndarray:
-        assert(pos.ndim == 2 and pos.shape[1] == 3)
-        pass
-
-    # Prepare
-    labels = [-1]*len(pos)
-    L2 = L**2
-    
-    # This is the nr3 algorithm, specialized to a euclidean distance test
-    labels[0] = 0;
-    for j in range(1, len(pos)):
-        labels[j] = j
-        pj = pos[j]
-        for k in range(0,j):
-            labels[k] = labels[labels[k]]
-            pk = pos[k]
-            if (pj[0] - pk[0])**2 + (pj[1] - pk[1])**2 + (pj[2] - pk[2])**2 < L2:
-                labels[labels[labels[k]]] = j
-                pass
-            pass
-        pass
-    for j in range(len(pos)):
-        labels[j] = labels[labels[j]]
-        pass
-    
-    # That's it
-    return labels
-
 def bound_mass(pos, vel, m, length_scale, units=[1,1,1]):
     """Given cloud of particles return largest gravitationally bound mass.
 
@@ -160,6 +106,60 @@ def bound_mass(pos, vel, m, length_scale, units=[1,1,1]):
 
     # That's it.
     return M_bound
+
+def fast_clumps(pos, L):
+    """Partition a cloud of point masses into distinct clumps based on proximity.
+
+    This is the optimized version of nr3.eclazz functions, which partitions any
+    set (tree) into equivalence classes (connected components). See nr3.eclazz for
+    details of the algorithm. This function is a specialized version for the case
+    where the set is a cloud of particles with (x,y,z) coordinates and the
+    connectivity test is a simple euclidean distance threshold.
+
+    Parameters
+    ----------
+    pos : numpy.ndarray or list
+      An n-by-3 array of coordinates. A list of lists seems to work best.
+    L : float, positive
+      The distance threshold for the proximity test.
+
+    Returns
+    -------
+    labels : list of ints
+        A vector of integer labels. labels[k] is the clump that pos[k] belongs to.
+        There are len(np.unique(labels)) such clumps.
+    """
+    
+    # Some minimal assertions
+    assert isinstance(pos, (list, np.ndarray))
+    assert np.isreal(L) and np.isscalar(L) and L >= 0
+    if type(pos) is np.ndarray:
+        assert(pos.ndim == 2 and pos.shape[1] == 3)
+        pass
+
+    # Prepare
+    labels = [-1]*len(pos)
+    L2 = L**2
+    
+    # This is the nr3 algorithm, specialized to a euclidean distance test
+    labels[0] = 0;
+    for j in range(1, len(pos)):
+        labels[j] = j
+        pj = pos[j]
+        for k in range(0,j):
+            labels[k] = labels[labels[k]]
+            pk = pos[k]
+            if (pj[0] - pk[0])**2 + (pj[1] - pk[1])**2 + (pj[2] - pk[2])**2 < L2:
+                labels[labels[labels[k]]] = j
+                pass
+            pass
+        pass
+    for j in range(len(pos)):
+        labels[j] = labels[labels[j]]
+        pass
+    
+    # That's it
+    return labels
 
 if __name__ == "__main__":
     _main()
