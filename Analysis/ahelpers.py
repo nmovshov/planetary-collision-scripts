@@ -42,7 +42,52 @@ def load_fnl(filename):
     have been flattened using shelpers.pflatten_node_list_list. Minimal checking
     is applied but I assume a responsible user. A list of flattened node lists
     will have one or more node lists identified by consecutive, integer, zero-
-    based id. This method will return a tuple of FNLData structs, with convenient
+    based id. This method will return a single FNLData struct with combining all
+    records in the file.
+    """
+
+    # Read raw data
+    assert isinstance(filename, str)
+    try:
+        data = np.loadtxt(filename)
+    except:
+        print "ERROR: Could not read data from file {}".format(filename)
+        return None
+    if (data.ndim != 2) or (data.shape[1] != FNLMeta.nb_columns):
+        print "ERROR: {} does not appear to be a valid flattened node list.".format(
+                filename)
+        return None
+
+    fnl = FNLData()
+
+    fnl.id   = data[:,  FNLMeta.nl_id_col]
+    fnl.eos  = data[:, FNLMeta.eos_id_col]
+    fnl.x    = data[:,      FNLMeta.x_col]
+    fnl.y    = data[:,      FNLMeta.y_col]
+    fnl.z    = data[:,      FNLMeta.z_col]
+    fnl.vx   = data[:,     FNLMeta.vx_col]
+    fnl.vy   = data[:,     FNLMeta.vy_col]
+    fnl.vz   = data[:,     FNLMeta.vz_col]
+    fnl.m    = data[:,      FNLMeta.m_col]
+    fnl.rho  = data[:,    FNLMeta.rho_col]
+    fnl.P    = data[:,      FNLMeta.P_col]
+    fnl.T    = data[:,      FNLMeta.T_col]
+    fnl.U    = data[:,      FNLMeta.U_col]
+    fnl.hmin = data[:,   FNLMeta.hmin_col]
+    fnl.hmax = data[:,   FNLMeta.hmax_col]
+    fnl.nbNodes = len(data)
+    fnl.r = np.hypot(fnl.x, np.hypot(fnl.y, fnl.z))
+
+    return fnl
+
+def load_multi_fnl(filename):
+    """Load node list data from file and parse out to a struct.
+    
+    The file filename is assumed to contain data from one or more node lists that
+    have been flattened using shelpers.pflatten_node_list_list. Minimal checking
+    is applied but I assume a responsible user. A list of flattened node lists
+    will have one or more node lists identified by consecutive, integer, zero-
+    based id. This method will return a tuple of FNLData structs with convenient
     field names. If you know in advance the number of node lists in the file you
     can use tuple unpacking to get individual FNLData structs. In the case of a
     file containing a single node list a single struct is returned instead of a
@@ -120,7 +165,7 @@ def plot_P_vs_r_output(dirname):
         fnl_files += [os.path.join(root,fn) for fn in files if 
                                                 fn.endswith(('.fnl','.fnl.gz'))]
     fnl_files.sort()
-    all_fnls = [load_fnl(f) for f in fnl_files]
+    all_fnls = [load_multi_fnl(f) for f in fnl_files]
 
     fig = plt.figure()
     nb_rows = np.ceil(np.sqrt(len(all_fnls)))

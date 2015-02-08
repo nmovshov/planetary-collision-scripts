@@ -7,7 +7,7 @@
 import sys, os, shutil
 import numpy as np
 import argparse
-import ahelpers as ah
+import ahelpers
 cout = sys.stdout.write
 
 def _main():
@@ -20,16 +20,11 @@ def _main():
                                          choices=['kory', 'jutzi', 'nmov'],
                                          default='jutzi')
     args = parser.parse_args()
-    print "got {}".format(args.filename)
     
-#    data = np.loadtxt('test-0000-0.fnl.gz')
-#    pos = data[:,(2,3,4)]
-#    vel = data[:,(5,6,7)]
-#    m   = data[:,8]
-#
-#    M = bound_mass(pos, vel, m, 1.5e5)
-#    print M
-    
+    # Load node list data
+    fnl = ahelpers.load_fnl(args.filename)
+    print fnl.nbNodes
+
     return
 
 def fast_clumps(pos, L):
