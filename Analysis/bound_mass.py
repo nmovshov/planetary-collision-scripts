@@ -32,7 +32,7 @@ def _main():
     # Report and exit
     print "Found {} bound particles totaling {} kg.".format(
         sum(ind_bound), M_bound)
-    print "M_bound / M_tot = {}.".format(M_bound/sum(m))
+    print "M_bound/M_tot = {}.".format(M_bound/sum(m))
     return
 
 def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
@@ -44,8 +44,39 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
     and all algorithms are only approximations. The only sure way of finding the
     bound particles is to integrate the system in time for many gravitational time
     scales.
-    This function is a dispatcher - the work is carried out in subfunctions.
 
+    The algorithm employed is chosen by the label supplied in the method argument.
+    The choices implemented currently are:
+      'kory' - In the RF of the particle with lowest potential return the
+               particles return the particles wil negative total energy.
+      'jutzi' - In the RF of the particle with lowest potential remove particles
+                with positive total energy. Repeat until stable.
+      'naor1' - Add particles bound to the particle with lowest potential. In the
+                CM frame of this set, add particles bound to the set. Repeat until
+                stable.
+      'naor2' - Coming soon.
+
+    This function is a dispatcher - the work is carried out in sub functions.
+
+    Parameters
+    ----------
+    pos : n-by-3 numeric array
+        Particle positions.
+    vel : n-by-3 numeric array
+        Particle velocities.
+    m : n-by-1 numeric array
+        Particle masses.
+    units : numeric positive 3-vector, optional
+        Length, mass, and time units, in mks, of the particle coordinates.
+    method : string
+        Algorithm to use.
+
+    Returns
+    -------
+    M_bound : real positive scalar
+        Mass of the largest bound clump
+    ind_bound : logical nparray
+        Indices of bound particles
     """
 
     # Some minimal assertions (NOT bullet-proof filter!)
@@ -58,11 +89,31 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
     assert m.ndim == 1 and np.all(np.isreal(m)) and np.all(m > 0)
     assert units.ndim == 1 and len(units) == 3 and np.all(units > 0)
     assert len(pos) == len(vel) == len(m)
+    assert method in ['kory', 'jutzi', 'naor1', 'naor2']
 
-    print method
-    return [sum(m), units]
+    # Deal with units
+    bigG = 6.67384e-11*units[0]**(-3)*units[1]*units[2]**2
 
-def bound_mass_v0(pos, vel, m, length_scale, units=[1,1,1]):
+    # Dispatch to sub functions by method
+    if   method == 'kory':
+        (M_bound, ind_bound) = _bm_kory(pos, vel, m, bigG)
+        pass
+    elif method == 'jutzi':
+        (M_bound, ind_bound) = _bm_jutzi(pos, vel, m, bigG)
+        pass
+    elif method == 'naor1':
+        (M_bound, ind_bound) = _bm_naor1(pos, vel, m, bigG)
+        pass
+    elif method == 'naor2':
+        print method
+        pass
+    else:
+        sys.exit("Unknown method") # this can't really happen
+        pass
+
+    return (M_bound, ind_bound)
+
+def _bound_mass_naor2(pos, vel, m, length_scale, units=[1,1,1]):
     """Given cloud of particles return largest gravitationally bound mass.
 
     This function looks at a cloud of point masses with known positions and 
@@ -92,6 +143,8 @@ def bound_mass_v0(pos, vel, m, length_scale, units=[1,1,1]):
     -------
     M_bound : real positive scalar
         Mass of the largest bound clump
+    ind_bound : logical nparray
+        Indices of bound particles
     """
     
     # Some minimal assertions (NOT bullet-proof filter!)
@@ -127,20 +180,22 @@ def bound_mass_v0(pos, vel, m, length_scale, units=[1,1,1]):
     # Ok. Now pretend each node outside the largest clump feels a point-mass
     # potential from the clump, and test its energy in the clump frame.
     M_bound = M.sum()
+    ind_bound = cmask
     G = 6.67384e-11*units[0]**(-3)*units[1]*units[2]**2
     GM = G*M_bound
     for k in range(len(pos)):
-        if labels[k] == c_major_label:
+        if ind_bound[k]:
             continue
         U = -GM/np.sqrt(np.dot(pos[k], pos[k]))
         K = np.dot(vel[k], vel[k])
         if U + K < 0:
             M_bound += m[k]
+            ind_bound[k] = True
             pass
         pass
 
     # That's it.
-    return M_bound
+    return (M_bound, ind_bound)
 
 def fast_clumps(pos, L):
     """Partition a cloud of point masses into distinct clumps based on proximity.
