@@ -40,12 +40,12 @@ def load_fnl(filename):
     
     The file filename is assumed to contain data from one or more node lists that
     have been flattened using shelpers.pflatten_node_list_list. Minimal checking
-    is applied, but I assume a responsible user. A list of flattened node lists
+    is applied but I assume a responsible user. A list of flattened node lists
     will have one or more node lists identified by consecutive, integer, zero-
     based id. This method will return a tuple of FNLData structs, with convenient
-    field names. If you know in advance the number of node lists in the file, you
+    field names. If you know in advance the number of node lists in the file you
     can use tuple unpacking to get individual FNLData structs. In the case of a
-    file containing a single node list, a single struct is returned instead of a
+    file containing a single node list a single struct is returned instead of a
     tuple.
     """
 

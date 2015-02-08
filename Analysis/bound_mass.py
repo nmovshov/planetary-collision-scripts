@@ -6,17 +6,29 @@
 #---------------------------------------------------------------------------------
 import sys, os, shutil
 import numpy as np
+import argparse
+import ahelpers as ah
+cout = sys.stdout.write
 
-def _test():
-    cout = sys.stdout.write
+def _main():
+    """Entry point when used as command line utility (recommended)."""
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', help="name of file containing node list data")
+    parser.add_argument('-m','--method', help="choice of algorithm",
+                                         choices=['kory', 'jutzi', 'nmov'],
+                                         default='jutzi')
+    args = parser.parse_args()
+    print "got {}".format(args.filename)
     
-    data = np.loadtxt('test-0000-0.fnl.gz')
-    pos = data[:,(2,3,4)]
-    vel = data[:,(5,6,7)]
-    m   = data[:,8]
-
-    M = bound_mass(pos, vel, m, 1.5e5)
-    print M
+#    data = np.loadtxt('test-0000-0.fnl.gz')
+#    pos = data[:,(2,3,4)]
+#    vel = data[:,(5,6,7)]
+#    m   = data[:,8]
+#
+#    M = bound_mass(pos, vel, m, 1.5e5)
+#    print M
     
     return
 
@@ -155,6 +167,6 @@ def bound_mass(pos, vel, m, length_scale, units=[1,1,1]):
     return M_bound
 
 if __name__ == "__main__":
-    _test()
+    _main()
     pass
 
