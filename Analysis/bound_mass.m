@@ -1,7 +1,8 @@
-function [M_bound, ind_bound] = bound_mass(pos, vel, m, method, L)
+function [M_bound, ind_bound] = bound_mass(pos, vel, m, method, units)
 % Given cloud of particles return largest gravitationally bound mass.
 
-bigG = 6.67384e-11;
+if ~exist('units','var'), units = [1,1,1]; end
+bigG = 6.67384e-11*units(1)^(-3)*units(2)*units(3)^2;
 
 switch method
     case 'kory'

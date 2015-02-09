@@ -272,7 +272,7 @@ def _potential(x, y, z, m, mask=None):
     U = np.zeros(x.shape)
     for j in range(len(x)):
         if mask[j]:
-            for k in range(j-1):
+            for k in range(j):
                 dx = x[j] - x[k]
                 dy = y[j] - y[k]
                 dz = z[j] - z[k]
