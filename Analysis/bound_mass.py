@@ -113,7 +113,13 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
 
     return (M_bound, ind_bound)
 
-def _bound_mass_naor2(pos, vel, m, length_scale, units=[1,1,1]):
+def _bm_kory(pos, vel, m, bigG):
+    """In RF of lowest potential node return nodes with negative energy."""
+    U = bigG*_potential(pos[:,0],pos[:,1],pos[:,2],m);
+    return (1, [True, False, False])
+    pass
+
+def _bm_naor2(pos, vel, m, length_scale, units=[1,1,1]):
     """Given cloud of particles return largest gravitationally bound mass.
 
     This function looks at a cloud of point masses with known positions and 
@@ -259,7 +265,25 @@ def _PCL():
                                          default='jutzi')
     args = parser.parse_args()
     return args
-    pass
+
+def _potential(x, y, z, m, mask=None):
+    if mask is None:
+        mask = np.array(len(x)*[True])
+    U = np.zeros(x.shape)
+    for j in range(len(x)):
+        if mask[j]:
+            for k in range(j-1):
+                dx = x[j] - x[k]
+                dy = y[j] - y[k]
+                dz = z[j] - z[k]
+                dr = np.sqrt(dx*dx + dy*dy + dz*dz)
+                U[j] = U[j] - m[k]/dr
+                U[k] = U[k] - m[j]/dr
+                pass
+            pass
+        pass
+
+    return U
 
 if __name__ == "__main__":
     _main()
