@@ -51,12 +51,12 @@ def load_fnl(filename):
     try:
         data = np.loadtxt(filename)
     except:
-        print "ERROR: Could not read data from file {}".format(filename)
-        return None
+        raise StandardError(
+            "ERROR: Could not read data from file {}".format(filename))
     if (data.ndim != 2) or (data.shape[1] != FNLMeta.nb_columns):
-        print "ERROR: {} does not appear to be a valid flattened node list.".format(
-                filename)
-        return None
+        raise StandardError(
+            "ERROR: {} does not appear to be a valid flattened node list.".format(
+            filename))
 
     fnl = FNLData()
 
@@ -99,12 +99,12 @@ def load_multi_fnl(filename):
     try:
         data = np.loadtxt(filename)
     except:
-        print "ERROR: Could not read data from file {}".format(filename)
-        return None
+        raise StandardError("ERROR: Could not read data from file {}".format(
+            filename))
     if (data.ndim != 2) or (data.shape[1] != FNLMeta.nb_columns):
-        print "ERROR: {} does not appear to be a valid flattened node list.".format(
-                filename)
-        return None
+        raise StandardError(
+            "ERROR: {} does not appear to be a valid flattened node list.".format(
+            filename))
 
     nbLists = int(max(data[:,0])) + 1
     fnl = tuple([FNLData() for k in range(nbLists)])
