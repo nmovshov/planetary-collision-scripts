@@ -18,13 +18,26 @@ def _main():
     
     # Load node list data
     cout("Reading file...")
-    fnl = ahelpers.load_fnl(args.filename)
-    cout("Done.\n")
-    pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
-    vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
-    m   = fnl.m
-    print "Found {} particles (in {} node lists) totaling {} kg.".format(
-        fnl.nbNodes, np.unique(fnl.id).size, sum(m))
+    try:
+        fnl = ahelpers.load_fnl(args.filename)
+        cout("Done.\n")
+        pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
+        vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
+        m   = fnl.m
+        print "Found {} particles (in {} node lists) totaling {} kg.".format(
+            fnl.nbNodes, np.unique(fnl.id).size, sum(m))
+    except StandardError:
+        try:
+            raw = np.loadtxt(args.filename)
+            cout("Done.\n")
+            pos = raw[:,0:3]
+            vel = raw[:,3:6]
+            m   = raw[:,6]
+            print "Found {} particles totaling {} kg.".format(
+                len(pos),sum(m))
+        except:
+            raise StandardError("Could not read data from {}".format(
+                args.filename))
 
     # Dispatch to the work method
     [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method)
@@ -115,9 +128,38 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
 
 def _bm_kory(pos, vel, m, bigG):
     """In RF of lowest potential node return nodes with negative energy."""
-    U = bigG*_potential(pos[:,0],pos[:,1],pos[:,2],m);
-    return (1, [True, False, False])
-    pass
+    U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m);
+    ind = np.argmin(U)
+    VCM = vel[ind,:]
+    ind_bound = np.array(len(m)*[False])
+    for j in range(len(m)):
+        V = vel[j,:] - VCM
+        K = 0.5*(V[0]*V[0] + V[1]*V[1] + V[2]*V[2])
+        if K + U[j] < 0:
+            ind_bound[j] = True
+            pass
+        pass
+    return (sum(m[ind_bound]), ind_bound)
+
+def _bm_jutzi(pos, vel, m, bigG):
+    """In RF of lowest potential remove nodes with positive energy and repeat."""
+    bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
+    ind = np.argmin(bU)
+    VCM = vel[ind,:]
+    ind_bound = np.array(len(m)*[True])
+    nbb = -1
+    while nbb != sum(ind_bound):
+        nbb = sum(ind_bound)
+        bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m, ind_bound)
+        for j in range(len(m)):
+            V = vel[j,:] - VCM
+            K = 0.5*(V[0]*V[0] + V[1]*V[1] + V[2]*V[2])
+            if K + bU[j] > 0.0:
+                ind_bound[j] = False
+                pass
+            pass
+        pass
+    return (sum(m[ind_bound]), ind_bound)
 
 def _bm_naor2(pos, vel, m, length_scale, units=[1,1,1]):
     """Given cloud of particles return largest gravitationally bound mass.
@@ -273,16 +315,17 @@ def _potential(x, y, z, m, mask=None):
     for j in range(len(x)):
         if mask[j]:
             for k in range(j):
-                dx = x[j] - x[k]
-                dy = y[j] - y[k]
-                dz = z[j] - z[k]
-                dr = np.sqrt(dx*dx + dy*dy + dz*dz)
-                U[j] = U[j] - m[k]/dr
-                U[k] = U[k] - m[j]/dr
+                if mask[k]:
+                    dx = x[j] - x[k]
+                    dy = y[j] - y[k]
+                    dz = z[j] - z[k]
+                    dr = np.sqrt(dx*dx + dy*dy + dz*dz)
+                    U[j] = U[j] - m[k]/dr
+                    U[k] = U[k] - m[j]/dr
+                    pass
                 pass
             pass
         pass
-
     return U
 
 if __name__ == "__main__":
