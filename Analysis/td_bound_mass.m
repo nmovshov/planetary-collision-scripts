@@ -4,11 +4,11 @@ close all
 clc
 
 %% Data to work on
-fnl = readtable('FNL_4.txt');
-pos = fnl{:,1:3};
-vel = fnl{:,4:6};
-m   = fnl{:,end};
-units = [1,1,1];
+fnl = load('FNL_4.fnl');
+pos = fnl(:,1:3);
+vel = fnl(:,4:6);
+m   = fnl(:,end);
+units = [1,1,3e5];
 
 %% Compare algorithms in bound_mass.m
 [M1, ind1] = bound_mass(pos,vel,m,'kory',units);
