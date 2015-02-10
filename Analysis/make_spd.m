@@ -91,3 +91,5 @@ T2 = table(outX,outY,outZ,outVX,outVY,outVZ,outM,...
 FNL_4 = [T1;T2];
 save synth_FNLs FNL_4 -append
 writetable(FNL_4,'FNL_4.txt')
+FNL_4a = table2array(FNL_4);
+save('FNL_4.fnl','FNL_4a','-ascii')
