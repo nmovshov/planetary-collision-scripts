@@ -8,6 +8,7 @@ import sys, os, shutil
 import numpy as np
 import argparse
 import ahelpers
+from math import sqrt
 cout = sys.stdout.write
 
 def _main():
@@ -40,7 +41,8 @@ def _main():
                 args.filename))
 
     # Dispatch to the work method
-    [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method)
+    units = [1,1,1]
+    [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method, units)
 
     # Report and exit
     print "Found {} bound particles totaling {} kg.".format(
@@ -118,7 +120,8 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
         (M_bound, ind_bound) = _bm_naor1(pos, vel, m, bigG)
         pass
     elif method == 'naor2':
-        print method
+        print method, "coming soon"
+        sys.exit(0)
         pass
     else:
         sys.exit("Unknown method") # this can't really happen
@@ -159,6 +162,34 @@ def _bm_jutzi(pos, vel, m, bigG):
                 pass
             pass
         pass
+    return (sum(m[ind_bound]), ind_bound)
+
+def _bm_naor1(pos, vel, m, bigG):
+    """Add nodes bound to CM of bound nodes until stable."""
+    ind_bound = np.array(len(m)*[False])
+    U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
+    ind = np.argmin(U)
+    ind_bound[ind] = True
+    nbb = -1
+    m3 = np.tile(m,(3,1)).T
+    while nbb != sum(ind_bound):
+        nbb = sum(ind_bound)
+        M = sum(m[ind_bound])
+        cmpos = np.sum(m3[ind_bound,:]*pos[ind_bound,:], 0)/M
+        cmvel = np.sum(m3[ind_bound,:]*vel[ind_bound,:], 0)/M
+        for j in range(len(m)):
+            dR = pos[j,:] - cmpos
+            dr = np.sqrt(np.dot(dR, dR)) + np.spacing(1)
+            U = -bigG*M/dr
+            V = vel[j,:] - cmvel
+            K = 0.5*(V[0]*V[0] + V[1]*V[1] + V[2]*V[2])
+            if K + U < 0.0:
+                ind_bound[j] = True
+            else:
+                ind_bound[j] = False
+            pass
+        pass
+    pass
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_naor2(pos, vel, m, length_scale, units=[1,1,1]):
@@ -319,7 +350,8 @@ def _potential(x, y, z, m, mask=None):
                     dx = x[j] - x[k]
                     dy = y[j] - y[k]
                     dz = z[j] - z[k]
-                    dr = np.sqrt(dx*dx + dy*dy + dz*dz)
+                    dr = (dx*dx + dy*dy + dz*dz)**0.5
+                    #dr = np.sqrt(dx*dx + dy*dy + dz*dz)
                     U[j] = U[j] - m[k]/dr
                     U[k] = U[k] - m[j]/dr
                     pass
