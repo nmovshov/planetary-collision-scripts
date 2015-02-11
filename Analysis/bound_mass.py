@@ -25,8 +25,12 @@ def _main():
         pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
         vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
         m   = fnl.m
-        print "Found {} particles (in {} node lists) totaling {} kg.".format(
+        print "Found {} nodes in {} node lists totaling {} kg.".format(
             fnl.nbNodes, np.unique(fnl.id).size, sum(m))
+        for n in np.unique(fnl.id):
+            print "    List {:g}: {:.6g} kg in {} nodes ({:.4g} kg/node).".format(
+                n, sum(m[fnl.id == n]), sum(fnl.id == n),
+                sum(m[fnl.id == n])/sum(fnl.id == n))
     except StandardError:
         try:
             raw = np.loadtxt(args.filename)
@@ -41,11 +45,13 @@ def _main():
                 args.filename))
 
     # Dispatch to the work method
+    cout("Detecting bound mass using algorithm {}...".format(args.method))
     units = [1,1,1]
     [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method, units)
+    cout("Done.\n")
 
     # Report and exit
-    print "Found {} bound particles totaling {} kg.".format(
+    print "Found {1} kg in {0} particles.".format(
         sum(ind_bound), M_bound)
     print "M_bound/M_tot = {}.".format(M_bound/sum(m))
     return
