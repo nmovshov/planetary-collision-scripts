@@ -333,9 +333,13 @@ def fast_clumps(pos, L):
 def _PCL():
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help="name of file containing node list data")
-    parser.add_argument('-m','--method', help="choice of algorithm",
-                                         choices=['kory', 'jutzi', 'naor1', 'naor2'],
-                                         default='jutzi')
+    parser.add_argument('-m','--method',
+        help="choice of algorithm",
+        choices=['kory', 'jutzi', 'naor1', 'naor2'],
+        default='jutzi')
+    parser.add_argument('-q','--quiet',
+        help="suppress progress output to stdout",
+        action='store_true')
     args = parser.parse_args()
     return args
 
