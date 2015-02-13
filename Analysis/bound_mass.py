@@ -8,6 +8,7 @@ import sys, os, shutil
 import numpy as np
 import argparse
 import ahelpers
+from time import time
 from numba import jit
 cout = sys.stdout.write
 
@@ -45,15 +46,18 @@ def _main():
                 args.filename))
 
     # Dispatch to the work method
-    cout("Detecting bound mass using algorithm {}...".format(args.method))
-    units = [1,1,1]
-    [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method, units)
-    cout("Done.\n")
+    print
+    t = time()
+    for k in range(len(args.method)):
+        print "Detecting bound mass using algorithm {}...".format(args.method[k])
+        units = [1,1,1]
+        [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method[k], units)
+        print "Found {:g} kg in {:g} particles; M_bound/M_tot = {:.4g}.".format(
+            M_bound, sum(ind_bound), M_bound/sum(m))
+        print
+    print "All done. Elapsed time = {:g} sec.".format(time() - t)
 
-    # Report and exit
-    print "Found {1} kg in {0} particles.".format(
-        sum(ind_bound), M_bound)
-    print "M_bound/M_tot = {}.".format(M_bound/sum(m))
+    # Exit
     return
 
 def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
@@ -127,7 +131,7 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
         pass
     elif method == 'naor2':
         print method, "coming soon"
-        sys.exit(0)
+        (M_bound, ind_bound) = (np.NaN, [np.NaN])
         pass
     else:
         sys.exit("Unknown method") # this can't really happen
@@ -337,16 +341,21 @@ def fast_clumps(pos, L):
     return labels
 
 def _PCL():
+    known_methods = ['kory','jutzi','naor1','naor2']
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help="name of file containing node list data")
     parser.add_argument('-m','--method',
         help="choice of algorithm",
-        choices=['kory', 'jutzi', 'naor1', 'naor2'],
-        default='jutzi')
+        choices=known_methods + ['all'],
+        default='all')
     parser.add_argument('-q','--quiet',
         help="suppress progress output to stdout",
         action='store_true')
     args = parser.parse_args()
+    if args.method == 'all':
+        args.method = known_methods
+    else:
+        args.method = [args.method]
     return args
 
 def _potential(x, y, z, m, mask=None):
