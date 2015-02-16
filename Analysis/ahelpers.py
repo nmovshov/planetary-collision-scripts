@@ -7,8 +7,6 @@
 import sys, os, shutil
 import numpy as np
 import scipy as sp
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
 class FNLMeta:
     """A struct with info about the layout of .fnl files."""
@@ -138,6 +136,9 @@ def load_multi_fnl(filename):
 def plot_P_vs_r(fnl):
     """Plot pressure of nodes against distance from origin."""
 
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
     assert isinstance(fnl,(FNLData,tuple))
     if isinstance(fnl,FNLData):
         fnl = (fnl,)
@@ -156,6 +157,9 @@ def plot_P_vs_r(fnl):
 
 def plot_P_vs_r_output(dirname):
     """Plot P(r) for all fnl files in a directory."""
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
 
     assert isinstance(dirname,str)
     assert os.path.isdir(dirname)
