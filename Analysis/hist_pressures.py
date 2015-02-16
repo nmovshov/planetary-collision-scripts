@@ -7,8 +7,8 @@ import numpy as np
 import scipy as sp
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-ussbase = '' # Edit this with full path to <uss> if you see an ImportError.
-sys.path += ['..',ussbase,os.getenv('USSBASE','')]
+pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
+sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers
 
 if len(sys.argv)==1:

@@ -23,8 +23,8 @@ import SolidSpheral3d as sph # The top-level spheral module importer
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d # basic nl-gens
 from VoronoiDistributeNodes import distributeNodes3d # the load distributer
 
-ussbase = '' # Edit this with full path to <uss> if you see an ImportError.
-sys.path += ['..',ussbase,os.getenv('USSBASE','')]
+pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
+sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers # My module of some helper functions
 
 #-------------------------------------------------------------------------------
