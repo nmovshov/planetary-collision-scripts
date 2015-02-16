@@ -27,8 +27,8 @@ from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d
-ussbase = '' # Edit this with full path to <uss> if you see an ImportError.
-sys.path += ['..',ussbase,os.getenv('USSBASE','')]
+pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
+sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers # My module of some helper functions
 import PlanetNodeGenerators # New experimental node generators
 
