@@ -210,8 +210,8 @@ shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 # Create the node list.
 planet = makeFluidNodeList('planet', eosPlanet, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rPlanet*Vector.one, # (probably unnecessary)
-                           xmax =  10.0*rPlanet*Vector.one, # (probably unnecessary)
+                           xmin = -universeEdge*Vector.one, # (probably unnecessary)
+                           xmax =  universeEdge*Vector.one, # (probably unnecessary)
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,

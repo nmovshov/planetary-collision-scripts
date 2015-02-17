@@ -232,8 +232,8 @@ shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 # Create the node lists.
 target   = makeFluidNodeList('target', eosTarget, 
                              nPerh = nPerh, 
-                             xmin = -10.0*rTarget*Vector.one, # (probably unnecessary)
-                             xmax =  10.0*rTarget*Vector.one, # (probably unnecessary)
+                             xmin = -universeEdge*Vector.one, # (probably unnecessary)
+                             xmax =  universeEdge*Vector.one, # (probably unnecessary)
                              hmin = hmin,
                              hmax = hmax,
                              rhoMin = rhomin,
@@ -245,8 +245,8 @@ target.eos_id = eosTarget.uid
 
 impactor = makeFluidNodeList('impactor', eosImpactor, 
                              nPerh = nPerh, 
-                             xmin = -10.0*rImpactor*Vector.one, # (probably unnecessary)
-                             xmax =  10.0*rImpactor*Vector.one, # (probably unnecessary)
+                             xmin = -universeEdge*Vector.one, # (probably unnecessary)
+                             xmax =  universeEdge*Vector.one, # (probably unnecessary)
                              hmin = hmin,
                              hmax = hmax,
                              rhoMin = rhomin,
