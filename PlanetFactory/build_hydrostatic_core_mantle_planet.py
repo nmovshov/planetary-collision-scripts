@@ -73,6 +73,7 @@ rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
+universeEdge = 2*rPlanet
 
 # Gravity parameters
 softLength = 1.0             # Gravity softening length (fraction of nominal H)
@@ -237,6 +238,7 @@ core   = makeFluidNodeList('core', eosCore,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
                            hminratio = hminratio,
+                           topGridCellSize = universeEdge
                            )
 core.eos_id = eosCore.uid
 
@@ -249,6 +251,7 @@ mantle = makeFluidNodeList('mantle', eosMantle,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
                            hminratio = hminratio,
+                           topGridCellSize = universeEdge
                            )
 mantle.eos_id = eosMantle.uid
 

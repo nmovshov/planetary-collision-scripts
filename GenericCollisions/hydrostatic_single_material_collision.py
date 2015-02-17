@@ -62,7 +62,7 @@ crossTime = 2*rTarget/vImpact
 # Times, simulation control, and output
 nxTarget = 20                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 10*crossTime      # Time to advance to (sec)
+goalTime = 2*crossTime       # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
 vizTime = 0.1*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
@@ -78,6 +78,7 @@ generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 hmin *= nPerh*2*rTarget/nxTarget
 hmax *= nPerh*2*rTarget/nxTarget
 rhomin = mTarget/nxTarget**3/hmax**3
+universeEdge = 20*rTarget
 
 # Gravity parameters
 softLength = 1.0             # Gravity softening length (fraction of nominal H)
@@ -253,6 +254,7 @@ target   = makeFluidNodeList('target', eosTarget,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
                              hminratio = hminratio,
+                             topGridCellSize = universeEdge,
                              )
 target.eos_id = eosTarget.uid
 
@@ -265,6 +267,7 @@ impactor = makeFluidNodeList('impactor', eosImpactor,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
                              hminratio = hminratio,
+                             topGridCellSize = universeEdge,
                              )
 impactor.eos_id = eosImpactor.uid
 
@@ -513,7 +516,7 @@ def cullnodes(stepsSoFar,timeNow,dt):
             if ( abs(v[k].magnitude()) > 10*vImpact   or
                  u[k] > 10*eosTarget.epsVapor         or
                  0 < C.numNeighborsForNode(nl,k) < 10 or
-                 sqrt(r[k].x**2 + r[k].y**2 + r[k].z**2) > 20*rTarget
+                 sqrt(r[k].x**2 + r[k].y**2 + r[k].z**2) > universeEdge
                ):
                 bads.append(k)
                 pass

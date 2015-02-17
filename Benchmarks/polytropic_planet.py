@@ -190,6 +190,7 @@ planet = makeFluidNodeList('planet', eosPlanet,
                            rhoMin = rhomin,
                            rhoMax = rhomax,
                            hminratio = hminratio,
+                           topGridCellSize = rPlanet,
                            )
 nodeSet = [planet]
 

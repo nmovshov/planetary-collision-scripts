@@ -70,11 +70,14 @@ outCycle = None              # Cycles between running output routine
 
 # Node list parameters
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
-hmin = 1e-6*rTarget          # Lower bound on smoothing length
-hmax = 2e-1*rTarget          # Upper bound on smoothing length
-rhomin = 1e-3*rhoTarget      # Lower bound on node density 
-rhomax = 1e+6*rhoTarget      # Upper bound on node density 
+hmin = 0.001                 # Minimum smoothing length (fraction of nominal)
+hmax = 2.0                   # Maximum smoothing length (fraction of nominal)
+rhomax = 1e+1*rhoTarget      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
+hmin *= nPerh*2*rTarget/nxTarget
+hmax *= nPerh*2*rTarget/nxTarget
+rhomin = mTarget/nxTarget**3/hmax**3
+universeEdge = 20*rTarget
 
 # More simulation parameters
 dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
@@ -236,6 +239,7 @@ target   = makeFluidNodeList('target', eosTarget,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
                              hminratio = hminratio,
+                             topGridCellSize = universeEdge,
                              )
 target.eos_id = eosTarget.uid
 
@@ -248,6 +252,7 @@ impactor = makeFluidNodeList('impactor', eosImpactor,
                              rhoMin = rhomin,
                              rhoMax = rhomax,
                              hminratio = hminratio,
+                             topGridCellSize = universeEdge,
                              )
 impactor.eos_id = eosImpactor.uid
 
