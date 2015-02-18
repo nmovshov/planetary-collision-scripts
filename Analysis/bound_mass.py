@@ -48,12 +48,14 @@ def _main():
     # Dispatch to the work method
     print
     t = time()
+    units = [1,1,1]
     for k in range(len(args.method)):
         print "Detecting bound mass using algorithm {}...".format(args.method[k])
-        units = [1,1,1]
+        tic = time()
         [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method[k], units)
         print "Found {:g} kg in {:g} particles; M_bound/M_tot = {:.4g}.".format(
             M_bound, sum(ind_bound), M_bound/sum(m))
+        print "Elapsed time = {:g} sec.".format(time() - tic)
         print
     print "All done. Elapsed time = {:g} sec.".format(time() - t)
 
@@ -130,8 +132,7 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
         (M_bound, ind_bound) = _bm_naor1(pos, vel, m, bigG)
         pass
     elif method == 'naor2':
-        print method, "coming soon"
-        (M_bound, ind_bound) = (np.NaN, [np.NaN])
+        (M_bound, ind_bound) = _bm_naor2(pos, vel, m, bigG)
         pass
     else:
         sys.exit("Unknown method") # this can't really happen
@@ -175,7 +176,7 @@ def _bm_jutzi(pos, vel, m, bigG):
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_naor1(pos, vel, m, bigG):
-    """Add nodes bound to CM of bound nodes until stable."""
+    """Add nodes bound to CM of bound nodes until stable. Seed with lowest U."""
     ind_bound = np.array(len(m)*[False])
     U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
     ind = np.argmin(U)
@@ -202,52 +203,11 @@ def _bm_naor1(pos, vel, m, bigG):
     pass
     return (sum(m[ind_bound]), ind_bound)
 
-def _bm_naor2(pos, vel, m, length_scale, units=[1,1,1]):
-    """Given cloud of particles return largest gravitationally bound mass.
+def _bm_naor2(pos, vel, m, bigG):
+    """Add nodes bound to CM of largest spatially contiguous clump."""
+    
+    length_scale = 1e0
 
-    This function looks at a cloud of point masses with known positions and 
-    velocities and attempts to find the largest subset (clump) that is 
-    gravitationally bound. That is, the largest (by mass) clump where the kinetic
-    energy of each particle, relative to the center of mass of the clump, is
-    smaller than the gravitational energy binding it to the other particles in
-    the clump. This is NOT a rigorous test. I can easily think of many cases where
-    it would fail. But I think it should work for the case of a target losing some
-    mass in a collision, if the collision was simulated in the target frame.
-    
-    Parameters
-    ----------
-    pos : n-by-3 numeric array
-        Particle positions.
-    vel : n-by-3 numeric array
-        Particle velocities.
-    m : n-by-1 numeric array
-        Particle masses.
-    length_scale : numeric positive scalar
-        Physical length scale of the system. Used to define "closeness" in
-        the clustering algorithm.
-    units : numeric positive 3-vector, optional
-        Length, mass, and time units, in mks, of the particle coordinates.
-
-    Returns
-    -------
-    M_bound : real positive scalar
-        Mass of the largest bound clump
-    ind_bound : logical nparray
-        Indices of bound particles
-    """
-    
-    # Some minimal assertions (NOT bullet-proof filter!)
-    pos = np.array(pos)
-    vel = np.array(vel)
-    m   = np.array(m)
-    units = np.array(units)
-    assert pos.ndim == 2 and pos.shape[1] == 3 and np.all(np.isreal(pos))
-    assert vel.ndim == 2 and vel.shape[1] == 3 and np.all(np.isreal(vel))
-    assert m.ndim == 1 and np.all(np.isreal(m)) and np.all(m > 0)
-    assert np.isscalar(length_scale) and np.isreal(length_scale) and length_scale > 0
-    assert units.ndim == 1 and len(units) == 3 and np.all(units > 0)
-    assert len(pos) == len(vel) == len(m)
-    
     # First, find the largest clump based on euclidean proximity. Note that this
     # is the time consuming part of the process, using an n^2 algorithm for
     # neighbor finding.
@@ -270,8 +230,7 @@ def _bm_naor2(pos, vel, m, length_scale, units=[1,1,1]):
     # potential from the clump, and test its energy in the clump frame.
     M_bound = M.sum()
     ind_bound = cmask
-    G = 6.67384e-11*units[0]**(-3)*units[1]*units[2]**2
-    GM = G*M_bound
+    GM = bigG*M_bound
     for k in range(len(pos)):
         if ind_bound[k]:
             continue
