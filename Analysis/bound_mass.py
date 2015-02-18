@@ -351,6 +351,10 @@ def _PCL():
     parser.add_argument('-q','--quiet',
         help="suppress progress output to stdout",
         action='store_true')
+    parser.add_argument('-I','--max-iter',
+        help="max number of iterations in iterative methods",
+        type=int,
+        default=10)
     args = parser.parse_args()
     if args.method == 'all':
         args.method = known_methods
