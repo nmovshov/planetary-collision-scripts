@@ -26,7 +26,7 @@ def _main():
         pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
         vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
         m   = fnl.m
-        print "Found {} nodes in {} node lists totaling {} kg.".format(
+        print "Found {2} kg in {1} node lists ({0} nodes total').".format(
             fnl.nbNodes, np.unique(fnl.id).size, sum(m))
         for n in np.unique(fnl.id):
             print "    List {:g}: {:.6g} kg in {} nodes ({:.4g} kg/node).".format(
@@ -52,7 +52,10 @@ def _main():
     for k in range(len(args.method)):
         print "Detecting bound mass using algorithm {}...".format(args.method[k])
         tic = time()
-        [M_bound, ind_bound] = bound_mass(pos, vel, m, args.method[k], units)
+        [M_bound, ind_bound] = bound_mass(pos, vel, m,
+                                          method=args.method[k],
+                                          length_scale=args.length_scale,
+                                          units=units)
         print "Found {:g} kg in {:g} particles; M_bound/M_tot = {:.4g}.".format(
             M_bound, sum(ind_bound), M_bound/sum(m))
         print "Elapsed time = {:g} sec.".format(time() - tic)
@@ -62,7 +65,7 @@ def _main():
     # Exit
     return
 
-def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
+def bound_mass(pos, vel, m, method='jutzi', length_scale=None, units=[1,1,1]):
     """Given cloud of particles return largest gravitationally bound mass.
 
     This function looks at a cloud of point masses with known positions and
@@ -97,6 +100,8 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
         Length, mass, and time units, in mks, of the particle coordinates.
     method : string
         Algorithm to use.
+    length_scale : numeric, positive
+        Override default length scale used in algorithm naor2
 
     Returns
     -------
@@ -117,9 +122,11 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
     assert units.ndim == 1 and len(units) == 3 and np.all(units > 0)
     assert len(pos) == len(vel) == len(m)
     assert method in ['kory', 'jutzi', 'naor1', 'naor2']
+    assert np.size(length_scale) == 1 and np.isreal(length_scale)
 
     # Deal with units
     bigG = 6.67384e-11*units[0]**(-3)*units[1]*units[2]**2
+    length_scale = length_scale*units[0]
 
     # Dispatch to sub functions by method
     if   method == 'kory':
@@ -132,7 +139,7 @@ def bound_mass(pos, vel, m, method='jutzi', units=[1,1,1]):
         (M_bound, ind_bound) = _bm_naor1(pos, vel, m, bigG)
         pass
     elif method == 'naor2':
-        (M_bound, ind_bound) = _bm_naor2(pos, vel, m, bigG)
+        (M_bound, ind_bound) = _bm_naor2(pos, vel, m, bigG, length_scale)
         pass
     else:
         sys.exit("Unknown method") # this can't really happen
@@ -203,10 +210,12 @@ def _bm_naor1(pos, vel, m, bigG):
     pass
     return (sum(m[ind_bound]), ind_bound)
 
-def _bm_naor2(pos, vel, m, bigG):
+def _bm_naor2(pos, vel, m, bigG, length_scale):
     """Add nodes bound to CM of largest spatially contiguous clump."""
     
-    length_scale = 1e0
+    # Deal with length scale
+    if length_scale == 0.0:
+        length_scale = max((pos.max(0) - pos.min(0))/m.size)
 
     # First, find the largest clump based on euclidean proximity. Note that this
     # is the time consuming part of the process, using an n^2 algorithm for
@@ -245,6 +254,7 @@ def _bm_naor2(pos, vel, m, bigG):
     # That's it.
     return (M_bound, ind_bound)
 
+@jit
 def fast_clumps(pos, L):
     """Partition a cloud of point masses into distinct clumps based on proximity.
 
@@ -268,12 +278,12 @@ def fast_clumps(pos, L):
         There are len(np.unique(labels)) such clumps.
     """
     
-    # Some minimal assertions
-    assert isinstance(pos, (list, np.ndarray))
-    assert np.isreal(L) and np.isscalar(L) and L >= 0
-    if type(pos) is np.ndarray:
-        assert(pos.ndim == 2 and pos.shape[1] == 3)
-        pass
+    ## Some minimal assertions
+    #assert isinstance(pos, (list, np.ndarray))
+    #assert np.isreal(L) and np.isscalar(L) and L >= 0
+    #if type(pos) is np.ndarray:
+    #    assert(pos.ndim == 2 and pos.shape[1] == 3)
+    #    pass
 
     # Prepare
     labels = [-1]*len(pos)
@@ -306,17 +316,24 @@ def _PCL():
     parser.add_argument('-m','--method',
         help="choice of algorithm",
         choices=known_methods + ['all'],
-        default='all')
-    parser.add_argument('-q','--quiet',
-        help="suppress progress output to stdout",
-        action='store_true')
+        default=None)
+    #parser.add_argument('-q','--quiet',
+    #    help="suppress progress output to stdout",
+    #    action='store_true')
     parser.add_argument('-I','--max-iter',
         help="max number of iterations in iterative methods",
         type=int,
         default=10)
+    parser.add_argument('-L','--length-scale',
+        help="length scale in meters for proximity test",
+        type=float,
+        default=0.0)
     args = parser.parse_args()
     if args.method == 'all':
         args.method = known_methods
+    elif args.method is None:
+        args.method = known_methods
+        args.method.remove('naor2') # until numba can jit it :/
     else:
         args.method = [args.method]
     return args
