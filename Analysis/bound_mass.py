@@ -26,7 +26,7 @@ def _main():
         pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
         vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
         m   = fnl.m
-        print "Found {2} kg in {1} node lists ({0} nodes total').".format(
+        print "Found {2} kg in {1} node lists ({0} nodes total).".format(
             fnl.nbNodes, np.unique(fnl.id).size, sum(m))
         for n in np.unique(fnl.id):
             print "    List {:g}: {:.6g} kg in {} nodes ({:.4g} kg/node).".format(
