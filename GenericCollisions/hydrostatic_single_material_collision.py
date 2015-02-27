@@ -470,7 +470,7 @@ control = SpheralController(integrator, WT,
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
 def mOutput(stepsSoFar,timeNow,dt):
-    mFileName="{0}-{1:04d}-{2:g}.{3}".format(
+    mFileName="{0}-{1:05d}-{2:g}.{3}".format(
               jobName, stepsSoFar, timeNow, 'fnl.gz')
     shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
