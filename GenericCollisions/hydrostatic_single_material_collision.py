@@ -122,7 +122,9 @@ assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 assert generator_type in ['hcp', 'shells', 'old']
 if cooldownFrequency is not None:
+    sys.stderr.write("\033[1;31m")
     print "WARNING - damping is enabled, is this intentional?"
+    sys.stderr.write("\033[0m")
     assert 0 <= cooldownPower, "cool DOWN not up"
     if cooldownMethod is 'stomp':
         assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
@@ -131,7 +133,9 @@ if cooldownFrequency is not None:
     assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
             "dashpot cooling method requires frequency=1"
 if cullingFrequency is not None:
+    sys.stderr.write("\033[1;31m")
     print "WARNING - node culling is enabled, is this intentional?"
+    sys.stderr.write("\033[0m")
     assert type(cullingFrequency) is int and cullingFrequency > 0
 
 #-------------------------------------------------------------------------------
