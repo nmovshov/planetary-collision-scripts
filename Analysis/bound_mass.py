@@ -77,14 +77,18 @@ def bound_mass(pos, vel, m, method='jutzi', length_scale=None, units=[1,1,1]):
 
     The algorithm employed is chosen by the label supplied in the method argument.
     The choices implemented currently are:
-      'kory' - In the RF of the particle with lowest potential return the
-               particles return the particles wil negative total energy.
+      'kory1' - In the RF of the particle with lowest potential return the
+                particles with negative total energy.
+      'kory2' - In the RF with the most particles with negative total energy among
+                all possible RFs centered on a particle return the particles with
+                negative energy.
       'jutzi' - In the RF of the particle with lowest potential remove particles
                 with positive total energy. Repeat until stable.
       'naor1' - Add particles bound to the particle with lowest potential. In the
                 CM frame of this set, add particles bound to the set. Repeat until
                 stable.
-      'naor2' - Coming soon.
+      'naor2' - In the RF centered on the CM of the largest spatially contiguous
+                fragment return particles bound to that fragment.
 
     This function is a dispatcher - the work is carried out in sub functions.
 
@@ -121,7 +125,7 @@ def bound_mass(pos, vel, m, method='jutzi', length_scale=None, units=[1,1,1]):
     assert m.ndim == 1 and np.all(np.isreal(m)) and np.all(m > 0)
     assert units.ndim == 1 and len(units) == 3 and np.all(units > 0)
     assert len(pos) == len(vel) == len(m)
-    assert method in ['kory', 'jutzi', 'naor1', 'naor2']
+    assert method in ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2']
     assert np.size(length_scale) == 1 and np.isreal(length_scale)
 
     # Deal with units
@@ -129,8 +133,11 @@ def bound_mass(pos, vel, m, method='jutzi', length_scale=None, units=[1,1,1]):
     length_scale = length_scale*units[0]
 
     # Dispatch to sub functions by method
-    if   method == 'kory':
-        (M_bound, ind_bound) = _bm_kory(pos, vel, m, bigG)
+    if   method == 'kory1':
+        (M_bound, ind_bound) = _bm_kory1(pos, vel, m, bigG)
+        pass
+    elif method == 'kory2':
+        (M_bound, ind_bound) = _bm_kory2(pos, vel, m, bigG)
         pass
     elif method == 'jutzi':
         (M_bound, ind_bound) = _bm_jutzi(pos, vel, m, bigG)
@@ -147,7 +154,7 @@ def bound_mass(pos, vel, m, method='jutzi', length_scale=None, units=[1,1,1]):
 
     return (M_bound, ind_bound)
 
-def _bm_kory(pos, vel, m, bigG):
+def _bm_kory1(pos, vel, m, bigG):
     """In RF of lowest potential node return nodes with negative energy."""
     U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m);
     ind = np.argmin(U)
@@ -158,6 +165,23 @@ def _bm_kory(pos, vel, m, bigG):
         K = 0.5*(V[0]*V[0] + V[1]*V[1] + V[2]*V[2])
         if K + U[j] < 0:
             ind_bound[j] = True
+            pass
+        pass
+    return (sum(m[ind_bound]), ind_bound)
+
+def _bm_kory2(pos, vel, m, bigG):
+    """Use RF with most bound nodes among all possible RFs centered on node."""
+    U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m);
+    max_M = -np.inf
+    ind_bound = np.array(len(m)*[False])
+    for j in range(len(m)):
+        VCM = vel[j]
+        # Let's try to do this python style
+        V2 = np.array([(vee - VCM).dot(vee - VCM) for vee in vel])
+        K = 0.5*m*V2
+        mask = K + U < 0
+        if sum(m[mask]) > max_M:
+            ind_bound = mask
             pass
         pass
     return (sum(m[ind_bound]), ind_bound)
@@ -310,7 +334,7 @@ def fast_clumps(pos, L):
     return labels
 
 def _PCL():
-    known_methods = ['kory','jutzi','naor1','naor2']
+    known_methods = ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2']
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help="name of file containing node list data")
     parser.add_argument('-m','--method',
