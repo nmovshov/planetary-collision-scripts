@@ -78,7 +78,7 @@ generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 hmin *= nPerh*2*rTarget/nxTarget
 hmax *= nPerh*2*rTarget/nxTarget
 rhomin = mTarget/nxTarget**3/hmax**3
-universeEdge = 20*rTarget
+universeEdge = 30*rTarget
 
 # Gravity parameters
 softLength = 1.0             # Gravity softening length (fraction of nominal H)
@@ -92,9 +92,9 @@ dtGrowth = 2.0               # Maximum growth factor for time step per cycle
 dtMin = 0                    # Minimum allowed time step (sec)
 dtMax = 0.1*goalTime         # Maximum allowed time step (sec)
 verbosedt = False            # Verbose reporting of the time step criteria 
-maxSteps = 2400              # Maximum allowed steps for simulation advance
+maxSteps = 10000             # Maximum allowed steps for simulation advance
 statsStep = None             # Frequency for sampling conservation statistics etc.
-redistributeStep = 8000      # Frequency to load balance problem from scratch
+redistributeStep = 80000     # Frequency to load balance problem from scratch
 restartStep = 200            # Frequency to drop restart files
 restoreCycle = None          # If None, latest available restart cycle is selected
 baseDir = jobName            # Base name for directory to store output in
