@@ -170,15 +170,17 @@ def _bm_kory1(pos, vel, m, bigG):
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_kory2(pos, vel, m, bigG):
-    """Use RF with most bound nodes among all possible RFs centered on node."""
+    """Use RF with most bound nodes among all possible RFs centered on a node."""
     U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m);
     max_M = -np.inf
     ind_bound = np.array(len(m)*[False])
+    K = np.zeros(len(m))
     for j in range(len(m)):
         VCM = vel[j]
-        # Let's try to do this python style
-        V2 = np.array([(vee - VCM).dot(vee - VCM) for vee in vel])
-        K = 0.5*m*V2
+        for k in range(len(m)):
+            V = vel[j,:] - VCM
+            K[k] = 0.5*(V[0]*V[0] + V[1]*V[1] + V[2]*V[2])
+            pass
         mask = K + U < 0
         if sum(m[mask]) > max_M:
             ind_bound = mask
@@ -358,6 +360,7 @@ def _PCL():
     elif args.method is None:
         args.method = known_methods
         args.method.remove('naor2') # until numba can jit it :/
+        args.method.remove('kory2') # i don't think it's very good
     else:
         args.method = [args.method]
     return args
