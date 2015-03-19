@@ -340,9 +340,10 @@ def _PCL():
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help="name of file containing node list data")
     parser.add_argument('-m','--method',
-        help="choice of algorithm",
+        help="choice of algorithm; may be specified multiple times",
         choices=known_methods + ['all'],
-        default=None)
+        default=[],
+        action='append')
     #parser.add_argument('-q','--quiet',
     #    help="suppress progress output to stdout",
     #    action='store_true')
@@ -355,14 +356,12 @@ def _PCL():
         type=float,
         default=0.0)
     args = parser.parse_args()
-    if args.method == 'all':
+    if 'all' in args.method:
         args.method = known_methods
-    elif args.method is None:
-        args.method = known_methods
-        args.method.remove('naor2') # until numba can jit it :/
-        args.method.remove('kory2') # i don't think it's very good
+    elif args.method == []:
+        args.method = ['naor1', 'jutzi']
     else:
-        args.method = [args.method]
+        pass
     return args
 
 def _potential(x, y, z, m, mask=None):
