@@ -1,3 +1,4 @@
+#!/soft/scipy_0.13.0/CentOS_6/bin/python
 #---------------------------------------------------------------------------------
 # bound_mass - a utility for finding the largest gravitationally bound mass in SPH
 # output data. 

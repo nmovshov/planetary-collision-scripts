@@ -1,3 +1,4 @@
+#!/soft/scipy_0.13.0/CentOS_6/bin/python
 #---------------------------------------------------------------------------------
 # fnl_mass - command-line utility the prints mass found in SPH output data. 
 #
