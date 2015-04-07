@@ -148,7 +148,7 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     keeping of what material was used in a given run. This also allows reusing 
     "pre cooked" node lists in new runs.
 
-    The file <uss>/MATERIALS.md should contain a table of available material tags.
+    The file <pcs>/MATERIALS.md should contain a table of available material tags.
 
     See also: material_dictionary
     """

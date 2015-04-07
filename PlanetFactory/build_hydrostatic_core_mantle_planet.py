@@ -40,9 +40,9 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 # Planet parameters
 rPlanet = 1000e3             # Initial guess for outer planet radius (m)
 rCore = 500e3                # Initial guess for core radius (m)
-matMantle = 'h2oice'         # Mantle material (see <uss>/MATERIALS.md for options)
+matMantle = 'h2oice'         # Mantle material (see <pcs>/MATERIALS.md for options)
 rhoMantle = 916.             # Initial guess for mantle density (kg/m^3)
-matCore = 'granite'          # Core material (see <uss>/MATERIALS.md for options)
+matCore = 'granite'          # Core material (see <pcs>/MATERIALS.md for options)
 rhoCore = 2680.              # Initial guess for core density (kg/m^3)
 mPlanet = (4.0*pi/3.0) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3-rCore**3))
 rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
@@ -142,7 +142,7 @@ rigorousBoundaries = False
 #-------------------------------------------------------------------------------
 # NAV Equation of state
 # Here we construct equation-of-state objects, one per node list. The choice of 
-# eos is determined by the  material string (see <uss>MATERIALS.md for options).
+# eos is determined by the  material string (see <pcs>MATERIALS.md for options).
 #-------------------------------------------------------------------------------
 eosCore, eosMantle = None, None
 

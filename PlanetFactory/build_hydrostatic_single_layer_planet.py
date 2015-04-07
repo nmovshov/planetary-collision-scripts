@@ -40,7 +40,7 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 # Planet parameters
 rPlanet = 1000e3             # Initial guess for planet radius (m)
 rhoPlanet = 916.             # Initial guess for planet density (kg/m^3)
-matPlanet = 'h2oice'         # Planet material (see <uss>/MATERIALS.md for options)
+matPlanet = 'h2oice'         # Planet material (see <pcs>/MATERIALS.md for options)
 mPlanet = rhoPlanet * (4.0*pi/3.0) * rPlanet**3
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
@@ -137,7 +137,7 @@ rigorousBoundaries = False
 #-------------------------------------------------------------------------------
 # NAV Equation of state
 # Here we construct equation-of-state objects, one per node list. The choice of 
-# eos is determined by the  material string (see <uss>MATERIALS.md for options).
+# eos is determined by the  material string (see <pcs>MATERIALS.md for options).
 #-------------------------------------------------------------------------------
 eosPlanet = None
 

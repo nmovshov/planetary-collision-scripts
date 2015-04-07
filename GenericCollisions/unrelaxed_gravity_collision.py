@@ -45,14 +45,14 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 # Target parameters
 rTarget = 1000e3             # Target radius (m)
 rhoTarget = 2700.0           # Target initial density (kg/m^3)
-matTarget = 'basalt'         # Target material (see <uss>/MATERIALS.md for options)
+matTarget = 'basalt'         # Target material (see <pcs>/MATERIALS.md for options)
 mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
 gravTime = 1/sqrt(MKS().G*rhoTarget)
 
 # Impactor parameters
 rImpactor = 500e3            # Impactor radius (m)
 rhoImpactor = 2700.0         # Impactor initial density (kg/m^3)
-matImpactor = 'basalt'       # Impactor material (see <uss>/MATERIALS.md for options)
+matImpactor = 'basalt'       # Impactor material (see <pcs>/MATERIALS.md for options)
 mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
 # Collision parameters
@@ -158,7 +158,7 @@ rigorousBoundaries = False
 # NAV Equation of state
 # Here we construct equation-of-state objects, one per node list. In this case,
 # one each for the target and impactor. The choice of eos is determined by the 
-# material string (see <uss>MATERIALS.md for available options).
+# material string (see <pcs>MATERIALS.md for available options).
 #-------------------------------------------------------------------------------
 eosTarget, eosImpactor = None, None
 
