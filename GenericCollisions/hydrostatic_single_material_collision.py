@@ -543,11 +543,12 @@ control.appendPeriodicWork(cullnodes,cullingFrequency)
 # Save initial state in a flattened node list (.fnl) file.
 mOutput(control.totalSteps, control.time(), control.lastDt())
 
-# Report domain distribution statistics.
-dbase = control.integrator.dataBase()
-print "Running with {} internal nodes and {} ghost nodes".format(
-        mpi.allreduce(dbase.numInternalNodes, mpi.SUM),
-        mpi.allreduce(dbase.numGhostNodes, mpi.SUM))
+# Report domain distribution statistics on first run.
+if restoreCycle is None:
+    dbase = control.integrator.dataBase()
+    print "Running with {} internal nodes and {} ghost nodes".format(
+            mpi.allreduce(dbase.numInternalNodes, mpi.SUM),
+            mpi.allreduce(dbase.numGhostNodes, mpi.SUM))
 
 # And go.
 if not steps is None:
