@@ -35,7 +35,7 @@ def _main():
                 sum(m[fnl.id == n])/sum(fnl.id == n))
     except StandardError:
         try:
-            raw = np.loadtxt(args.filename)
+            raw = np.loadtxt(args.filename, delimiter=args.delimiter)
             cout("Done.\n")
             pos = raw[:,0:3]
             vel = raw[:,3:6]
@@ -352,6 +352,11 @@ def _PCL():
         help="max number of iterations in iterative methods",
         type=int,
         default=10)
+    parser.add_argument('-d','--delimiter',
+        help="optional single-character delimiter for non FNL files",
+        type=str,
+        choices=[','],
+        default=None)
     parser.add_argument('-L','--length-scale',
         help="length scale in meters for proximity test",
         type=float,
