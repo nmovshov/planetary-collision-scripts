@@ -37,10 +37,15 @@ def _main():
         try:
             raw = np.loadtxt(args.filename, delimiter=args.delimiter)
             cout("Done.\n")
-            pos = raw[:,0:3]
-            vel = raw[:,3:6]
-            m   = raw[:,6]
-            print "Found {} particles totaling {} kg.".format(
+            if os.path.splitext(args.filename)[1] in ['.gz','.fnl']:
+                pos = raw[:,2:5]
+                vel = raw[:,5:8]
+                m   = raw[:,8]
+            else:
+                pos = raw[:,0:3]
+                vel = raw[:,3:6]
+                m   = raw[:,6]
+            print "Found {1} kg in {0} particles.".format(
                 len(pos),sum(m))
         except:
             raise StandardError("Could not read data from {}".format(
@@ -56,7 +61,8 @@ def _main():
         [M_bound, ind_bound] = bound_mass(pos, vel, m,
                                           method=args.method[k],
                                           length_scale=args.length_scale,
-                                          units=units)
+                                          units=units,
+                                          margs=args)
         print "Found {:g} kg in {:g} particles; M_bound/M_tot = {:.4g}.".format(
             M_bound, sum(ind_bound), M_bound/sum(m))
         print "Elapsed time = {:g} sec.".format(time() - tic)
@@ -66,7 +72,7 @@ def _main():
     # Exit
     return
 
-def bound_mass(pos, vel, m, method='jutzi', length_scale=None, units=[1,1,1]):
+def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None):
     """Given cloud of particles return largest gravitationally bound mass.
 
     This function looks at a cloud of point masses with known positions and
@@ -107,6 +113,8 @@ def bound_mass(pos, vel, m, method='jutzi', length_scale=None, units=[1,1,1]):
         Algorithm to use.
     length_scale : numeric, positive
         Override default length scale used in algorithm naor2
+    margs : argparse namespace
+        All the command line argments just in case we need any.
 
     Returns
     -------
