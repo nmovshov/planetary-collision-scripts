@@ -8,7 +8,7 @@
 import sys, os, shutil
 import numpy as np
 import argparse
-import ahelpers
+# import ahelpers
 from time import time
 from numba import jit
 cout = sys.stdout.write
@@ -149,10 +149,10 @@ def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None
         (M_bound, ind_bound) = _bm_kory2(pos, vel, m, bigG)
         pass
     elif method == 'jutzi':
-        (M_bound, ind_bound) = _bm_jutzi(pos, vel, m, bigG)
+        (M_bound, ind_bound) = _bm_jutzi(pos, vel, m, bigG, margs.max_iter)
         pass
     elif method == 'naor1':
-        (M_bound, ind_bound) = _bm_naor1(pos, vel, m, bigG)
+        (M_bound, ind_bound) = _bm_naor1(pos, vel, m, bigG, margs.max_iter)
         pass
     elif method == 'naor2':
         (M_bound, ind_bound) = _bm_naor2(pos, vel, m, bigG, length_scale)
@@ -197,14 +197,16 @@ def _bm_kory2(pos, vel, m, bigG):
         pass
     return (sum(m[ind_bound]), ind_bound)
 
-def _bm_jutzi(pos, vel, m, bigG):
+def _bm_jutzi(pos, vel, m, bigG, maxiter=5):
     """In RF of lowest potential remove nodes with positive energy and repeat."""
     bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
     ind = np.argmin(bU)
     VCM = vel[ind,:]
     ind_bound = np.array(len(m)*[True])
     nbb = -1
-    while nbb != sum(ind_bound):
+    citer = 0
+    while (nbb != sum(ind_bound)) and (citer < maxiter):
+        citer += 1
         nbb = sum(ind_bound)
         bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m, ind_bound)
         for j in range(len(m)):
@@ -217,15 +219,17 @@ def _bm_jutzi(pos, vel, m, bigG):
         pass
     return (sum(m[ind_bound]), ind_bound)
 
-def _bm_naor1(pos, vel, m, bigG):
+def _bm_naor1(pos, vel, m, bigG, maxiter = 5):
     """Add nodes bound to CM of bound nodes until stable. Seed with lowest U."""
     ind_bound = np.array(len(m)*[False])
     U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
     ind = np.argmin(U)
     ind_bound[ind] = True
     nbb = -1
+    citer = 0
     m3 = np.tile(m,(3,1)).T
-    while nbb != sum(ind_bound):
+    while (nbb != sum(ind_bound)) and (citer < maxiter):
+        citer += 1
         nbb = sum(ind_bound)
         M = sum(m[ind_bound])
         cmpos = np.sum(m3[ind_bound,:]*pos[ind_bound,:], 0)/M
