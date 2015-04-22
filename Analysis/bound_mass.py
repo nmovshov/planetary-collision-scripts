@@ -56,7 +56,7 @@ def _main():
     t = time()
     units = [1,1,1]
     for k in range(len(args.method)):
-        print "Detecting bound mass using algorithm {}...".format(args.method[k])
+        print "Detecting bound mass using algorithm {}...".format(args.method[k]),
         tic = time()
         [M_bound, ind_bound] = bound_mass(pos, vel, m,
                                           method=args.method[k],
@@ -176,6 +176,8 @@ def _bm_kory1(pos, vel, m, bigG):
             ind_bound[j] = True
             pass
         pass
+    pass
+    print "Done."
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_kory2(pos, vel, m, bigG):
@@ -195,6 +197,8 @@ def _bm_kory2(pos, vel, m, bigG):
             ind_bound = mask
             pass
         pass
+    pass
+    print "Done."
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_jutzi(pos, vel, m, bigG, maxiter=5):
@@ -207,6 +211,7 @@ def _bm_jutzi(pos, vel, m, bigG, maxiter=5):
     citer = 0
     while (nbb != sum(ind_bound)) and (citer < maxiter):
         citer += 1
+        print 'i{}'.format(citer),
         nbb = sum(ind_bound)
         bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m, ind_bound)
         for j in range(len(m)):
@@ -217,6 +222,8 @@ def _bm_jutzi(pos, vel, m, bigG, maxiter=5):
                 pass
             pass
         pass
+    pass
+    print "Done."
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_naor1(pos, vel, m, bigG, maxiter = 5):
@@ -230,6 +237,7 @@ def _bm_naor1(pos, vel, m, bigG, maxiter = 5):
     m3 = np.tile(m,(3,1)).T
     while (nbb != sum(ind_bound)) and (citer < maxiter):
         citer += 1
+        print 'i{}'.format(citer),
         nbb = sum(ind_bound)
         M = sum(m[ind_bound])
         cmpos = np.sum(m3[ind_bound,:]*pos[ind_bound,:], 0)/M
@@ -247,6 +255,7 @@ def _bm_naor1(pos, vel, m, bigG, maxiter = 5):
             pass
         pass
     pass
+    print "Done."
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_naor2(pos, vel, m, bigG, length_scale):
@@ -291,6 +300,7 @@ def _bm_naor2(pos, vel, m, bigG, length_scale):
         pass
 
     # That's it.
+    print "Done."
     return (M_bound, ind_bound)
 
 @jit
