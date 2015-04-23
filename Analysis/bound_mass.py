@@ -212,7 +212,7 @@ def _bm_jutzi(pos, vel, m, bigG, maxiter):
     citer = 0
     while (nbb != sum(ind_bound)) and (citer < maxiter):
         citer += 1
-        print 'i{}'.format(citer),
+        print 'i{}'.format(citer), '\b'*(3 + len(str(citer))),
         sys.stdout.flush()
         nbb = sum(ind_bound)
         bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m, ind_bound)
@@ -225,7 +225,7 @@ def _bm_jutzi(pos, vel, m, bigG, maxiter):
             pass
         pass
     pass
-    print "Done."
+    print "Done (i={}).".format(citer)
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_naor1(pos, vel, m, bigG, maxiter):
@@ -239,7 +239,7 @@ def _bm_naor1(pos, vel, m, bigG, maxiter):
     m3 = np.tile(m,(3,1)).T
     while (nbb != sum(ind_bound)) and (citer < maxiter):
         citer += 1
-        print 'i{}'.format(citer),
+        print 'i{}'.format(citer), '\b'*(3 + len(str(citer))),
         sys.stdout.flush()
         nbb = sum(ind_bound)
         M = sum(m[ind_bound])
@@ -258,7 +258,7 @@ def _bm_naor1(pos, vel, m, bigG, maxiter):
             pass
         pass
     pass
-    print "Done."
+    print "Done (i={}).".format(citer)
     return (sum(m[ind_bound]), ind_bound)
 
 def _bm_naor2(pos, vel, m, bigG, length_scale):
