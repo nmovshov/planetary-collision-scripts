@@ -57,6 +57,7 @@ def _main():
     units = [1,1,1]
     for k in range(len(args.method)):
         print "Detecting bound mass using algorithm {}...".format(args.method[k]),
+        sys.stdout.flush()
         tic = time()
         [M_bound, ind_bound] = bound_mass(pos, vel, m,
                                           method=args.method[k],
@@ -201,7 +202,7 @@ def _bm_kory2(pos, vel, m, bigG):
     print "Done."
     return (sum(m[ind_bound]), ind_bound)
 
-def _bm_jutzi(pos, vel, m, bigG, maxiter=5):
+def _bm_jutzi(pos, vel, m, bigG, maxiter):
     """In RF of lowest potential remove nodes with positive energy and repeat."""
     bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
     ind = np.argmin(bU)
@@ -212,6 +213,7 @@ def _bm_jutzi(pos, vel, m, bigG, maxiter=5):
     while (nbb != sum(ind_bound)) and (citer < maxiter):
         citer += 1
         print 'i{}'.format(citer),
+        sys.stdout.flush()
         nbb = sum(ind_bound)
         bU = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m, ind_bound)
         for j in range(len(m)):
@@ -226,7 +228,7 @@ def _bm_jutzi(pos, vel, m, bigG, maxiter=5):
     print "Done."
     return (sum(m[ind_bound]), ind_bound)
 
-def _bm_naor1(pos, vel, m, bigG, maxiter = 5):
+def _bm_naor1(pos, vel, m, bigG, maxiter):
     """Add nodes bound to CM of bound nodes until stable. Seed with lowest U."""
     ind_bound = np.array(len(m)*[False])
     U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
@@ -238,6 +240,7 @@ def _bm_naor1(pos, vel, m, bigG, maxiter = 5):
     while (nbb != sum(ind_bound)) and (citer < maxiter):
         citer += 1
         print 'i{}'.format(citer),
+        sys.stdout.flush()
         nbb = sum(ind_bound)
         M = sum(m[ind_bound])
         cmpos = np.sum(m3[ind_bound,:]*pos[ind_bound,:], 0)/M
@@ -373,7 +376,7 @@ def _PCL():
     parser.add_argument('-I','--max-iter',
         help="max number of iterations in iterative methods",
         type=int,
-        default=10)
+        default=20)
     parser.add_argument('-d','--delimiter',
         help="optional single-character delimiter for non FNL files",
         type=str,
