@@ -7,7 +7,7 @@
 import sys
 import numpy as np
 import argparse
-import ahelpers
+#import ahelpers
 
 cout = sys.stdout.write
 parser = argparse.ArgumentParser()
@@ -30,13 +30,19 @@ try:
             sum(m[fnl.id == n])/sum(fnl.id == n))
 except StandardError:
     try:
+        # FNL structure as it is in 2015-05-01
         raw = np.loadtxt(args.filename)
         cout("Done.\n")
-        pos = raw[:,0:3]
-        vel = raw[:,3:6]
-        m   = raw[:,6]
-        print "Found {} particles totaling {} kg.".format(
-            len(pos),sum(m))
+        nl_id = raw[:,0]
+        pos = raw[:,2:5]
+        vel = raw[:,5:8]
+        m   = raw[:,8]
+        print "Found {} nodes in {} node lists totaling {} kg.".format(
+            nl_id.size, np.unique(nl_id).size, sum(m))
+        for n in np.unique(nl_id):
+            print "    List {:g}: {:.6g} kg in {} nodes ({:.4g} kg/node).".format(
+                n, sum(m[nl_id == n]), sum(nl_id == n),
+                sum(m[nl_id == n])/sum(nl_id == n))
     except:
         raise StandardError("Could not read data from {}".format(
             args.filename))
