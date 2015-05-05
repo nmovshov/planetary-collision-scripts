@@ -5,7 +5,7 @@
 #
 # Author: Naor Movshovitz (nmovshov at gee mail dot com)
 #---------------------------------------------------------------------------------
-import sys, os, shutil
+import sys, os, shutil, glob
 import numpy as np
 import argparse
 # import ahelpers
@@ -18,6 +18,17 @@ def _main():
 
     # Parse command line arguments
     args = _PCL()
+
+    # Ad hoc file-by-file treatment
+    if os.path.isfile(args.filename):
+        allfiles = [args.filename]
+    else:
+        dirname = os.path.abspath(args.filename)
+        allfiles = glob.glob(os.path.join(dirname, '*.fnl')) + \
+                   glob.glob(os.path.join(dirname, '*.fnl.gz'))
+    if len(allfiles) == 0:
+        print "{} does not contain any valid fnl or fnl.gz files.".format(dirname)
+        return
     
     # Load node list data
     cout("Reading file...")
@@ -364,7 +375,8 @@ def fast_clumps(pos, L):
 def _PCL():
     known_methods = ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2']
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename', help="name of file containing node list data")
+    parser.add_argument('filename',
+        help="name of file containing node list data")
     parser.add_argument('-m','--method',
         help="choice of algorithm; may be specified multiple times",
         choices=known_methods + ['all'],
@@ -386,6 +398,10 @@ def _PCL():
         help="length scale in meters for proximity test",
         type=float,
         default=0.0)
+    parser.add_argument('-o','--output',
+        help="name of file to save output to",
+        type=str,
+        default=None)
     args = parser.parse_args()
     if 'all' in args.method:
         args.method = known_methods
