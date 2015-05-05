@@ -30,58 +30,63 @@ def _main():
         print "{} does not contain any valid fnl or fnl.gz files.".format(dirname)
         return
     
-    # Load node list data
-    cout("Reading file...")
-    try:
-        fnl = ahelpers.load_fnl(args.filename)
-        cout("Done.\n")
-        pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
-        vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
-        m   = fnl.m
-        print "Found {2} kg in {1} node lists ({0} nodes total).".format(
-            fnl.nbNodes, np.unique(fnl.id).size, sum(m))
-        for n in np.unique(fnl.id):
-            print "    List {:g}: {:.6g} kg in {} nodes ({:.4g} kg/node).".format(
-                n, sum(m[fnl.id == n]), sum(fnl.id == n),
-                sum(m[fnl.id == n])/sum(fnl.id == n))
-    except StandardError:
-        try:
-            raw = np.loadtxt(args.filename, delimiter=args.delimiter)
-            cout("Done.\n")
-            if os.path.splitext(args.filename)[1] in ['.gz','.fnl']:
-                pos = raw[:,2:5]
-                vel = raw[:,5:8]
-                m   = raw[:,8]
-            else:
-                pos = raw[:,0:3]
-                vel = raw[:,3:6]
-                m   = raw[:,6]
-            print "Found {1} kg in {0} particles.".format(
-                len(pos),sum(m))
-        except:
-            raise StandardError("Could not read data from {}".format(
-                args.filename))
-
-    # Dispatch to the work method
+    ot = time()
     print
-    t = time()
-    units = [1,1,1]
-    for k in range(len(args.method)):
-        print "Detecting bound mass using algorithm {}...".format(args.method[k]),
-        sys.stdout.flush()
-        tic = time()
-        [M_bound, ind_bound] = bound_mass(pos, vel, m,
-                                          method=args.method[k],
-                                          length_scale=args.length_scale,
-                                          units=units,
-                                          margs=args)
-        print "Found {:g} kg in {:g} particles; M_bound/M_tot = {:.4g}.".format(
-            M_bound, sum(ind_bound), M_bound/sum(m))
-        print "Elapsed time = {:g} sec.".format(time() - tic)
-        print
-    print "All done. Elapsed time = {:g} sec.".format(time() - t)
+    for onefile in allfiles:
+        # Load node list data
+        cout("Reading file {}...".format(onefile))
+        try:
+            fnl = ahelpers.load_fnl(onefile)
+            cout("Done.\n")
+            pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
+            vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
+            m   = fnl.m
+            print "Found {2} kg in {1} node lists ({0} nodes total).".format(
+                fnl.nbNodes, np.unique(fnl.id).size, sum(m))
+            for n in np.unique(fnl.id):
+                print "    List {:g}: {:.6g} kg in {} nodes ({:.4g} kg/node).".format(
+                    n, sum(m[fnl.id == n]), sum(fnl.id == n),
+                    sum(m[fnl.id == n])/sum(fnl.id == n))
+        except StandardError:
+            try:
+                raw = np.loadtxt(onefile, delimiter=args.delimiter)
+                cout("Done.\n")
+                if os.path.splitext(onefile)[1] in ['.gz','.fnl']:
+                    pos = raw[:,2:5]
+                    vel = raw[:,5:8]
+                    m   = raw[:,8]
+                else:
+                    pos = raw[:,0:3]
+                    vel = raw[:,3:6]
+                    m   = raw[:,6]
+                print "Found {1} kg in {0} particles.".format(
+                    len(pos),sum(m))
+            except:
+                raise StandardError("Could not read data from {}".format(
+                    onefile))
 
-    # Exit
+        # Dispatch to the work method
+        print
+        t = time()
+        units = [1,1,1]
+        for k in range(len(args.method)):
+            print "Detecting bound mass using algorithm {}...".format(args.method[k]),
+            sys.stdout.flush()
+            tic = time()
+            [M_bound, ind_bound] = bound_mass(pos, vel, m,
+                                              method=args.method[k],
+                                              length_scale=args.length_scale,
+                                              units=units,
+                                              margs=args)
+            print "Found {:g} kg in {:g} particles; M_bound/M_tot = {:.4g}.".format(
+                M_bound, sum(ind_bound), M_bound/sum(m))
+            print "Elapsed time = {:g} sec.".format(time() - tic)
+            print
+        print "All methods done. Elapsed time = {:g} sec.".format(time() - t)
+        print
+
+    # Finish and exit
+    print "All files done. Elapsed time = {:g} sec.".format(time() - ot)
     return
 
 def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None):
@@ -426,7 +431,7 @@ def _c_potential(x, y, z, m, mask):
                     dx = x[j] - x[k]
                     dy = y[j] - y[k]
                     dz = z[j] - z[k]
-                    dr = np.sqrt(dx*dx + dy*dy + dz*dz)
+                    dr = np.sqrt(dx*dx + dy*dy + dz*dz) + 1e-12
                     U[j] = U[j] - m[k]/dr
                     U[k] = U[k] - m[j]/dr
                     pass
