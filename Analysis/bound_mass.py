@@ -5,9 +5,10 @@
 #
 # Author: Naor Movshovitz (nmovshov at gee mail dot com)
 #---------------------------------------------------------------------------------
-import sys, os, shutil, glob
+import sys, os, glob
 import numpy as np
 import argparse
+import re
 # import ahelpers
 from time import time
 from numba import jit
@@ -32,6 +33,7 @@ def _main():
     
     ot = time()
     print
+    out_table = np.nan*np.ones([len(allfiles), 2 + len(args.method)])
     for onefile in allfiles:
         # Load node list data
         cout("Reading file {}...".format(onefile))
@@ -64,6 +66,8 @@ def _main():
             except:
                 raise StandardError("Could not read data from {}".format(
                     onefile))
+
+        # Extract time and step info from file name
 
         # Dispatch to the work method
         print
