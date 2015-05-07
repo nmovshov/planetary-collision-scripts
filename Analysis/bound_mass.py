@@ -23,6 +23,7 @@ def _main():
     # Ad hoc file-by-file treatment
     if os.path.isfile(args.filename):
         allfiles = [args.filename]
+        dirname = os.path.dirname(os.path.abspath(args.filename))
     else:
         dirname = os.path.abspath(args.filename)
         allfiles = glob.glob(os.path.join(dirname, '*.fnl')) + \
@@ -33,10 +34,11 @@ def _main():
     
     ot = time()
     print
-    out_table = np.nan*np.ones([len(allfiles), 2 + len(args.method)])
+    # out_table = np.nan*np.ones([len(allfiles), 2 + len(args.method)])
+    out_table = []
     for onefile in allfiles:
         # Load node list data
-        cout("Reading file {}...".format(onefile))
+        cout("Reading file {}...".format(os.path.relpath(onefile)))
         try:
             fnl = ahelpers.load_fnl(onefile)
             cout("Done.\n")
@@ -68,6 +70,10 @@ def _main():
                     onefile))
 
         # Extract time and step info from file name
+        out_this_file = []
+        out_this_file.append(int(re.search(r'-\d+', onefile).group()[1:]))
+        out_this_file.append(float(re.findall(r'-[\d.]+', onefile)[1][1:-1]))
+        out_this_file.append(sum(m))
 
         # Dispatch to the work method
         print
@@ -86,11 +92,23 @@ def _main():
                 M_bound, sum(ind_bound), M_bound/sum(m))
             print "Elapsed time = {:g} sec.".format(time() - tic)
             print
+            out_this_file.append(M_bound/sum(m))
         print "All methods done. Elapsed time = {:g} sec.".format(time() - t)
         print
+        out_table.append(out_this_file)
 
     # Finish and exit
     print "All files done. Elapsed time = {:g} sec.".format(time() - ot)
+    if args.output is not None:
+        header = "Output from bound_mass.py run on {}\n".format(dirname)
+        header += "Columns:\n"
+        header += "[step] [time (sec)] [M_tot] "
+        for met in args.method:
+            header += "[M_b/M_tot ({})] ".format(met)
+        np.savetxt(args.output, out_table, header=header,
+            fmt=['%05d'] + ['%7.1f'] + ['%0.4e'] + len(args.method)*['%0.3f'],
+            delimiter='  ')
+        pass
     return
 
 def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None):
