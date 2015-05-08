@@ -41,24 +41,27 @@ del EOSes, mats, etamin, etamax
 #-------------------------------------------------------------------------------
 # M/ANEOS improved SiO2
 #-------------------------------------------------------------------------------
-izetl = sph.vector_of_int(1, -1)
-sph.initializeANEOS('/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT',
-                                                             'ANEOS.barf', izetl)
-etamin, etamax = 0.94, 10
-rho0 = 2650
-pext, pmin, pmax = 0.0, -1e200, 1e200 # these are actually the defaults
-SiO2 = sph.ANEOS(0,           # Material number
-                 1000,        # num rho vals
-                 1000,        # num T vals
-                 etamin*rho0, # minimum density (kg/m^3)
-                 etamax*rho0, # maximum density (kg/m^3)
-                 1.0,         # minimum temperature (K)
-                 1.0e4,       # maximum temperature (K)
-                 units,
-                 pext, pmin, pmax)
-os.system('rm -f ANEOS.barf')
-del izetl, etamin, etamax, rho0
-
+try:
+    izetl = sph.vector_of_int(1, -1)
+    sph.initializeANEOS('/proj/nmovshov_hindmost/collisions/ANEOS/ANEOS.INPUT',
+                                                           'ANEOS.barf', izetl)
+    etamin, etamax = 0.94, 10
+    rho0 = 2650
+    pext, pmin, pmax = 0.0, -1e200, 1e200 # these are actually the defaults
+    SiO2 = sph.ANEOS(0,           # Material number
+                     1000,        # num rho vals
+                     1000,        # num T vals
+                     etamin*rho0, # minimum density (kg/m^3)
+                     etamax*rho0, # maximum density (kg/m^3)
+                     1.0,         # minimum temperature (K)
+                     1.0e4,       # maximum temperature (K)
+                     units,
+                     pext, pmin, pmax)
+    os.system('rm -f ANEOS.barf')
+    del izetl, etamin, etamax, rho0
+except:
+    print "ANEOS SiO2 not loaded"
+    pass
 #-------------------------------------------------------------------------------
 # A polytropic fluid EOS
 #-------------------------------------------------------------------------------
