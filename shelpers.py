@@ -143,7 +143,7 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
                   prevent underflows in the pressure computation.)
       ANEOS : Not yet implemented.
 
-    All uss runs should use this method to create equations of state, instead of
+    All pcs runs should use this method to create equations of state, instead of
     calling the spheral constructors directly, in order to allow automatic record
     keeping of what material was used in a given run. This also allows reusing 
     "pre cooked" node lists in new runs.
@@ -486,9 +486,9 @@ header_template = """\
 
 global material_dictionary
 # A dictionary of unique short tags for commonly used material EOSs.
-# We use this in spite of the added complexity to allow users of uss to specify 
+# We use this in spite of the added complexity to allow users of pcs to specify 
 # nothing more than a unique string material "tag" as a complete choice of eos.
-# All uss runs should use this tag and the construct_eos_for_material method 
+# All pcs runs should use this tag and the construct_eos_for_material method 
 # instead of calling the spheral eos constructors directly. This also allows 
 # keeping a record of what material was used in each run, and thus allows a hands
 # free importing of precooked planets into new runs.

@@ -2,7 +2,7 @@
 # Load some of spheral's equation-of-state objects to workspace.
 #
 # Run this script in python (or preferably iPython) to load all the EOS options
-# currently used by uss into the global workspace. There you can interactively
+# currently used by pcs into the global workspace. There you can interactively
 # call the EOS methods and compare different materials. This script can also be
 # used to extract the code snippets needed to create EOS objects in spheral runs.
 #-------------------------------------------------------------------------------
