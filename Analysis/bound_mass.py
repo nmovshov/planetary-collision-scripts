@@ -20,6 +20,11 @@ def _main():
     # Parse command line arguments
     args = _PCL()
 
+    # Super ad hoc feature to sort output from fnls with no leading 0s
+    if args.sort_output:
+        sort_output(args.filename)
+        sys.exit(0)
+
     # Ad hoc file-by-file treatment
     if os.path.isfile(args.filename):
         allfiles = [args.filename]
@@ -417,6 +422,8 @@ def _PCL():
         help="max number of iterations in iterative methods",
         type=int,
         default=20)
+    parser.add_argument('--sort-output',
+        action='store_true')
     parser.add_argument('-d','--delimiter',
         help="optional single-character delimiter for non FNL files",
         type=str,
@@ -462,6 +469,20 @@ def _c_potential(x, y, z, m, mask):
             pass
         pass
     return U
+
+def sort_output(filename):
+    raw = np.loadtxt(filename)
+    ind = np.argsort(raw[:,1]) # indices to sort by time (2nd col)
+    sor = raw[ind,:]
+    header = ''
+    with open(filename) as fid:
+        header += fid.readline()[2:]
+        header += fid.readline()[2:]
+        header += fid.readline()[2:-1]
+    np.savetxt(filename+'_sorted', sor, header=header,
+        fmt=['%05d'] + ['%7.1f'] + ['%0.4e'] + (raw.shape[1] - 3)*['%0.3f'],
+        delimiter='  ')
+    pass
 
 if __name__ == "__main__":
     _main()
