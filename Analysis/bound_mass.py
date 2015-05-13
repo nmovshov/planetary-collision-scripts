@@ -28,6 +28,7 @@ def _main():
         dirname = os.path.abspath(args.filename)
         allfiles = glob.glob(os.path.join(dirname, '*.fnl')) + \
                    glob.glob(os.path.join(dirname, '*.fnl.gz'))
+        allfiles.sort()
     if len(allfiles) == 0:
         print "{} does not contain any valid fnl or fnl.gz files.".format(dirname)
         return
