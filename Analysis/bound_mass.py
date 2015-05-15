@@ -149,7 +149,8 @@ def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None
                 fragment return particles bound to that fragment.
       'naor3' - Add particles bound to the particle nearest the center of mass of
                 the system. In the CM frame of this set, add particles bound to
-                the set. Repeat until stable.
+                the set. Repeat until stable. (This method sometimes works and
+                sometimes fails miserably. Use with caution.)
 
     This function is a dispatcher - the work is carried out in sub functions.
 
