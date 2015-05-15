@@ -77,9 +77,12 @@ def _main():
 
         # Extract time and step info from file name
         out_this_file = []
-        out_this_file.append(int(re.search(r'-\d+', onefile).group()[1:]))
-        out_this_file.append(float(re.findall(r'-[\d.]+', onefile)[1][1:-1]))
-        out_this_file.append(sum(m))
+        try:
+            out_this_file.append(int(re.search(r'-\d+', onefile).group()[1:]))
+            out_this_file.append(float(re.findall(r'-[\d.]+', onefile)[1][1:-1]))
+            out_this_file.append(sum(m))
+        except:
+            pass
 
         # Dispatch to the work method
         print
@@ -111,9 +114,12 @@ def _main():
         header += "[step] [time (sec)] [M_tot] "
         for met in args.method:
             header += "[M_b/M_tot ({})] ".format(met)
-        np.savetxt(args.output, out_table, header=header,
-            fmt=['%05d'] + ['%7.1f'] + ['%0.4e'] + len(args.method)*['%0.3f'],
-            delimiter='  ')
+        try:
+            np.savetxt(args.output, out_table, header=header,
+                fmt=['%05d'] + ['%7.1f'] + ['%0.4e'] + len(args.method)*['%0.3f'],
+                delimiter='  ')
+        except:
+            np.savetxt(args.output, out_table, header=header)
         pass
     return
 
