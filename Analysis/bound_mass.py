@@ -141,6 +141,9 @@ def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None
                 stable.
       'naor2' - In the RF centered on the CM of the largest spatially contiguous
                 fragment return particles bound to that fragment.
+      'naor3' - Add particles bound to the particle nearest the center of mass of
+                the system. In the CM frame of this set, add particles bound to
+                the set. Repeat until stable.
 
     This function is a dispatcher - the work is carried out in sub functions.
 
@@ -179,7 +182,7 @@ def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None
     assert m.ndim == 1 and np.all(np.isreal(m)) and np.all(m > 0)
     assert units.ndim == 1 and len(units) == 3 and np.all(units > 0)
     assert len(pos) == len(vel) == len(m)
-    assert method in ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2']
+    assert method in ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2', 'naor3']
     assert np.size(length_scale) == 1 and np.isreal(length_scale)
 
     # Deal with units
@@ -202,6 +205,8 @@ def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None
     elif method == 'naor2':
         (M_bound, ind_bound) = _bm_naor2(pos, vel, m, bigG, length_scale)
         pass
+    elif method == 'naor3':
+        (M_bound, ind_bound) = _bm_naor3(pos, vel, m, bigG, margs.max_iter)
     else:
         sys.exit("Unknown method") # this can't really happen
         pass
@@ -281,6 +286,50 @@ def _bm_naor1(pos, vel, m, bigG, maxiter):
     nbb = -1
     citer = 0
     m3 = np.tile(m,(3,1)).T
+    while (nbb != sum(ind_bound)) and (citer < maxiter):
+        citer += 1
+        print 'i{}'.format(citer), '\b'*(3 + len(str(citer))),
+        sys.stdout.flush()
+        nbb = sum(ind_bound)
+        M = sum(m[ind_bound])
+        cmpos = np.sum(m3[ind_bound,:]*pos[ind_bound,:], 0)/M
+        cmvel = np.sum(m3[ind_bound,:]*vel[ind_bound,:], 0)/M
+        for j in range(len(m)):
+            dR = pos[j,:] - cmpos
+            dr = np.sqrt(np.dot(dR, dR)) + np.spacing(1)
+            U = -bigG*M/dr
+            V = vel[j,:] - cmvel
+            K = 0.5*(V[0]*V[0] + V[1]*V[1] + V[2]*V[2])
+            if K + U < 0.0:
+                ind_bound[j] = True
+            else:
+                ind_bound[j] = False
+            pass
+        pass
+    pass
+    print "Done (i={}).".format(citer)
+    return (sum(m[ind_bound]), ind_bound)
+
+def _bm_naor3(pos, vel, m, bigG, maxiter):
+    """Add nodes bound to CM of bound nodes until stable. Seed with nearest CM."""
+    # Pick node closest to all nodes center mass
+    m3 = np.tile(m,(3,1)).T
+    M = sum(m)
+    cmpos = np.sum(m3*pos, 0)/M
+    dR = np.inf
+    for k in range(len(m)):
+        dr = cmpos - pos[k]
+        dr = np.sqrt(dr.dot(dr))
+        if dr < dR:
+            dR = dr
+            ind = k
+        pass
+    pass
+    # Seed with this node and start to iterate
+    ind_bound = np.array(len(m)*[False])
+    ind_bound[ind] = True
+    nbb = -1
+    citer = 0
     while (nbb != sum(ind_bound)) and (citer < maxiter):
         citer += 1
         print 'i{}'.format(citer), '\b'*(3 + len(str(citer))),
@@ -406,7 +455,7 @@ def fast_clumps(pos, L):
     return labels
 
 def _PCL():
-    known_methods = ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2']
+    known_methods = ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2', 'naor3']
     parser = argparse.ArgumentParser()
     parser.add_argument('filename',
         help="name of file containing node list data")
