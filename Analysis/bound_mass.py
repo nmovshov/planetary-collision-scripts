@@ -80,8 +80,17 @@ def _main():
         try:
             out_this_file.append(int(re.search(r'-\d+', onefile).group()[1:]))
             out_this_file.append(float(re.findall(r'-[\d.]+', onefile)[1][1:-1]))
-            out_this_file.append(sum(m))
         except:
+            pass
+
+        # Include total mass in file output
+        out_this_file.append(sum(m))
+
+        # An ad hoc feature to calculate binding energy as well
+        if args.binding_energy:
+            gU = grav_binding_energy(pos, m)
+            out_this_file.append(gU)
+            print "System gravitational binding energy Ug = {:g} J.".format(gU)
             pass
 
         # Dispatch to the work method
@@ -112,11 +121,18 @@ def _main():
         header = "Output from bound_mass.py run on {}\n".format(dirname)
         header += "Columns:\n"
         header += "[step] [time (sec)] [M_tot] "
+        if args.binding_energy:
+            header += "[gravitational energy (J)] "
         for met in args.method:
             header += "[M_b/M_tot ({})] ".format(met)
         try:
-            np.savetxt(args.output, out_table, header=header,
-                fmt=['%05d'] + ['%7.1f'] + ['%0.4e'] + len(args.method)*['%0.3f'],
+            if args.binding_energy:
+                format = ['%05d'] + ['%7.1f'] + 2*['%0.4e'] + \
+                len(args.method)*['%0.3f']
+            else:
+                format = ['%05d'] + ['%7.1f'] + 1*['%0.4e'] + \
+                len(args.method)*['%0.3f']
+            np.savetxt(args.output, out_table, header=header, fmt=format,
                 delimiter='  ')
         except:
             np.savetxt(args.output, out_table, header=header)
@@ -480,6 +496,8 @@ def _PCL():
         default=20)
     parser.add_argument('--sort-output',
         action='store_true')
+    parser.add_argument('--binding-energy',
+        action='store_true')
     parser.add_argument('-d','--delimiter',
         help="optional single-character delimiter for non FNL files",
         type=str,
@@ -538,6 +556,12 @@ def sort_output(filename):
     np.savetxt(filename+'_sorted', sor, header=header,
         fmt=['%05d'] + ['%7.1f'] + ['%0.4e'] + (raw.shape[1] - 3)*['%0.3f'],
         delimiter='  ')
+    pass
+
+def grav_binding_energy(pos, m, units=[1,1,1]):
+    bigG = 6.67384e-11*units[0]**(-3)*units[1]*units[2]**2
+    U = bigG*_potential(pos[:,0], pos[:,1], pos[:,2], m)
+    return 0.5*sum(U*m)
     pass
 
 if __name__ == "__main__":
