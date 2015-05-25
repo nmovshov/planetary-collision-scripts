@@ -495,9 +495,11 @@ def _PCL():
         type=int,
         default=20)
     parser.add_argument('--sort-output',
-        action='store_true')
+        action='store_true',
+        help="sort previously generated time-series data in file (not FNL)")
     parser.add_argument('--binding-energy',
-        action='store_true')
+        action='store_true',
+        help="compute also system binding energy")
     parser.add_argument('-d','--delimiter',
         help="optional single-character delimiter for non FNL files",
         type=str,
