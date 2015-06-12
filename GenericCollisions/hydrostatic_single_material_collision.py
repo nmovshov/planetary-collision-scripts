@@ -50,7 +50,7 @@ gravTime = 1/sqrt(MKS().G*rhoTarget)
 
 # Impactor parameters
 rImpactor = 500e3            # Impactor radius (m)
-rhoImpactor = 920.0          # Impactor initial density (kg/m^3)
+rhoImpactor = 920.0          # Impactor approximate bulk density (kg/m^3)
 matImpactor = 'h2oice'       # Impactor material (see <pcs>/MATERIALS.md for options)
 mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
@@ -352,7 +352,7 @@ if restoreCycle is None:
         sys.exit(1)
         pass
 
-    # Tweak density profile is possible, to start closer to equilibrium.
+    # Tweak density profile if possible, to start closer to equilibrium.
     targetGenerator.EOS = eosTarget
     impactorGenerator.EOS = eosImpactor
     shelpers.hydrostaticize_one_layer_planet(targetGenerator)
@@ -404,7 +404,7 @@ del n
 
 #-------------------------------------------------------------------------------
 # NAV Spheral's simulation structure
-# Here we construct the objects that compose spheral's simulation hierarchy.
+# Here we construct the objects that make up spheral's simulation hierarchy.
 # These are:
 #  * One or more physics packages (hydro, gravity, strength, damage)
 #  * A time integrator of some flavor (usually a Runge-Kutta 2)
@@ -470,8 +470,9 @@ control = SpheralController(integrator, WT,
 # Here we register optional work to be done mid-run. Mid-run processes can be time
 # or cycle based. Here we use:
 #  * cooldown() - slow and cool internal nodes [cycle based]
-#  * output() - a generic access routine, usually a pickle of node list or some
+#  * mOutput() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
+#  * cullnodes() - remove errant nodes from simulation (use with care)
 #-------------------------------------------------------------------------------
 def mOutput(stepsSoFar,timeNow,dt):
     mFileName="{0}-{1:05d}-{2:g}.{3}".format(

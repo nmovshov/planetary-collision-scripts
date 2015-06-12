@@ -20,6 +20,7 @@
 from math import *
 import sys, os, shutil
 import random
+import scipy # must be called before spheral is imported
 import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
@@ -43,13 +44,13 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
 rTarget = 1000e3             # Target radius (m)
-rhoTarget = 2700.0           # Target initial density (kg/m^3)
+rhoTarget = 2700.0           # Target initial bulk density (kg/m^3)
 matTarget = 'basalt'         # Target material (see <pcs>/MATERIALS.md for options)
 mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
 
 # Impactor parameters
 rImpactor = 500e3            # Impactor radius (m)
-rhoImpactor = 2700.0         # Impactor initial density (kg/m^3)
+rhoImpactor = 2700.0         # Impactor initial bulk density (kg/m^3)
 matImpactor = 'basalt'       # Impactor material (see <pcs>/MATERIALS.md for options)
 mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
@@ -77,16 +78,16 @@ generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 hmin *= nPerh*2*rTarget/nxTarget
 hmax *= nPerh*2*rTarget/nxTarget
 rhomin = mTarget/nxTarget**3/hmax**3
-universeEdge = 20*rTarget
+universeEdge = 30*rTarget
 
 # More simulation parameters
 dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
 dtMin = 0                    # Minimum allowed time step (sec)
 dtMax = 0.1*goalTime         # Maximum allowed time step (sec)
 verbosedt = False            # Verbose reporting of the time step criteria 
-maxSteps = 800               # Maximum allowed steps for simulation advance
+maxSteps = 10000             # Maximum allowed steps for simulation advance
 statsStep = None             # Frequency for sampling conservation statistics etc.
-redistributeStep = 8000      # Frequency to load balance problem from scratch
+redistributeStep = 80000     # Frequency to load balance problem from scratch
 restartStep = 200            # Frequency to drop restart files
 restoreCycle = None          # If None, latest available restart cycle is selected
 baseDir = jobName            # Base name for directory to store output in
@@ -96,6 +97,9 @@ cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp'
 cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
 cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
+
+# Node Culling mechanism (normally disabled, with cullingFrequency = None)
+cullingFrequency = None      # Cycles between application
 
 #-------------------------------------------------------------------------------
 # NAV Assertions
@@ -111,7 +115,9 @@ assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 assert generator_type in ['hcp', 'shells', 'old']
 if cooldownFrequency is not None:
-    print "WARNING - damping is enabled, is this on purpose?"
+    sys.stderr.write("\033[1;31m")
+    print "WARNING - damping is enabled, is this intentional?"
+    sys.stderr.write("\033[0m")
     assert 0 <= cooldownPower, "cool DOWN not up"
     if cooldownMethod is 'stomp':
         assert 0 <= cooldownPower <= 1.0, "stomp fraction is 0-1"
@@ -119,6 +125,11 @@ if cooldownFrequency is not None:
     assert cooldownMethod in ['dashpot','stomp'], "unknown cooldown method"
     assert (cooldownFrequency == 1) or (not(cooldownMethod is 'dashpot')),\
             "dashpot cooling method requires frequency=1"
+if cullingFrequency is not None:
+    sys.stderr.write("\033[1;31m")
+    print "WARNING - node culling is enabled, is this intentional?"
+    sys.stderr.write("\033[0m")
+    assert type(cullingFrequency) is int and cullingFrequency > 0
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -133,7 +144,7 @@ balsaraCorrection = False
 epsilon2 = 1e-2
 negligibleSoundSpeed = 1e-4 # kind of arbitrary.
 csMultiplier = 1e-4
-hminratio = 0.1
+hminratio = 1.0
 limitIdealH = False
 cfl = 0.5
 useVelocityMagnitudeForDt = False
@@ -184,6 +195,7 @@ jobDir = os.path.join(baseDir,
                        'eosTarget=%d' % eosTarget.uid,
                        'rImpactor=%0.2g' % rImpactor,
                        'eosImpactor=%d' % eosImpactor.uid,
+                       'angle=%g' % angleImpact,
                        'vImpact=%0.3g' % vImpact,
                        'nxTarget=%i' % nxTarget,
                        'np=%i' % mpi.procs,
@@ -220,7 +232,7 @@ shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 
 #-------------------------------------------------------------------------------
 # NAV Node construction
-# Here we create and populate a node list with initial conditions. In spheral, the
+# Here we create and populate node lists with initial conditions. In spheral, the
 # construction order is as follows:
 # 1. Create an empty node list with fields matching the size and type of problem.
 # 2. Create a "generator" that will decide what values to give all field variables
@@ -333,12 +345,6 @@ if restoreCycle is None:
         sys.exit(1)
         pass
 
-    # Tweak density profile is possible, to start closer to equilibrium.
-    if shelpers.material_dictionary[matTarget.lower()]['eos_type'] == 'Tillotson' and \
-       shelpers.material_dictionary[matImpactor.lower()]['eos_type'] == 'Tillotson':
-        #TODO
-        pass
-
     # Place the impactor at the point of impact. It is coming from the 
     # positive x direction in the xy plane.
     displace = Vector((rTarget+rImpactor)*cos(pi/180.0*angleImpact),
@@ -385,7 +391,7 @@ del n
 
 #-------------------------------------------------------------------------------
 # NAV Spheral's simulation structure
-# Here we construct the objects that compose spheral's simulation hierarchy.
+# Here we construct the objects that make up spheral's simulation hierarchy.
 # These are:
 #  * One or more physics packages (hydro, gravity, strength, damage)
 #  * A time integrator of some flavor (usually a Runge-Kutta 2)
@@ -444,11 +450,12 @@ control = SpheralController(integrator, WT,
 # Here we register optional work to be done mid-run. Mid-run processes can be time
 # or cycle based. Here we use:
 #  * cooldown() - slow and cool internal nodes [cycle based]
-#  * output() - a generic access routine, usually a pickle of node list or some
+#  * mOutput() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
+#  * cullnodes() - remove errant nodes from simulation (use with care)
 #-------------------------------------------------------------------------------
 def mOutput(stepsSoFar,timeNow,dt):
-    mFileName="{0}-{1:04d}-{2:g}.{3}".format(
+    mFileName="{0}-{1:05d}-{2:g}.{3}".format(
               jobName, stepsSoFar, timeNow, 'fnl.gz')
     shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
@@ -483,6 +490,32 @@ def cooldown(stepsSoFar,timeNow,dt):
     pass
 control.appendPeriodicWork(cooldown,cooldownFrequency)
 
+def cullnodes(stepsSoFar,timeNow,dt):
+    for nl in nodeSet:
+        v = nl.velocity()
+        r = nl.positions()
+        u = nl.specificThermalEnergy()
+        C = db.connectivityMap()
+        bads = vector_of_int()
+        for k in range(nl.numInternalNodes):
+            if ( abs(v[k].magnitude()) > 10*vImpact   or
+                 u[k] > 10*eosTarget.epsVapor         or
+                 0 < C.numNeighborsForNode(nl,k) < 10 or
+                 sqrt(r[k].x**2 + r[k].y**2 + r[k].z**2) > universeEdge
+               ):
+                bads.append(k)
+                pass
+            pass
+        nl.deleteNodes(bads)
+        if bads.size() > 0:
+            sys.stderr.write("\033[31m")
+            msg = "WARNING - cycle {} deleted {} nodes from {}\n".format(stepsSoFar,bads.size(),nl.name)
+            sys.stderr.write(msg)
+            sys.stderr.write("\033[0m")
+        pass
+    pass
+control.appendPeriodicWork(cullnodes,cullingFrequency)
+
 #-------------------------------------------------------------------------------
 # NAV Launch simulation
 # The simulation can be run for a specified number of steps, or a specified time
@@ -500,9 +533,12 @@ if restoreCycle is None:
 
 # And go.
 if not steps is None:
+    print "Advancing {} steps.".format(steps)
     control.step(steps)
     control.dropRestartFile()
+    control.dropViz()
 else:
+    print "Running to {} seconds.".format(goalTime)
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
     control.dropViz()
