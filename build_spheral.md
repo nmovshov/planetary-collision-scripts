@@ -21,40 +21,40 @@ Or (read-write):
 
 Config spheral:
 
-    cd spheral/src
+    cd code/src
     ./boot
-    ./configure --with-opt=3 --without-opensubdiv --with-scipy --with-matplotlib
+    ./configure --prefix=/path/to/SPHERAL --with-opt=2 --without-opensubdiv --with-scipy --with-matplotlib
 
 Or, with ANEOS support (BYOA):
 
-    cd spheral/src
+    cd code/src
     ./boot
-    ./configure --with-opt=3 --with-aneos --with-aneos-link="-L/path/to/your/ANEOS -lmaneos"
+    ./configure --prefix=/path/to/SPHERAL --with-opt=2 --with-aneos --with-aneos-link="-L/path/to/your/ANEOS -lmaneos"
 
 Build spheral:
 
-    cd spheral/src
+    cd code/src
     make
 
 If you are running GNU make (check with `make --version`) on a multi core machine,
 you can speed things up a bit:
 
-    cd spheral/src
+    cd code/src
     make -j 2
     
 For more config and build options, see the not-quite-up-to-date config manual:
 
-    cd spheral/doc
+    cd code/doc
     pdflatex Building.tex
 
 Test spheral:
 
-    cd spheral/tests
+    cd code/tests
     ../../bin/ats -e ../../bin/python integration.ats
 
 Update spheral: 
 
-    cd spheral
+    cd code
     hg pull
     hg update
 
@@ -64,4 +64,4 @@ the spheral directory clean.
 IMPORTANT: Run your scripts using the python interpreter provided by spheral, not
 your system's default python. You can set up an alias, e.g.:
 
-    alias spy '/path/to/spheral/bin/python'
+    alias spy '/path/to/SPHERAL/bin/python'

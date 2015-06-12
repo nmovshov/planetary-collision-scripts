@@ -26,7 +26,7 @@ install them.
         curl -k -L http://sourceforge.net/projects/scipy/files/scipy/0.14.0/scipy-0.14.0.tar.gz/download > scipy-0.14.0.tar.gz
         tar -xvzf scipy-0.14.0.tar.gz
         cd scipy-0.14.0
-        /path/to/spheral/bin/python setup.py install
+        /path/to/SPHERAL/bin/python setup.py install
   
   and test by starting Spheral's Python and typing `import scipy`. If you see
   errors relating to BLAS or LAPACK read the troubleshooting section below.
@@ -40,7 +40,7 @@ install them.
         curl -k -L http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz/download         > matplotlib-1.3.1.tar.gz
         tar -xvzf matplotlib-1.3.1.tar.gz
         cd matplotlib-1.3.1
-        /path/to/spheral/bin/python setup.py install
+        /path/to/SPHERAL/bin/python setup.py install
         
   and test by starting Spheral's Python and typing `import matplotlib`.
 
@@ -51,14 +51,14 @@ install them.
         git clone https://github.com/ipython/ipython.git
         cd ipython
         git checkout 0.13.x
-        /path/to/spheral/bin/python setup.py install
+        /path/to/SPHERAL/bin/python setup.py install
 
   This will put an executable `ipython` file in the Spheral bin directory that 
   you can launch from there, or better yer put a convenient shortcut to in your
   rc file:
   
-        alias spy "/path/to/spheral/bin/python"
-        alias spi "/path/to/spheral/bin/ipython"
+        alias spy "/path/to/SPHERAL/bin/python"
+        alias spi "/path/to/SPHERAL/bin/ipython"
         
 That's all.
 
