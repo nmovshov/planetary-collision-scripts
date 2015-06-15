@@ -6,7 +6,6 @@
 #-------------------------------------------------------------------------------
 import sys, os, shutil
 import numpy as np
-import scipy as sp
 
 class FNLMeta:
     """A struct with info about the layout of .fnl files."""

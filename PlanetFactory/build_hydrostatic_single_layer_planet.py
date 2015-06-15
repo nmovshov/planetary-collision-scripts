@@ -15,7 +15,6 @@
 from math import *
 import sys, os, shutil
 import random
-import scipy # must be called before spheral is imported
 import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart

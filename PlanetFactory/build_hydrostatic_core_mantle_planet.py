@@ -15,7 +15,7 @@
 from math import *
 import sys, os, shutil
 import random
-import scipy # must be called before spheral is imported
+import numpy as np
 import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
@@ -333,27 +333,25 @@ if restoreCycle is None:
     shelpers.hydrostaticize_two_layer_planet(coreGenerator, mantleGenerator)
 
     # Rotate the core to avoid planes of artificial symmetry.
-    sp = scipy
     theta = pi/3.51234
-    R1 = sp.array([(cos(theta), sin(theta), 0),
+    R1 = np.array([(cos(theta), sin(theta), 0),
                    (-sin(theta), cos(theta), 0),
                    (0, 0, 1)])
     theta = pi/3.51234
-    R2 = sp.array([(1, 0, 0),
+    R2 = np.array([(1, 0, 0),
                    (0, cos(theta), sin(theta)),
                    (0, -sin(theta), cos(theta))])
-    R = sp.dot(R1, R2)
+    R = np.dot(R1, R2)
 
     for k in range(coreGenerator.localNumNodes()):
-        Xk = sp.array([(coreGenerator.x[k],
+        Xk = np.array([(coreGenerator.x[k],
                        coreGenerator.y[k],
                        coreGenerator.z[k])]).transpose()
-        Xk = sp.dot(R, Xk)
+        Xk = np.dot(R, Xk)
         coreGenerator.x[k] = Xk[0]
         coreGenerator.y[k] = Xk[1]
         coreGenerator.z[k] = Xk[2]
         pass
-    del sp
     
     # Fill node lists using generators and distribute to ranks.
     print "Starting node distribution..."
