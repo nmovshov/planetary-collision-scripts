@@ -8,7 +8,6 @@ import sys, os
 import mpi # Mike's simplified mpi wrapper
 import cPickle as pickle
 import numpy as np
-import scipy as sp
 import SolidSpheral3d as sph
 
 
@@ -25,7 +24,7 @@ def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
 
     This function takes in a node generator of the hcp class, and modifies the
     density and mass of nodes to match a hydrostatic state. To invert the equation
-    of state this function uses the scipy solver.
+    of state this function uses a simple lion hunt.
     """
 
     # Make sure we are not wasting our time.
@@ -43,14 +42,23 @@ def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
         p[k] = 2*np.pi/3*G*rho**2*(R**2 - r_planet[k]**2)
     assert np.all(np.isfinite(p))
 
-    # Step two - use root finding to invert eos and get a density
-    from scipy.optimize import brentq
-    def f(x,p,eos):
-        return p - eos.pressure(x,0)
+    # Step two - lion hunt to invert eos and get a density
+    eos = planet.EOS
+    def f(x):
+        return eos.pressure(x,0) - p_hs
     for k in range(p.size):
-        eos = planet.EOS
-        planet.rho[k] = brentq(f, eos.referenceDensity/2, eos.referenceDensity*2, 
-                              args=(p[k],eos))
+        p_hs = p[k]
+        x_hi = eos.referenceDensity*2
+        x_lo = eos.referenceDensity/2
+        while (x_hi - x_lo) > 1e-12*eos.referenceDensity:
+            x_hs = (x_lo + x_hi)/2
+            if f(x_hs) > 0:
+                x_hi = x_hs
+            else:
+                x_lo = x_hs
+                pass
+            pass
+        planet.rho[k] = x_hs
         planet.m[k] = planet.rho[k]*planet.V[k]
     assert np.all(np.isfinite(planet.rho))
 
@@ -72,7 +80,7 @@ def hydrostaticize_two_layer_planet(inner, outer, G=6.674e-11):
 
     This function takes in two node generators of the hcp class, and modifies the
     density and mass of nodes in each to match a hydrostatic state. To invert the
-    equation of state this function uses the scipy solver.
+    equation of state this function uses a simple lion hunt.
     """
 
     # Make sure we are not wasting our time.
@@ -103,19 +111,38 @@ def hydrostaticize_two_layer_planet(inner, outer, G=6.674e-11):
     assert np.all(np.isfinite(p_inner))
     assert np.all(np.isfinite(p_outer))
 
-    # Step two - use root finding to invert eos and get a density
-    from scipy.optimize import brentq
-    def f(x,p,eos):
-        return p - eos.pressure(x,0)
-    for k in range(r_inner.size):
+    # Step two - lion hunt to invert eos and get a density
+    def f(x):
+        return eos.pressure(x,0) - p_hs
+    for k in range(p_inner.size):
         eos = inner.EOS
-        inner.rho[k] = brentq(f, eos.referenceDensity/2, eos.referenceDensity*2, 
-                              args=(p_inner[k],eos))
+        p_hs = p_inner[k]
+        x_hi = eos.referenceDensity*2
+        x_lo = eos.referenceDensity/2
+        while (x_hi - x_lo) > 1e-12*eos.referenceDensity:
+            x_hs = (x_lo + x_hi)/2
+            if f(x_hs) > 0:
+                x_hi = x_hs
+            else:
+                x_lo = x_hs
+                pass
+            pass
+        inner.rho[k] = x_hs
         inner.m[k] = inner.rho[k]*inner.V[k]
-    for k in range(r_outer.size):
+    for k in range(p_outer.size):
         eos = outer.EOS
-        outer.rho[k] = brentq(f, eos.referenceDensity/2, eos.referenceDensity*2, 
-                              args=(p_outer[k],eos))
+        p_hs = p_outer[k]
+        x_hi = eos.referenceDensity*2
+        x_lo = eos.referenceDensity/2
+        while (x_hi - x_lo) > 1e-12*eos.referenceDensity:
+            x_hs = (x_lo + x_hi)/2
+            if f(x_hs) > 0:
+                x_hi = x_hs
+            else:
+                x_lo = x_hs
+                pass
+            pass
+        outer.rho[k] = x_hs
         outer.m[k] = outer.rho[k]*outer.V[k]
     assert np.all(np.isfinite(inner.rho))
     assert np.all(np.isfinite(outer.rho))
