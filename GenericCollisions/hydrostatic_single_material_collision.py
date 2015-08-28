@@ -61,9 +61,9 @@ crossTime = 2*rTarget/vImpact
 # Times, simulation control, and output
 nxTarget = 20                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 2*crossTime       # Time to advance to (sec)
+goalTime = 2*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
-vizTime = 0.1*goalTime       # Time frequency for dropping viz files (sec)
+vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
