@@ -31,9 +31,9 @@ try:
         body_nodes = sum(nl_id == n)
         body_mass = sum(m[nl_id == n])
         body_pos = pos[nl_id == n]
-        rx = (body_pos[:,0].max() - body_pos[0].min())/2
-        ry = (body_pos[:,1].max() - body_pos[1].min())/2
-        rz = (body_pos[:,2].max() - body_pos[2].min())/2
+        rx = (body_pos[:,0].max() - body_pos[:,0].min())/2
+        ry = (body_pos[:,1].max() - body_pos[:,1].min())/2
+        rz = (body_pos[:,2].max() - body_pos[:,2].min())/2
         body_r = (rx + ry + rz)/3
         print "    List {:g}: {:.6g} kg in {} nodes ({:.4g} kg/node).".format(
             n, body_mass, body_nodes, body_mass/body_nodes)
