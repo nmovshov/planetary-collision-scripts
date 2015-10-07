@@ -10,6 +10,36 @@ import cPickle as pickle
 import numpy as np
 import SolidSpheral3d as sph
 
+def pressure(eos, rho, eps):
+    """Return pressure at given density and internal energy using given EOS
+
+    This function is a wrapper that allows simple calling of the pressure
+    method from supported equation-of-state objects. Spheral changeset
+    881810f18294 deprecated the public method access to the pressure calculation
+    and this wrapper function is a convenient but inefficient workaround.
+    """
+
+    # Minimal(!) assertions
+    assert isinstance(eos, sph.Spheral.SolidMaterial.TillotsonEquationOfState3d)
+    assert np.isscalar(rho)
+    assert np.isscalar(eps)
+    assert np.isreal(rho)
+    assert np.isreal(eps)
+
+    # Fake node list and thermo fields
+    nodes = sph.makeVoidNodeList('fakenodes',1)
+    rhof = sph.ScalarField('rho',nodes)
+    epsf = sph.ScalarField('eps',nodes)
+    peef = sph.ScalarField('pee',nodes)
+
+    # Assign thermo values to fields and calculate pressure
+    rhof[0] = rho
+    epsf[0] = eps
+    eos.setPressure(peef, rhof, epsf)
+
+    # Extract pressure from field and return
+    return peef[0]
+    # End function pressure
 
 def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
     """Modify densities in node generator to approximate hydrostatic equilibrium.
