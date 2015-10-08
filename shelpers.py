@@ -11,15 +11,15 @@ import numpy as np
 import SolidSpheral3d as sph
 
 def pressure(eos, rho, eps):
-    """Return pressure at given density and internal energy using given EOS
+    """Return pressure at given density and internal energy using given EOS.
 
     This function is a wrapper that allows simple calling of the pressure
     method from supported equation-of-state objects. Spheral changeset
     881810f18294 deprecated the public method access to the pressure calculation
-    and this wrapper function is a convenient but inefficient workaround.
+    and this wrapper function is a convenient but inefficient(!!!) workaround.
     """
 
-    # Minimal(!) assertions
+    # Minimal assertions
     assert isinstance(eos, sph.Spheral.SolidMaterial.TillotsonEquationOfState3d)
     assert np.isscalar(rho)
     assert np.isscalar(eps)
@@ -75,7 +75,7 @@ def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
     # Step two - lion hunt to invert eos and get a density
     eos = planet.EOS
     def f(x):
-        return eos.pressure(x,0) - p_hs
+        return pressure(eos,x,0) - p_hs
     for k in range(p.size):
         p_hs = p[k]
         x_hi = eos.referenceDensity*2
@@ -143,7 +143,7 @@ def hydrostaticize_two_layer_planet(inner, outer, G=6.674e-11):
 
     # Step two - lion hunt to invert eos and get a density
     def f(x):
-        return eos.pressure(x,0) - p_hs
+        return pressure(eos,x,0) - p_hs
     for k in range(p_inner.size):
         eos = inner.EOS
         p_hs = p_inner[k]
