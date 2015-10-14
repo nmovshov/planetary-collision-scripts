@@ -19,27 +19,26 @@ def pressure(eos, rho, eps):
     and this wrapper function is a convenient but inefficient(!!!) workaround.
     """
 
-    # Minimal assertions
+    # Minimal assertions (uncomment for debugging)
     assert isinstance(eos, sph.Spheral.SolidMaterial.TillotsonEquationOfState3d)
-    assert np.isscalar(rho)
-    assert np.isscalar(eps)
-    assert np.isreal(rho)
-    assert np.isreal(eps)
-
-    # Fake node list and thermo fields
-    nodes = sph.makeVoidNodeList('fakenodes',1)
-    rhof = sph.ScalarField('rho',nodes)
-    epsf = sph.ScalarField('eps',nodes)
-    peef = sph.ScalarField('pee',nodes)
+    #assert np.isscalar(rho)
+    #assert np.isscalar(eps)
+    #assert np.isreal(rho)
+    #assert np.isreal(eps)
 
     # Assign thermo values to fields and calculate pressure
-    rhof[0] = rho
-    epsf[0] = eps
-    eos.setPressure(peef, rhof, epsf)
+    pressure.rhof[0] = rho
+    pressure.epsf[0] = eps
+    eos.setPressure(pressure.peef, pressure.rhof, pressure.epsf)
 
     # Extract pressure from field and return
-    return peef[0]
+    return pressure.peef[0]
     # End function pressure
+# Static fake node list and thermo fields for function pressure
+pressure.nodes = sph.makeVoidNodeList('fakenodes',1)
+pressure.rhof = sph.ScalarField('rho',pressure.nodes)
+pressure.epsf = sph.ScalarField('eps',pressure.nodes)
+pressure.peef = sph.ScalarField('pee',pressure.nodes)
 
 def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
     """Modify densities in node generator to approximate hydrostatic equilibrium.
