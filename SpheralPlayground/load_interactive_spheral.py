@@ -52,15 +52,14 @@ if len(sys.argv) == 1:
 db = sph.DataBase()
 db.appendNodeList(nodes)
 
-# Create the kernel functions for SPH.
-WT = sph.TableKernel(sph.BSplineKernel(), 1000) # one for normal hydro
-WTPi = WT                                   # one for artificial viscosity
+# Create the kernel function for SPH.
+WT = sph.TableKernel(sph.BSplineKernel(), 1000)
 
 # Create the artificial viscosity object.
 q = sph.MonaghanGingoldViscosity(1.0, 1.0)
 
 # Create the hydro package.
-hydro = sph.ASPHHydro(WT,WTPi,q)
+hydro = sph.ASPHHydro(W = WT, Q = q)
 
 # Create the time integrator and attach the physics package to it.
 integrator = sph.CheapSynchronousRK2Integrator(db)

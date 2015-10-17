@@ -267,10 +267,8 @@ del n
 # NAV Here we create the various objects needed by spheral
 #-------------------------------------------------------------------------------
 
-# Create our interpolation kernels -- one for normal hydro interactions, and
-# one for use with the artificial viscosity
+# Create our interpolation kernel
 WT = TableKernel(BSplineKernel(), 1000)
-WTPi = WT
 
 # Construct the artificial viscosity.
 q = Qconstructor(Cl, Cq)
@@ -281,9 +279,8 @@ q.negligibleSoundSpeed = negligibleSoundSpeed
 q.csMultiplier = csMultiplier
 
 # Construct the hydro physics object.
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
+hydro = HydroConstructor(W = WT,
+                         Q = q,
                          cfl = cfl,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                          compatibleEnergyEvolution = compatibleEnergyEvolution,

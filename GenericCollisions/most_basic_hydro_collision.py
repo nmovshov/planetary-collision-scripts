@@ -396,9 +396,8 @@ del n
 #  * A time integrator of some flavor (usually a Runge-Kutta 2)
 #  * The simulation controller
 #-------------------------------------------------------------------------------
-# Create the kernel functions for SPH.
-WT = TableKernel(BSplineKernel(), 1000) # one for normal hydro
-WTPi = WT                               # one for artificial viscosity
+# Create the kernel function for SPH.
+WT = TableKernel(BSplineKernel(), 1000)
 
 # Create the artificial viscosity object.
 q = Qconstructor(Cl, Cq)
@@ -409,9 +408,8 @@ q.negligibleSoundSpeed = negligibleSoundSpeed
 q.csMultiplier = csMultiplier
 
 # Create the hydro package.
-hydro = HydroConstructor(WT,
-                         WTPi,
-                         q,
+hydro = HydroConstructor(W = WT,
+                         Q = q,
                          cfl = cfl,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                          compatibleEnergyEvolution = compatibleEnergyEvolution,
