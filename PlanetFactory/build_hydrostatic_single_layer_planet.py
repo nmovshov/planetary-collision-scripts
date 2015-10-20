@@ -38,9 +38,9 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet parameters
 rPlanet = 1000e3             # Initial guess for planet radius (m)
-rhoPlanet = 916.             # Initial guess for planet density (kg/m^3)
+rhoPlanet = 920.             # Initial guess for planet density (kg/m^3)
 matPlanet = 'h2oice'         # Planet material (see <pcs>/MATERIALS.md for options)
-mPlanet = rhoPlanet * (4.0*pi/3.0) * rPlanet**3
+mPlanet = rhoPlanet*4.0*pi/3.0*rPlanet**3
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
@@ -53,8 +53,8 @@ cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
 nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
-dtInit = 0.2                 # Initial guess for time step (sec)
-vizTime = 0.2*gravTime       # Time frequency for dropping viz files (sec)
+dtInit = 0.02                # Initial guess for time step (sec)
+vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
@@ -63,11 +63,11 @@ outCycle = None              # Cycles between running output routine
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
-rhomin = 1e-1*rhoPlanet      # Lower bound on node density (kg/m^3)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
+rhomin = mPlanet/nxPlanet**3/hmax**3
 universeEdge = 2*rPlanet
 
 # Gravity parameters
@@ -151,8 +151,8 @@ assert eosPlanet is not None
 assert eosPlanet.valid()
 
 # Optionally, provide non-default values to the following
-eosPlanet.etamin_solid = 0.94 # default is 0.94
-eosPlanet.minimumPressure = 0.0 # default is 1e-200
+#eosPlanet.etamin_solid = 0.94 # default is 0.94
+#eosPlanet.minimumPressure = 0.0 # default is -1e-200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -291,7 +291,7 @@ del n
 
 #-------------------------------------------------------------------------------
 # NAV Spheral's simulation structure
-# Here we construct the objects that compose spheral's simulation hierarchy.
+# Here we construct the objects that make up spheral's simulation hierarchy.
 # These are:
 #  * One or more physics packages (hydro, gravity, strength, damage)
 #  * A time integrator of some flavor (usually a Runge-Kutta 2)
@@ -355,11 +355,11 @@ control = SpheralController(integrator, WT,
 # Here we register optional work to be done mid-run. Mid-run processes can be time
 # or cycle based. Here we use:
 #  * cooldown() - slow and cool internal nodes [cycle based]
-#  * output() - a generic access routine, usually a pickle of node list or some
+#  * mOutput() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
 def mOutput(stepsSoFar,timeNow,dt):
-    mFileName="{0}-{1:04d}-{2:g}.{3}".format(
+    mFileName="{0}-{1:05d}-{2:g}.{3}".format(
               jobName, stepsSoFar, timeNow, 'fnl.gz')
     shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
@@ -411,9 +411,12 @@ if restoreCycle is None:
 
 # And go.
 if not steps is None:
+    print "Advancing {} steps.".format(steps)
     control.step(steps)
     control.dropRestartFile()
+    control.dropViz()
 else:
+    print "Running to {} seconds.".format(goalTime)
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
     control.dropViz()
