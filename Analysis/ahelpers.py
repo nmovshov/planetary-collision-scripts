@@ -144,17 +144,19 @@ def plot_P_vs_r(fnl):
 
     fig = plt.figure()
     axe = plt.axes()
-    plt.xlabel('Radius [m]')
+    plt.xlabel('Radius [km]')
     plt.ylabel('Pressure [GPa]')
     plt.grid()
     for nl in fnl:
         assert isinstance(nl,FNLData)
-        plt.plot(nl.r,nl.P/1e9,'.')
+        x = np.sort(nl.r)
+        y = nl.P[np.argsort(nl.r)]
+        plt.plot(x/1e3, y/1e9)
         pass
     plt.show(block=False)
     return (fig,axe)
 
-def plot_P_vs_r_output(dirname):
+def plot_P_vs_r_output(dirname='.'):
     """Plot P(r) for all fnl files in a directory."""
 
     import matplotlib as mpl
@@ -179,7 +181,10 @@ def plot_P_vs_r_output(dirname):
             fnl = (fnl,)
         plt.subplot(nb_rows,nb_cols,k+1)
         for nl in fnl:
-            plt.plot(nl.r,nl.P/1e9,'.')
+            assert isinstance(nl,FNLData)
+            x = np.sort(nl.r)
+            y = nl.P[np.argsort(nl.r)]
+            plt.plot(x/1e3, y/1e9)
             pass
         pass
 
