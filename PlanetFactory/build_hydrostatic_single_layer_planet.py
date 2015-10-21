@@ -21,6 +21,7 @@ from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d
+from GenerateNodeDistribution3d import GenerateIcosahedronMatchingProfile3d
 pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
 sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers # My module of some helper functions
@@ -50,8 +51,8 @@ cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
-steps = None                 # None or number of steps to advance (overrides time)
+nxPlanet = 20                # Nodes across diameter of planet (run "resolution")
+steps = 1                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
 vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
@@ -64,7 +65,7 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
+generator_type = 'cody'      # Node generator to use. 'hcp'|'old'|'shells'|'cody'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
@@ -106,7 +107,7 @@ if cooldownFrequency is not None:
             "dashpot cooling method requires frequency=1"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
-assert generator_type in ['hcp', 'shells', 'old']
+assert generator_type in ['hcp', 'shells', 'old', 'cody']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -162,6 +163,7 @@ assert eosPlanet.valid()
 jobDir = os.path.join(baseDir, 
                        'mPlanet=%0.2g' % mPlanet,
                        'eosPlanet=%d' % eosPlanet.uid,
+                       'generator=%s' % generator_type,
                        'nxPlanet=%i' % nxPlanet,
                        'np=%i' % mpi.procs,
                        )
@@ -256,14 +258,30 @@ if restoreCycle is None:
                             rMax = rPlanet,
                             nNodePerh = nPerh)
         pass
+    elif generator_type == 'cody':
+        from HydroStaticProfile import HydroStaticProfileConstantTemp3d
+        eostup = (eosPlanet, [0,rPlanet])
+        rhoProfile = HydroStaticProfileConstantTemp3d(
+                                        rho0 = eosPlanet.referenceDensity,
+                                        rMax = rPlanet,
+                                        temp = 200.0,
+                                        eostup = eostup,
+                                        units = units)
+        planetGenerator = GenerateIcosahedronMatchingProfile3d(nxPlanet,
+                            densityProfileMethod = rhoProfile,
+                            rmin  = 0.0,
+                            rmax = rPlanet,
+                            nNodePerh = nPerh)
+        pass
     else:
         print "unknown generator type"
         sys.exit(1)
         pass
 
     # Tweak density profile to start closer to equilibrium.
-    planetGenerator.EOS = eosPlanet
-    shelpers.hydrostaticize_one_layer_planet(planetGenerator)
+    if generator_type is not 'cody':
+        planetGenerator.EOS = eosPlanet
+        shelpers.hydrostaticize_one_layer_planet(planetGenerator)
     
     # Fill node list using generator and distribute to ranks.
     print "Starting node distribution..."
