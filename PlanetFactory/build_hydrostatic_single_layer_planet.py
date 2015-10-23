@@ -39,8 +39,8 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet parameters
 rPlanet = 1000e3             # Initial guess for planet radius (m)
-rhoPlanet = 920.             # Initial guess for planet density (kg/m^3)
-matPlanet = 'h2oice'         # Planet material (see <pcs>/MATERIALS.md for options)
+rhoPlanet = 2700.            # Initial guess for planet density (kg/m^3)
+matPlanet = 'basalt'         # Planet material (see <pcs>/MATERIALS.md for options)
 mPlanet = rhoPlanet*4.0*pi/3.0*rPlanet**3
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
