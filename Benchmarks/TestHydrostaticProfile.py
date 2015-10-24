@@ -15,6 +15,7 @@ import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d
 from GenerateNodeDistribution3d import GenerateIcosahedronMatchingProfile3d
+from HydroStaticProfile import HydroStaticProfileConstantTemp3d
 pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
 sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers # My module of some helper functions
@@ -52,8 +53,34 @@ planetGenerator = PlanetNodeGenerators.HexagonalClosePacking(
 planetGenerator.EOS = eosPlanet
 shelpers.hydrostaticize_one_layer_planet(planetGenerator)
 rho_c = max(planetGenerator.rho)
+rho_0 = min(planetGenerator.rho)
 P_c = shelpers.pressure(eosPlanet, rho_c, 0)
+P_0 = shelpers.pressure(eosPlanet, rho_0, 0)
 
 print ""
 print "Using quasi-incompressible assumption and inverse EOS we find:"
-print "P_center = {:g} Pa; rho_center = {:g} kg/m^3".format(P_c, rho_c)
+print "P range   = [{:g} -- {:g}] Pa".format(P_c, P_0)
+print "rho range = [{:g} -- {:g}] kg/m^3".format(rho_c, rho_0)
+
+# Option two: solve a simplified Lane-Emden style equation, using Cody's class
+eostup = (eosPlanet, [0, rPlanet])
+stdout = sys.stdout
+sys.stdout = open(os.devnull, 'w')
+rhoProfile = HydroStaticProfileConstantTemp3d(
+                                rho0 = eosPlanet.referenceDensity,
+                                rMax = rPlanet,
+                                M0 = mPlanet,
+                                temp = 200,
+                                eostup = eostup,
+                                units = units)
+sys.stdout = stdout
+rho_c = rhoProfile(0)
+rho_0 = rhoProfile(rPlanet)
+P_c = shelpers.pressure(eosPlanet, rho_c, 0)
+P_0 = shelpers.pressure(eosPlanet, rho_0, 0)
+print ""
+print "Using simplified Lane-Emden integration we find:"
+print "P range   = [{:g} -- {:g}] Pa".format(P_c, P_0)
+print "rho range = [{:g} -- {:g}] kg/m^3".format(rho_c, rho_0)
+
+print ""
