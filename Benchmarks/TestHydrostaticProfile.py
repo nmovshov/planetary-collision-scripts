@@ -27,5 +27,33 @@ print "TEST OF HYDROSTATIC DENSITY PROFILES"
 rPlanet = 1000e3             # Initial guess for planet radius (m)
 rhoPlanet = 2700.            # Initial guess for planet density (kg/m^3)
 matPlanet = 'basalt'         # Planet material (see <pcs>/MATERIALS.md for options)
+nxPlanet = 40                # Nodes across a diameter
 mPlanet = rhoPlanet*4.0*pi/3.0*rPlanet**3
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
+
+# Equation of state
+units = PhysicalConstants(1.0, # unit length in meters
+                          1.0, # unit mass in kilograms
+                          1.0) # unit time in seconds
+eosPlanet = shelpers.construct_eos_for_material(matPlanet,units)
+assert eosPlanet.valid()
+# Optionally, provide non-default values to the following
+#eosPlanet.etamin_solid = 0.94 # default is 0.94
+#eosPlanet.minimumPressure = 0.0 # default is -1e+200
+
+# Option one: calculate a pressure/density profile using my hydrostaticizing
+# functions on an HCP generator.
+planetGenerator = PlanetNodeGenerators.HexagonalClosePacking(
+                    nx = nxPlanet,
+                    rho = rhoPlanet,
+                    scale = 2*rPlanet,
+                    rMin = 0.0,
+                    rMax = rPlanet)
+planetGenerator.EOS = eosPlanet
+shelpers.hydrostaticize_one_layer_planet(planetGenerator)
+rho_c = max(planetGenerator.rho)
+P_c = shelpers.pressure(eosPlanet, rho_c, 0)
+
+print ""
+print "Using quasi-incompressible assumption and inverse EOS we find:"
+print "P_center = {:g} Pa; rho_center = {:g} kg/m^3".format(P_c, rho_c)
