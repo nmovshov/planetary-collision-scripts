@@ -1,10 +1,10 @@
 #! /proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Compare different methods of producing hydrostatic equilibrium.
+# Compare two methods of producing hydrostatic equilibrium.
 #
 # This script tests a couple of different ways to initialize node lists inside
 # a planet-size body in hydrostatic equilibrium. We don't actually run the SPH
-# physics, only generate initial node lists.
+# physics, only generate pressure/density profiles.
 #
 # To run as an executable check that the shebang line points to the full
 # path to spheral's python.
@@ -19,7 +19,7 @@ from HydroStaticProfile import HydroStaticProfileConstantTemp3d
 pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
 sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers # My module of some helper functions
-import PlanetNodeGenerators # New experimental node generators
+import PlanetNodeGenerators # My experimental node generators
 
 # Say something
 print "TEST OF HYDROSTATIC DENSITY PROFILES"
