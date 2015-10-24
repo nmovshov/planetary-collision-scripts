@@ -65,7 +65,7 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'cody'      # Node generator to use. 'hcp'|'old'|'shells'|'cody'
+generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'|'cody'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
@@ -298,6 +298,8 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    print "Worst node mass ratio: {}".format(
+            planet.mass().max()/planet.mass().min())
     
     pass # end restoreCycle branching
 

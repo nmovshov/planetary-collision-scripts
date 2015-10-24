@@ -375,8 +375,9 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
-    print "Worst node mass ratio: {}".format(impactor.mass().max()/
-                                             target.mass().min())
+    print "Worst node mass ratio: {}".format(
+            max(impactor.mass().max(), target.mass().max())/
+            min(impactor.mass().min(), target.mass().min()))
     
     # Launch the impactor
     vel = impactor.velocity()
