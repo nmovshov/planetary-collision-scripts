@@ -20,7 +20,7 @@ def pressure(eos, rho, eps):
     """
 
     # Minimal assertions (uncomment for debugging)
-    assert isinstance(eos, sph.Spheral.SolidMaterial.TillotsonEquationOfState3d)
+    assert isinstance(eos, sph.EquationOfState3d)
     #assert np.isscalar(rho)
     #assert np.isscalar(eps)
     #assert np.isreal(rho)
