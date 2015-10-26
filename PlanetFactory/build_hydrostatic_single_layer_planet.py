@@ -51,8 +51,8 @@ cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 20                # Nodes across diameter of planet (run "resolution")
-steps = 1                 # None or number of steps to advance (overrides time)
+nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
+steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
 vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
@@ -65,7 +65,8 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'|'cody'
+generator_type = 'ico'       # Node generator class: 'hcp'|'ico'
+density_profile = 'ple'      # Initial density profile: 'qi'|'ple'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
@@ -107,7 +108,7 @@ if cooldownFrequency is not None:
             "dashpot cooling method requires frequency=1"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
-assert generator_type in ['hcp', 'shells', 'old', 'cody']
+assert generator_type in ['hcp', 'shells', 'old', 'ico']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -163,7 +164,7 @@ assert eosPlanet.valid()
 jobDir = os.path.join(baseDir, 
                        'mPlanet=%0.2g' % mPlanet,
                        'eosPlanet=%d' % eosPlanet.uid,
-                       'generator=%s' % generator_type,
+                       'generator=%s' % generator_type + density_profile,
                        'nxPlanet=%i' % nxPlanet,
                        'np=%i' % mpi.procs,
                        )
@@ -225,23 +226,8 @@ nodeSet = [planet]
 
 # Unless restarting, create the generator and set initial field values.
 if restoreCycle is None:
-    # Create a basic, usually constant density generator.
-    if generator_type == 'old':
-        planetGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                            rhoPlanet,
-                            distributionType = 'lattice',
-                            xmin = (-rPlanet, -rPlanet, -rPlanet),
-                            xmax = ( rPlanet,  rPlanet,  rPlanet),
-                            rmin = 0.0,
-                            rmax = rPlanet,
-                            nNodePerh = nPerh)
-        for k in range(planetGenerator.localNumNodes()):
-            planetGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            planetGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            planetGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            pass
-        pass
-    elif generator_type == 'hcp':
+    # Create a node generator with choice of geometry and density profile.
+    if generator_type == 'hcp':
         planetGenerator = PlanetNodeGenerators.HexagonalClosePacking(
                             nx = nxPlanet,
                             rho = rhoPlanet,
@@ -249,40 +235,48 @@ if restoreCycle is None:
                             rMin = 0.0,
                             rMax = rPlanet,
                             nNodePerh = nPerh)
+        if density_profile == 'qi':
+            planetGenerator.EOS = eosPlanet
+            shelpers.hydrostaticize_one_layer_planet(planetGenerator)
+        elif density_profile == 'ple':
+            print "Pseudo-Lane-Emden not yet implemented for HCP generator"
+            sys.exit(1)
+        else:
+            print "ERROR: unknown density integration method."
+            sys.exit(1)
+            pass
         pass
-    elif generator_type == 'shells':
-        planetGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
-                            nLayers = nxPlanet/2,
-                            rho = rhoPlanet,
-                            rMin = 0.0,
-                            rMax = rPlanet,
-                            nNodePerh = nPerh)
-        pass
-    elif generator_type == 'cody':
-        from HydroStaticProfile import HydroStaticProfileConstantTemp3d
-        eostup = (eosPlanet, [0,rPlanet])
-        rhoProfile = HydroStaticProfileConstantTemp3d(
-                                        rho0 = eosPlanet.referenceDensity,
-                                        rMax = rPlanet,
-                                        temp = 200.0,
-                                        eostup = eostup,
-                                        units = units)
-        planetGenerator = GenerateIcosahedronMatchingProfile3d(nxPlanet,
+    elif generator_type == 'ico':
+        if density_profile == 'ple':
+            from HydroStaticProfile import HydroStaticProfileConstantTemp3d
+            eostup = (eosPlanet, [0, rPlanet])
+            rhoProfile = HydroStaticProfileConstantTemp3d(
+                                            rho0 = eosPlanet.referenceDensity,
+                                            rMax = rPlanet,
+                                            M0 = mPlanet,
+                                            temp = 200.0,
+                                            eostup = eostup,
+                                            units = units)
+        elif density_profile == 'qi':
+            print "Quasi-incompressible not yet implemented for ICO generator"
+            sys.exit(1)
+        else:
+            print "ERROR: unknown density integration method"
+            sys.exit(1)
+            pass
+        planetGenerator = GenerateIcosahedronMatchingProfile3d(
+                            n = nxPlanet/2,
                             densityProfileMethod = rhoProfile,
                             rmin  = 0.0,
                             rmax = rPlanet,
                             nNodePerh = nPerh)
         pass
     else:
-        print "unknown generator type"
+        print "ERROR: unknown or obsolete generator type: {}".format(
+                generator_type)
         sys.exit(1)
         pass
 
-    # Tweak density profile to start closer to equilibrium.
-    if generator_type is not 'cody':
-        planetGenerator.EOS = eosPlanet
-        shelpers.hydrostaticize_one_layer_planet(planetGenerator)
-    
     # Fill node list using generator and distribute to ranks.
     print "Starting node distribution..."
     distributeNodes3d((planet, planetGenerator))
