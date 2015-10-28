@@ -181,7 +181,7 @@ def hydrostaticize_two_layer_planet(inner, outer, G=6.674e-11):
     # End function hydrostaticize_two_layer_planet
     
 
-def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
+def construct_eos_for_material(material_tag,units=None,etamin=0.94,etamax=100.0):
     """Return a spheral EOS object for a material identified by tag.
 
     construct_eos_for_material(mtag,units) calls the appropriate spheral eos
@@ -212,6 +212,8 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     # Make sure we are not wasting our time.
     assert isinstance(material_tag,str)
     assert material_tag.lower() in material_dictionary.keys()
+    if units is None:
+        units = sph.PhysicalConstants(1,1,1)
     assert isinstance(units,sph.PhysicalConstants)
     assert isinstance(etamin,float)
     assert isinstance(etamax,float)
