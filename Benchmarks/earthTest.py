@@ -83,7 +83,7 @@ commandLine(#distributor = VoronoiDistributeNodes.distributeNodes2d,
             #Time and sim control
             timeStepChoice = AccelerationRatio,
             myIntegrator = CheapSynchronousRK2Integrator3d,
-            steps = None,
+            steps = 0,
             goalTime = 200,
             vizTime = 1e-3,
             vizCycle = 100,
@@ -223,7 +223,8 @@ for nodes in nodeSet:
 if restoreCycle is None:
     from HydroStaticProfile import HydroStaticProfileConstantTemp3d
     eostup     = (eosIron,[0,rCore],eosGranite,[rCore,rPlanet])
-    rhoProfile = HydroStaticProfileConstantTemp3d(rho0,rPlanet,temp,eostup,units)
+    mPlanet = rho0*4*pi/3*rPlanet**3
+    rhoProfile = HydroStaticProfileConstantTemp3d(rho0,rPlanet,mPlanet,temp,eostup,units)
 
 
     for i in xrange(9):

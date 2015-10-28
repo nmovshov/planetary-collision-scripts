@@ -47,7 +47,7 @@ gravTime = 1/sqrt(MKS().G*rhoPlanet)
 # Cooldown mechanism
 cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
 cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
-cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
+cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
@@ -55,7 +55,7 @@ nxPlanet = 40                # Nodes across diameter of planet (run "resolution"
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
-vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
+vizTime = 0.1*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
@@ -65,8 +65,8 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'ico'       # Node generator class: 'hcp'|'ico'
-density_profile = 'ple'      # Initial density profile: 'qi'|'ple'
+generator_type = 'hcp'       # Node generator class: 'hcp'|'ico'
+density_profile = 'qic'      # Initial density profile: 'qic'|'ple'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
@@ -108,7 +108,7 @@ if cooldownFrequency is not None:
             "dashpot cooling method requires frequency=1"
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
-assert generator_type in ['hcp', 'shells', 'old', 'ico']
+assert generator_type in ['hcp', 'shells', 'ico']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -235,7 +235,7 @@ if restoreCycle is None:
                             rMin = 0.0,
                             rMax = rPlanet,
                             nNodePerh = nPerh)
-        if density_profile == 'qi':
+        if density_profile == 'qic':
             planetGenerator.EOS = eosPlanet
             shelpers.hydrostaticize_one_layer_planet(planetGenerator)
         elif density_profile == 'ple':
