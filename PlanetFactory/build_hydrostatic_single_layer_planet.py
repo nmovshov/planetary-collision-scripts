@@ -1,20 +1,19 @@
 #! /proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Set up a single-layer, fluid planet and run to hydrostatic equilibrium.
+# Set up a single-layer fluid planet close to hydrostatic equilibrium.
 #
-# This script serves as a template for equilibrating a fluid, single material
-# planet, with a specified mass and radius.
+# This script serves as a template for equilibrating a fluid, single-material
+# planet with a specified mass and radius.
 # Copy this file to a separate folder and modify with choices of planet mass,
 # radius, and material. The parameter nxPlanet controls the run resolution. You
 # will need to consider the expected time scale to run to, and you may need to
-# tweak the cooldown frequency and strength as the planet approaches equilibrium.
+# invoke the cooldown mechanism as the planet approaches equilibrium.
 #
 # To run as an executable script, check that the shebang line points to the full
 # path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
 import sys, os, shutil
-import random
 import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from findLastRestart import findLastRestart
@@ -272,8 +271,7 @@ if restoreCycle is None:
                             nNodePerh = nPerh)
         pass
     else:
-        print "ERROR: unknown or obsolete generator type: {}".format(
-                generator_type)
+        print "ERROR: unknown or obsolete generator type: {}".format(generator_type)
         sys.exit(1)
         pass
 

@@ -1,20 +1,19 @@
 #! /proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
-# Set up a two-layer, fluid planet and run to hydrostatic equilibrium.
+# Set up a two-layer fluid planet close to hydrostatic equilibrium.
 #
-# This script serves as a template for equilibrating a fluid, two-layer  planet,
+# This script serves as a template for equilibrating a fluid, two-layer planet
 # specifying core and mantle radius and density.
 # Copy this file to a separate folder and modify with choices of layer densities,
 # radii, and materials. The parameter nxPlanet controls the run resolution. You
 # will need to consider the expected time scale to run to, and you may need to
-# tweak the cooldown frequency and strength as the planet approaches equilibrium.
+# invoke the cooldown mechanism as the planet approaches equilibrium.
 #
 # To run as an executable script, check that the shebang line points to the full
 # path to spheral's python.
 #-------------------------------------------------------------------------------
 from math import *
 import sys, os, shutil
-import random
 import numpy as np
 import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
@@ -22,6 +21,7 @@ from findLastRestart import findLastRestart
 from VoronoiDistributeNodes import distributeNodes3d
 from NodeHistory import NodeHistory
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d
+from GenerateNodeDistribution3d import GenerateIcosahedronMatchingProfile3d
 pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
 sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers # My module of some helper functions
@@ -41,38 +41,39 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 rPlanet = 1000e3             # Initial guess for outer planet radius (m)
 rCore = 500e3                # Initial guess for core radius (m)
 matMantle = 'h2oice'         # Mantle material (see <pcs>/MATERIALS.md for options)
-rhoMantle = 916.             # Initial guess for mantle density (kg/m^3)
-matCore = 'granite'          # Core material (see <pcs>/MATERIALS.md for options)
-rhoCore = 2680.              # Initial guess for core density (kg/m^3)
-mPlanet = (4.0*pi/3.0) * (rhoCore*rCore**3 + rhoMantle*(rPlanet**3-rCore**3))
-rhoPlanet = 3.0*mPlanet/(4.0*pi*rPlanet**3)
+rhoMantle = 917.             # Initial guess for mantle density (kg/m^3)
+matCore = 'basalt'           # Core material (see <pcs>/MATERIALS.md for options)
+rhoCore = 2700.              # Initial guess for core density (kg/m^3)
+mPlanet = (4.0*pi/3.0)*(rhoCore*rCore**3 + rhoMantle*(rPlanet**3-rCore**3))
+rhoPlanet = mPlanet/(4.0*pi/3.0*rPlanet**3)
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
 cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
 cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
-cooldownFrequency = 1        # Cycles between application (use 1 with dashpot)
+cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
 nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
-dtInit = 0.2                 # Initial guess for time step (sec)
-vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
+dtInit = 0.02                # Initial guess for time step (sec)
+vizTime = 0.1*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
 outCycle = None              # Cycles between running output routine
 
 # Node list parameters
 nPerh = 2.01                 # Nominal number of nodes per smoothing scale
-hmin = 0.1                   # Minimum smoothing length (fraction of nominal)
-hmax = 2.0                   # Maximum smoothing length (fraction of nominal)
-rhomin = 1e-1*rhoPlanet      # Lower bound on node density (kg/m^3)
+hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
+hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
 generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
+density_profile = 'qic'      # Initial density profile: 'qic'|'ple'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
+rhomin = mPlanet/nxPlanet**3/hmax**3
 universeEdge = 2*rPlanet
 
 # Gravity parameters
@@ -112,7 +113,7 @@ if cooldownFrequency is not None:
 assert (outTime is None) or (outCycle is None),\
         "output on both time and cycle is confusing"
 assert rPlanet > rCore, "core means it's inside"
-assert generator_type in ['hcp',]
+assert generator_type in ['hcp', 'shells', 'ico']
 
 #-------------------------------------------------------------------------------
 # NAV Spheral hydro solver options
@@ -162,10 +163,10 @@ assert eosMantle is not None
 assert eosMantle.valid()
 
 # Optionally, provide non-default values to the following
-eosCore.etamin_solid = 0.94 # default is 0.94
-eosCore.minimumPressure = 0.0 # default is -1e+200
-eosMantle.etamin_solid = 0.94 # default is 0.94
-eosMantle.minimumPressure = 0.0 # default is -1e+200
+#eosCore.etamin_solid = 0.94 # default is 0.94
+#eosCore.minimumPressure = 0.0 # default is -1e+200
+#eosMantle.etamin_solid = 0.94 # default is 0.94
+#eosMantle.minimumPressure = 0.0 # default is -1e+200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -177,6 +178,7 @@ jobDir = os.path.join(baseDir,
                        'rCore=%0.2g' % rCore,
                        'eosCore=%d' % eosCore.uid,
                        'eosMantle=%d' % eosMantle.uid,
+                       'generator=%s' % generator_type + density_profile,
                        'nxPlanet=%i' % nxPlanet,
                        'np=%i' % mpi.procs,
                        )
@@ -231,8 +233,8 @@ print "Selected {} nodes in the core.".format(nxCore)
 # Create the node lists.
 core   = makeFluidNodeList('core', eosCore, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rCore*Vector.one, 
-                           xmax =  10.0*rCore*Vector.one,
+                           xmin = -universeEdge*Vector.one, # (probably unnecessary)
+                           xmax =  universeEdge*Vector.one, # (probably unnecessary)
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,
@@ -244,8 +246,8 @@ core.eos_id = eosCore.uid
 
 mantle = makeFluidNodeList('mantle', eosMantle, 
                            nPerh = nPerh, 
-                           xmin = -10.0*rPlanet*Vector.one, 
-                           xmax =  10.0*rPlanet*Vector.one, 
+                           xmin = -universeEdge*Vector.one, # (probably unnecessary)
+                           xmax =  universeEdge*Vector.one, # (probably unnecessary)
                            hmin = hmin,
                            hmax = hmax,
                            rhoMin = rhomin,
@@ -259,37 +261,8 @@ nodeSet = [core, mantle]
 
 # Unless restarting, create the generators and set initial field values.
 if restoreCycle is None:
-    # Create a basic, usually constant density generator.
-    if generator_type == 'old':
-        nxCore = int(nxPlanet*(rCore/rPlanet))
-        coreGenerator   = GenerateNodeDistribution3d(nxCore, nxCore, nxCore,
-                            rhoCore,
-                            distributionType = 'lattice',
-                            xmin = (-rCore, -rCore, -rCore),
-                            xmax = ( rCore,  rCore,  rCore),
-                            rmin = 0.0,
-                            rmax = rCore,
-                            nNodePerh = nPerh)
-        mantleGenerator = GenerateNodeDistribution3d(nxPlanet, nxPlanet, nxPlanet,
-                            rhoMantle,
-                            distributionType = 'lattice',
-                            xmin = (-rPlanet, -rPlanet, -rPlanet),
-                            xmax = ( rPlanet,  rPlanet,  rPlanet),
-                            rmin = rCore,
-                            rmax = rPlanet,
-                            nNodePerh = nPerh)
-        for k in range(coreGenerator.localNumNodes()):
-            coreGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            coreGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            coreGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            pass
-        for k in range(mantleGenerator.localNumNodes()):
-            mantleGenerator.x[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            mantleGenerator.y[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            mantleGenerator.z[k] *= 1.0 + random.uniform(-0.02, 0.02)
-            pass
-        pass
-    elif generator_type == 'hcp':
+    # Create a node generator with choice of geometry and density profile.
+    if generator_type == 'hcp':
         coreGenerator   = PlanetNodeGenerators.HexagonalClosePacking(
                             nx = nxCore,
                             rho = rhoCore,
@@ -305,25 +278,8 @@ if restoreCycle is None:
                             rMax = rPlanet,
                             nNodePerh = nPerh)
         pass
-    elif generator_type == 'shells':
-        nLayers = nxPlanet/2
-        core_layers = int(nLayers * rCore/rPlanet)
-        mantle_layers = nLayers - core_layers
-        coreGenerator   = PlanetNodeGenerators.EqualSpacingSphericalShells(
-                            nLayers = core_layers,
-                            rho = rhoCore,
-                            rMin = 0.0,
-                            rMax = rCore,
-                            nNodePerh = nPerh)
-        mantleGenerator = PlanetNodeGenerators.EqualSpacingSphericalShells(
-                            nLayers = mantle_layers,
-                            rho = rhoMantle,
-                            rMin = rCore,
-                            rMax = rPlanet,
-                            nNodePerh = nPerh)
-        pass
     else:
-        print "unknown generator type"
+        print "ERROR: unknown or obsolete generator type: {}".format(generator_type)
         sys.exit(1)
         pass
 
@@ -369,6 +325,9 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    print "Worst node mass ratio: {}".format(
+            max(core.mass().max(), mantle.mass().max())/
+            min(core.mass().min(), mantle.mass().min()))
     
     pass # end restoreCycle branching
 
@@ -444,11 +403,11 @@ control = SpheralController(integrator, WT,
 # Here we register optional work to be done mid-run. Mid-run processes can be time
 # or cycle based. Here we use:
 #  * cooldown() - slow and cool internal nodes [cycle based]
-#  * output() - a generic access routine, usually a pickle of node list or some
+#  * mOutput() - a generic access routine, usually a pickle of node list or some
 #               calculated value of interest [cycle or time based]
 #-------------------------------------------------------------------------------
 def mOutput(stepsSoFar,timeNow,dt):
-    mFileName="{0}-{1:04d}-{2:g}.{3}".format(
+    mFileName="{0}-{1:05d}-{2:g}.{3}".format(
               jobName, stepsSoFar, timeNow, 'fnl.gz')
     shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
@@ -500,9 +459,12 @@ if restoreCycle is None:
 
 # And go.
 if not steps is None:
+    print "Advancing {} steps.".format(steps)
     control.step(steps)
     control.dropRestartFile()
+    control.dropViz()
 else:
+    print "Running to {} seconds.".format(goalTime)
     control.advance(goalTime, maxSteps)
     control.dropRestartFile()
     control.dropViz()
