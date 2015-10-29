@@ -371,9 +371,15 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
-    print "Worst node mass ratio: {}".format(
-            max(impactor.mass().max(), target.mass().max())/
-            min(impactor.mass().min(), target.mass().min()))
+    WMR = (max(impactor.mass().max(), target.mass().max())/
+           min(impactor.mass().min(), target.mass().min()))
+    if WMR < 1.5:
+        sys.stderr.write("\033[32m")
+    else:
+        sys.stderr.write("\033[31m")
+    print "Worst node mass ratio: {}".format(WMR)
+    sys.stderr.write("\033[0m")
+    assert WMR < 3, "Severe node mass imbalance: comment out assertion to ignore."
     
     # Launch the impactor
     vel = impactor.velocity()
