@@ -11,7 +11,7 @@ if len(sys.argv)==1:
 fdname = sys.argv[1]
 if os.path.isfile(fdname):
     print "Plotting from file", fdname
-    fnl = ahelpers.load_fnl(fdname)
+    fnl = ahelpers.load_multi_fnl(fdname)
     ahelpers.plot_P_vs_r(fnl, True)
 elif os.path.isdir(fdname):
     print "Plotting from directory", fdname
