@@ -253,7 +253,7 @@ if restoreCycle is None:
                                             rho0 = eosPlanet.referenceDensity,
                                             rMax = rPlanet,
                                             M0 = mPlanet,
-                                            temp = 200.0,
+                                            temp = 100.0,
                                             eostup = eostup,
                                             units = units)
         elif density_profile == 'qi':
