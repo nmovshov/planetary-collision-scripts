@@ -46,7 +46,7 @@ class HydrostaticQIC1LayerDensityProfile():
     #---------------------------------------------------------------------------
     # The constructor
     #---------------------------------------------------------------------------
-    def __init__(self, radius, eos, rho0=None, units=None):
+    def __init__(self, R, eos, rho0=None, rmin=0, units=None, nbins=100):
         """Class constructor for the quasi-incompressible density profile.
 
         Assuming a barely compressible, one-layer planet, a pressure profile in
@@ -66,15 +66,70 @@ class HydrostaticQIC1LayerDensityProfile():
         Parameters
         ----------
         """
+
+        # Minimal input checking
+        assert np.isreal(R) and R > 0
+        assert np.isreal(rmin) and rmin < R
+        assert isinstance(eos, sph.EquationOfState3d)
+        assert type(nbins) is type(1) and nbins >= 10
         if rho0 is None:
             rho0 = eos.referenceDensity
-        self.rho0 = rho0
-        pass
+        if units is None:
+            units = sph.PhysicalConstants(1,1,1)
+        
+        # Local variables
+        rvec = np.linspace(rmin, R, num=nbins)
+        dvec = np.ones(rvec.size)*np.NaN
+        pvec = np.ones(rvec.size)*np.NaN
 
-    def __call__(self):
-        return self.rho0
+        # Step one - calculate pressure profile
+        G = units.G
+        for k in range(rvec.size):
+            pvec[k] = 2*np.pi/3*G*rho0**2*(R**2 - rvec[k]**2)
+        assert np.all(np.isfinite(pvec))
+        
+        # Step two - lion hunt to invert eos and get a density
+        def f(x):
+            return pressure(eos,x,0) - p_hs
+        for k in range(pvec.size):
+            p_hs = pvec[k]
+            x_hi = eos.referenceDensity*2
+            x_lo = eos.referenceDensity/2
+            while (x_hi - x_lo) > 1e-12*eos.referenceDensity:
+                x_hs = (x_lo + x_hi)/2
+                if f(x_hs) > 0:
+                    x_hi = x_hs
+                else:
+                    x_lo = x_hs
+                    pass
+                pass
+            dvec[k] = x_hs
+        assert np.all(np.isfinite(dvec))
+        
+        # Store object data
+        self.rvec = rvec
+        self.dvec = dvec
+        self.pvec = pvec
+        self.units = units
+
+        # And Bob's our uncle.
+        return
+        # End constructor
+
+    def __call__(self, r):
+        """Return density at requested radius."""
+        assert np.isreal(r) and r >=self.rvec[0]
+
+        if r >= self.rvec[-1]:
+            return self.dvec[-1]
+        ind = np.nonzero(self.rvec > r)[0][0]
+        x0, x1 = self.rvec[ind-1], self.rvec[ind]
+        y0, y1 = self.dvec[ind-1], self.dvec[ind]
+        return y0 + (y1 - y0)/(x1 - x0)*(r - x0)
+        # End method __call__
     
     pass
+    # End class HydrostaticQIC1LayerDensityProfile
 
 def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
     """Modify densities in node generator to approximate hydrostatic equilibrium.
