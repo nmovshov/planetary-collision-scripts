@@ -40,6 +40,42 @@ pressure.rhof = sph.ScalarField('rho',pressure.nodes)
 pressure.epsf = sph.ScalarField('eps',pressure.nodes)
 pressure.peef = sph.ScalarField('pee',pressure.nodes)
 
+class HydrostaticQIC1LayerDensityProfile():
+    """Callable hydrostatic quasi-incompressible density profile."""
+
+    #---------------------------------------------------------------------------
+    # The constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, radius, eos, rho0=None, units=None):
+        """Class constructor for the quasi-incompressible density profile.
+
+        Assuming a barely compressible, one-layer planet, a pressure profile in
+        hydrostatic equilibrium can be found by integrating the hydrostatic
+        equation with constant density. The equation of state can then be inverted
+        to provide a density profile consistent with this pressure profile.
+        Although the resulting pressure/density state is not strictly self
+        consistent, it may be used as a good approximation for small planets that
+        are not expected to be highly compressed.
+
+        This class generates, in the constructor, a density profile: a vector of
+        radii and a vector of corresponding densities. The __call__ method is used
+        to extract a density for an arbitrary radius by interpolation. This is to
+        provide the interface used by some of the existing node generators in
+        SPHERAL.
+
+        Parameters
+        ----------
+        """
+        if rho0 is None:
+            rho0 = eos.referenceDensity
+        self.rho0 = rho0
+        pass
+
+    def __call__(self):
+        return self.rho0
+    
+    pass
+
 def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
     """Modify densities in node generator to approximate hydrostatic equilibrium.
 
