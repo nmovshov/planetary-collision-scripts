@@ -256,9 +256,11 @@ if restoreCycle is None:
                                             temp = 100.0,
                                             eostup = eostup,
                                             units = units)
-        elif density_profile == 'qi':
-            print "Quasi-incompressible not yet implemented for ICO generator"
-            sys.exit(1)
+        elif density_profile == 'qic':
+            rhoProfile = shelpers.HydrostaticQIC1LayerDensityProfile(
+                                            R = rPlanet,
+                                            eos = eosPlanet,
+                                            units = units)
         else:
             print "ERROR: unknown density integration method"
             sys.exit(1)
