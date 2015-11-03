@@ -74,8 +74,11 @@ class HydrostaticQIC1LayerDensityProfile():
         assert type(nbins) is type(1) and nbins >= 10
         if rho0 is None:
             rho0 = eos.referenceDensity
+        assert type(rho0) is type(1.0) and rho0 > 0
         if units is None:
             units = sph.PhysicalConstants(1,1,1)
+        assert isinstance(units, sph.PhysicalConstants)
+        assert units.G == eos.constants.G
         
         # Local variables
         rvec = np.linspace(rmin, R, num=nbins)
