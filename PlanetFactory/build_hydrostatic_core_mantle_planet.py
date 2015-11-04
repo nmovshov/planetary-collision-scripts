@@ -33,15 +33,15 @@ import PlanetNodeGenerators # New experimental node generators
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = 'coremantle'
+jobName = 'newcoremantle'
 jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Planet parameters
 rPlanet = 1000e3             # Initial guess for outer planet radius (m)
 rCore = 500e3                # Initial guess for core radius (m)
-matMantle = 'h2oice'         # Mantle material (see <pcs>/MATERIALS.md for options)
-rhoMantle = 917.             # Initial guess for mantle density (kg/m^3)
+matMantle = 'granite'         # Mantle material (see <pcs>/MATERIALS.md for options)
+rhoMantle = 2680.             # Initial guess for mantle density (kg/m^3)
 matCore = 'basalt'           # Core material (see <pcs>/MATERIALS.md for options)
 rhoCore = 2700.              # Initial guess for core density (kg/m^3)
 mPlanet = (4.0*pi/3.0)*(rhoCore*rCore**3 + rhoMantle*(rPlanet**3-rCore**3))
@@ -55,7 +55,7 @@ cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
+nxPlanet = 45                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
@@ -69,8 +69,8 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'hcp'       # Node generator to use. 'hcp'|'old'|'shells'
-density_profile = 'qic'      # Initial density profile: 'qic'|'ple'
+generator_type = 'ico'       # Node generator class: 'hcp'|'ico'
+density_profile = 'ple'      # Initial density profile: 'qic'|'ple'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
@@ -277,16 +277,52 @@ if restoreCycle is None:
                             rMin = rCore,
                             rMax = rPlanet,
                             nNodePerh = nPerh)
+        if density_profile == 'qic':
+            coreGenerator.EOS = eosCore
+            mantleGenerator.EOS = eosMantle
+            shelpers.hydrostaticize_two_layer_planet(coreGenerator, mantleGenerator)
+        elif density_profile == 'ple':
+            print "Pseudo-Lane-Emden not yet implemented for HCP generator"
+            sys.exit(1) 
+        else:
+            print "ERROR: unknown density integration method."
+            sys.exit(1)
+    elif generator_type == 'ico':
+        if density_profile == 'ple':
+            from HydroStaticProfile import HydroStaticProfileConstantTemp3d
+            eostup = (eosCore, [0, rCore], eosMantle, [rCore, rPlanet])
+            rhoProfile = HydroStaticProfileConstantTemp3d(
+                                            rho0 = eosMantle.referenceDensity,
+                                            rMax = rPlanet,
+                                            M0 = mPlanet,
+                                            temp = 100.0,
+                                            eostup = eostup,
+                                            units = units)
+            pass
+        elif density_profile == 'qic':
+            pass
+        else:
+            print "ERROR: unknown density integration method."
+            sys.exit(1)
+        coreGenerator = GenerateIcosahedronMatchingProfile3d(
+                            n = nxPlanet/2,
+                            densityProfileMethod = rhoProfile,
+                            rmin = 0.0,
+                            rmax = rCore,
+                            rMaxForMassMatching = rPlanet,
+                            nNodePerh = nPerh)
+        mantleGenerator = GenerateIcosahedronMatchingProfile3d(
+                            n = nxPlanet/2,
+                            densityProfileMethod = rhoProfile,
+                            rmin = rCore,
+                            rmax = rPlanet,
+                            rMaxForMassMatching = rPlanet,
+                            nNodePerh = nPerh)
         pass
     else:
         print "ERROR: unknown or obsolete generator type: {}".format(generator_type)
         sys.exit(1)
         pass
-
-    # Tweak density profile to start closer to equilibrium.
-    coreGenerator.EOS = eosCore
-    mantleGenerator.EOS = eosMantle
-    shelpers.hydrostaticize_two_layer_planet(coreGenerator, mantleGenerator)
 
     # Rotate the core to avoid planes of artificial symmetry.
     theta = pi/3.51234

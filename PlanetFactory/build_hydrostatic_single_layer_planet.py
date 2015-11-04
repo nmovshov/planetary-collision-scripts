@@ -268,7 +268,7 @@ if restoreCycle is None:
         planetGenerator = GenerateIcosahedronMatchingProfile3d(
                             n = nxPlanet/2,
                             densityProfileMethod = rhoProfile,
-                            rmin  = 0.0,
+                            rmin = 0.0,
                             rmax = rPlanet,
                             nNodePerh = nPerh)
         pass
