@@ -40,8 +40,8 @@ print '\n', jobName.upper(), '-', jobDesc.upper()
 # Planet parameters
 rPlanet = 1000e3             # Initial guess for outer planet radius (m)
 rCore = 500e3                # Initial guess for core radius (m)
-matMantle = 'granite'         # Mantle material (see <pcs>/MATERIALS.md for options)
-rhoMantle = 2680.             # Initial guess for mantle density (kg/m^3)
+matMantle = 'h2oice'         # Mantle material (see <pcs>/MATERIALS.md for options)
+rhoMantle = 917.             # Initial guess for mantle density (kg/m^3)
 matCore = 'basalt'           # Core material (see <pcs>/MATERIALS.md for options)
 rhoCore = 2700.              # Initial guess for core density (kg/m^3)
 mPlanet = (4.0*pi/3.0)*(rhoCore*rCore**3 + rhoMantle*(rPlanet**3-rCore**3))
@@ -55,7 +55,7 @@ cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 45                # Nodes across diameter of planet (run "resolution")
+nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 1*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
@@ -69,8 +69,8 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'ico'       # Node generator class: 'hcp'|'ico'
-density_profile = 'ple'      # Initial density profile: 'qic'|'ple'
+generator_type = 'hcp'       # Node generator class: 'hcp'|'ico'
+density_profile = 'qic'      # Initial density profile: 'qic'|'ple'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
@@ -298,9 +298,13 @@ if restoreCycle is None:
                                             temp = 100.0,
                                             eostup = eostup,
                                             units = units)
-            pass
         elif density_profile == 'qic':
-            pass
+            rhoProfile = shelpers.HydrostaticQIC2LayerDensityProfile(
+                                            R = rPlanet,
+                                            rCore = rCore,
+                                            eosMantle = eosMantle,
+                                            eosCore = eosCore,
+                                            units = units)
         else:
             print "ERROR: unknown density integration method."
             sys.exit(1)
