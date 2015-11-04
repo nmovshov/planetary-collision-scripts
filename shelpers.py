@@ -47,7 +47,7 @@ class HydrostaticQIC1LayerDensityProfile():
     # The constructor
     #---------------------------------------------------------------------------
     def __init__(self, R, eos, rho0=None, rmin=0, units=None, nbins=100):
-        """Class constructor for the quasi-incompressible density profile.
+        """Class constructor for quasi-incompressible density profile.
 
         Assuming a barely compressible, one-layer planet, a pressure profile in
         hydrostatic equilibrium can be found by integrating the hydrostatic
@@ -147,6 +147,96 @@ class HydrostaticQIC1LayerDensityProfile():
     
     pass
     # End class HydrostaticQIC1LayerDensityProfile
+
+class HydrostaticQIC2LayerDensityProfile():
+    """Callable hydrostatic quasi-incompressible, two-layer density profile."""
+
+    #---------------------------------------------------------------------------
+    # The constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, R, rCore, eosMantle, eosCore, nbins = 100, units=None):
+        """Class constructor for quasi-incompressible two-layer density profile."""
+
+        # Minimal input checking
+        assert True
+        if units is None:
+            units = sph.PhysicalConstants(1,1,1)
+        assert isinstance(units, sph.PhysicalConstants)
+        assert units.G == eosMantle.constants.G == eosCore.constants.G
+
+        # Local variables
+        rvec = np.linspace(0, R, num=nbins)
+        dvec = np.ones(rvec.size)*np.NaN
+        pvec = np.ones(rvec.size)*np.NaN
+        rc = rCore
+        rhoc = eosCore.referenceDensity
+        rhom = eosMantle.referenceDensity
+        assert 0 < rc < R
+        assert rhom <= rhoc
+        r_inner = rvec[rvec <= rc]
+        r_outer = rvec[rvec > rc]
+
+        # Step one - calculate pressure profile
+        G = units.G
+        c2 = 4*np.pi/3*G*(0.5*rhom**2*R**2 - rhom*(rhoc - rhom)*rc**3/R)
+        c1 = 4*np.pi/3*G*(0.5*rhoc**2 - 1.5*rhom**2 + rhoc*rhom)*rc**2 + c2
+        p_inner = np.ones(r_inner.size)*np.NaN
+        p_outer = np.ones(r_outer.size)*np.NaN
+        for k in range(r_inner.size):
+            p_inner[k] = c1 - 4*np.pi/3*G*0.5*rhoc**2*r_inner[k]**2
+        for k in range(r_outer.size):
+            p_outer[k] = c2 - 4*np.pi/3*G*(0.5*rhom**2*r_outer[k]**2 - 
+                                           rhom*(rhoc - rhom)*rc**3/r_outer[k])
+        assert np.all(np.isfinite(p_inner))
+        assert np.all(np.isfinite(p_outer))
+        pvec = np.concatenate((p_inner, p_outer))
+
+        # Step two - lion hunt to invert eos and get a density
+        def f(x):
+            return pressure(eos,x,0) - p_hs
+        for k in range(rvec.size):
+            p_hs = pvec[k]
+            if rvec[k] <= rc:
+                eos = eosCore
+            else:
+                eos = eosMantle
+            x_hi = eos.referenceDensity*2
+            x_lo = eos.referenceDensity/2
+            while (x_hi - x_lo) > 1e-12*eos.referenceDensity:
+                x_hs = (x_lo + x_hi)/2
+                if f(x_hs) > 0:
+                    x_hi = x_hs
+                else:
+                    x_lo = x_hs
+                    pass
+                pass
+            dvec[k] = x_hs
+        assert np.all(np.isfinite(dvec))
+
+        # Store object data
+        self.rvec = rvec
+        self.dvec = dvec
+        self.pvec = pvec
+        self.units = units
+
+        # And Bob's our uncle.
+        return
+        # End constructor
+
+    def __call__(self, r):
+        """Return density at requested radius."""
+        assert np.isreal(r) and r >=self.rvec[0]
+
+        if r >= self.rvec[-1]:
+            return self.dvec[-1]
+        ind = np.nonzero(self.rvec > r)[0][0]
+        x0, x1 = self.rvec[ind-1], self.rvec[ind]
+        y0, y1 = self.dvec[ind-1], self.dvec[ind]
+        return y0 + (y1 - y0)/(x1 - x0)*(r - x0)
+        # End method __call__
+    
+    pass
+    # End class HydrostaticQIC2LayerDensityProfile
 
 def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
     """Modify densities in node generator to approximate hydrostatic equilibrium.
