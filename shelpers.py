@@ -65,6 +65,20 @@ class HydrostaticQIC1LayerDensityProfile():
 
         Parameters
         ----------
+        R : float > 0
+            Radius of uncompressed planet.
+        eos : SolidSpheral3d.EquationOfState3d
+            Equation-of-state of planet material.
+        rho0 : float > 0, optional
+            Guess for density at surface. If not provided eos.referenceDensity
+            will be used.
+        rMin : float >=0, optional
+            Bottom of profile to be computed. Default is 0.
+        units : SolidSpheral3d.PhysicalConstants, optional
+            Units object if arguments are not in MKS. Must match constants member
+            of eos. Default is SolidSpheral3d.PhysicalConstants(1,1,1).
+        nbins : int >= 10, optional
+            Number of interpolation points in [rMin,R].
         """
 
         # Minimal input checking
