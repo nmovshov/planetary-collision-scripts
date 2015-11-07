@@ -6,6 +6,7 @@ interpreter. You will have to build IPython from source, using Spheral's python
 instead of the system python! This is very easy to do.
 
   - `equations_of_state.py` 
+    + ANEOS is not currently supported. It's on my TODO list.
     + To use the ANEOS object remember to build Spheral with ANEOS support
     + Currently, ANEOS behaves a little differently from other solid equations
       of state. There is no pressure zeroing mechanism in highly extended

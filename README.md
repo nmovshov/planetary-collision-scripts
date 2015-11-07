@@ -24,38 +24,24 @@ doc strings. Users typically set a small number of parameters in (a copy of) the
 most files executable to simplify the mpirun command. But note that they need to
 be executed by the python interpreter built by spheral, not the system python!
 
+To get started read `install.md` and `build_spheral.md`.
+
 Maintained by: Naor Movshovitz (nmovshov@gmail.com)
 
 Directory: **(Work in progress, updated often!)**  
-  [MF=mostly functional; BV=beta version (use with care); PH=place holder]
-  - `Benchmarks` - Tests of accuracy and performance.  
-    + `Nakamura_Fujiwara.py` - Collision of two spheres with strength and damage,
-       no gravity. Try to reproduce Nakamura and Fujiwara (1991). [BV]
-    + `polytropic_planet.py` - Hydrostatic equilibrium of a fluid polytropic
-       planet, compared with known analytic solution. [BV]
-  - `PlanetFactory` - Scripts for setting up and saving sph node lists modeling
-     generic and custom planets.
-    + `build_hydrostatic_single_material_planet.py` - Set up a spherical, single
-       material, fluid planet and run to hydrostatic equilibrium. No strength or
-       damage model. [BV]
-    + `build_hydrostatic_core_mantle_planet.py` - Set up a two-layer, fluid planet
-       and run to hydrostatic equilibrium. No strength or damage model. [PH]
-  - `GenericCollisions` - The basic planetary collision scenarios, to be
+  - `Benchmarks/` (NOT READY DO NOT USE!)- Tests of accuracy and performance.  
+  - `PlanetFactory/` (NOT READY DO NOT USE!) - Scripts for setting up and saving
+     custom planets.
+  - `GenericCollisions/` - The basic planetary collision scenarios, to be
      customized with problem specific requirements.
-    + `strength_collision.py` - Two spheres colliding in the strength regime.
-       Hydro, strength, damage models. No gravity. [PH]
-    + `most_basic_collisions.py` - Run two fluid spheres into each other. [BV]
-  - `Analysis` - Scripts to load and visualize simulation data.  
-  - `SpheralPlayground` - Various python code chunks for demonstrating usage of
+  - `Analysis/` - Scripts to load and visualize simulation data.  
+  - `SpheralPlayground/` - Various python code chunks for demonstrating usage of
      spheral classes. Usually invoked for interactive work, these should be run
      with iPython if possible.
-    + `gnu_plot.py` - Demonstrating the use the gnuplot python package. [MF]
-    + `equations_of_state.py` - Demonstrating the use of spheral's equation-of-
-       state objects. [MF]
-    + `load_interactive_spheral.py` - Set up interactive python session with
-       spheral modules loaded and basic objects initiated. Works best with
-       iPython. [MF]
+  - `Help/` - Some usage notes, troubleshooting notes, etc.
   - `shelpers.py` - A module containing some convenience methods used by the other
-     scripts. This is a true python module, not an executable. [MF]
+     scripts. This is a true python module, not an executable.
   - `MATERILAS.md` - Table of material and eos selection for use in many of above
-     scripts. [BV]
+     scripts.
+  - `PlanetNodeGenerators.py` - Custom node placement classes. Eventually should
+     move into the spheral cose base.

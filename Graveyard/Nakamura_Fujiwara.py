@@ -1,8 +1,9 @@
 #! /auto/proj/nmovshov_hindmost/collisions/SPHERAL/bin/python
 #-------------------------------------------------------------------------------
 # Simulation of two spheres colliding in the strength regime, modeling the famous
-# Nakamura Fujiwara (1991) experiment. Modify the Weibull parameters to match
-# fragment distirbution.
+# Nakamura Fujiwara (1991) experiment (http://linkinghub.elsevier.com/retrieve/
+# pii/001910359190040ZModify). Modify the Weibull parameters to match fragment
+# distirbution.
 # Make sure the first line includes the full path to SPHERAL's python. Then mpirun.
 #-------------------------------------------------------------------------------
 from math import *

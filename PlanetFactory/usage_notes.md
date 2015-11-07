@@ -1,4 +1,4 @@
-Planet building scripts
+Planet building scripts (NOT READY DO NOT USE!)
 =========================
 Random notes in no particular order.
 
@@ -12,6 +12,5 @@ Random notes in no particular order.
   all the properties some methods rely on. So the solution is to set the
   minimum allowable hmin/hmax ratio to 1.0.
 
-* The HCP lattice seems to work really well for hydrostatuc planets. Use 
-  generator_type='hcp' to create the planet on an HCP lattice. Other values
-  are 'shells' for spherical shells and 'old' for spheral's built-in lattice.
+* The HCP lattice seems to work really well for hydrostatic planets. Use 
+  generator_type='hcp' to create the planet on an HCP lattice.

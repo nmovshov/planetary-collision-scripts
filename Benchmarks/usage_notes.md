@@ -1,8 +1,5 @@
-Testing stability, accuracy, and performance
+Testing stability, accuracy, and performance (NOT READY DO NOT USE)
 ==============================================
-
-  - `NakamuraFujiwara.py` 
-    + See [Nakamura and Fujiwara, 1991](http://linkinghub.elsevier.com/retrieve/pii/001910359190040Z)
 
   - `polytropic_planet.py` 
     + For a refresher on polytropes and the solution for a polytropic index n=1
