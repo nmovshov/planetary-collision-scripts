@@ -76,76 +76,40 @@ doc strings. Users typically set a small number of parameters in (a copy of) the
 most files executable to simplify the mpirun command. But note that they need to
 be executed by the python interpreter built by spheral, not the system python!</p>
 
+<p>To get started read <code>install.md</code> and <code>build_spheral.md</code>.</p>
+
 <p>Maintained by: Naor Movshovitz (<a href="mailto:nmovshov@gmail.com">nmovshov@gmail.com</a>)</p>
 
-<p>Directory: <strong>(Work in progress, updated often!)</strong><br>
-  [MF=mostly functional; BV=beta version (use with care); PH=place holder]</p>
+<p>Directory: <strong>(Work in progress, updated often!)</strong>  </p>
 
 <ul>
 <li>
-<code>Benchmarks</code> - Tests of accuracy and performance.<br>
-
-<ul>
-<li>
-<code>Nakamura_Fujiwara.py</code> - Collision of two spheres with strength and damage,
-no gravity. Try to reproduce Nakamura and Fujiwara (1991). [BV]</li>
-<li>
-<code>polytropic_planet.py</code> - Hydrostatic equilibrium of a fluid polytropic
-planet, compared with known analytic solution. [BV]</li>
-</ul>
+<code>Benchmarks/</code> (place holder)- Tests of accuracy and performance.<br>
 </li>
 <li>
-<code>PlanetFactory</code> - Scripts for setting up and saving sph node lists modeling
- generic and custom planets.
-
-<ul>
+<code>PlanetFactory/</code> (place holder) - Scripts for setting up and saving custom
+ planets.</li>
 <li>
-<code>build_hydrostatic_single_material_planet.py</code> - Set up a spherical, single
-material, fluid planet and run to hydrostatic equilibrium. No strength or
-damage model. [BV]</li>
+<code>GenericCollisions/</code> - The basic planetary collision scenarios, to be
+ customized with problem specific requirements.</li>
 <li>
-<code>build_hydrostatic_core_mantle_planet.py</code> - Set up a two-layer, fluid planet
-and run to hydrostatic equilibrium. No strength or damage model. [PH]</li>
-</ul>
+<code>Analysis/</code> - Scripts to load and visualize simulation data.<br>
 </li>
 <li>
-<code>GenericCollisions</code> - The basic planetary collision scenarios, to be
- customized with problem specific requirements.
-
-<ul>
-<li>
-<code>strength_collision.py</code> - Two spheres colliding in the strength regime.
-Hydro, strength, damage models. No gravity. [PH]</li>
-<li>
-<code>most_basic_collisions.py</code> - Run two fluid spheres into each other. [BV]</li>
-</ul>
-</li>
-<li>
-<code>Analysis</code> - Scripts to load and visualize simulation data.<br>
-</li>
-<li>
-<code>SpheralPlayground</code> - Various python code chunks for demonstrating usage of
+<code>SpheralPlayground/</code> - Various python code chunks for demonstrating usage of
  spheral classes. Usually invoked for interactive work, these should be run
- with iPython if possible.
-
-<ul>
+ with iPython if possible.</li>
 <li>
-<code>gnu_plot.py</code> - Demonstrating the use the gnuplot python package. [MF]</li>
-<li>
-<code>equations_of_state.py</code> - Demonstrating the use of spheral's equation-of-
-state objects. [MF]</li>
-<li>
-<code>load_interactive_spheral.py</code> - Set up interactive python session with
-spheral modules loaded and basic objects initiated. Works best with
-iPython. [MF]</li>
-</ul>
-</li>
+<code>Help/</code> - Some usage notes, troubleshooting notes, etc.</li>
 <li>
 <code>shelpers.py</code> - A module containing some convenience methods used by the other
- scripts. This is a true python module, not an executable. [MF]</li>
+ scripts. This is a true python module, not an executable.</li>
 <li>
 <code>MATERILAS.md</code> - Table of material and eos selection for use in many of above
- scripts. [BV]</li>
+ scripts.</li>
+<li>
+<code>PlanetNodeGenerators.py</code> - Custom node placement classes. Eventually should
+ move into the spheral cose base.</li>
 </ul>
 
               </div>
