@@ -1,4 +1,4 @@
-Testing stability, accuracy, and performance
+Testing stability, accuracy, and performance (NOT READY DO NOT USE)
 ==============================================
 
   - `polytropic_planet.py` 

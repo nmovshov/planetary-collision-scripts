@@ -10,6 +10,7 @@
 # To run as an executable script, check that the shebang line points to the full
 # path to spheral's python.
 #-------------------------------------------------------------------------------
+assert False, "NOT READY DO NOT USE!"
 from math import *
 import sys, os
 import random

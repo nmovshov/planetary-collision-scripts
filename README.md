@@ -29,9 +29,9 @@ To get started read `install.md` and `build_spheral.md`.
 Maintained by: Naor Movshovitz (nmovshov@gmail.com)
 
 Directory: **(Work in progress, updated often!)**  
-  - `Benchmarks/` (place holder)- Tests of accuracy and performance.  
-  - `PlanetFactory/` (place holder) - Scripts for setting up and saving custom
-     planets.
+  - `Benchmarks/` (NOT READY DO NOT USE!)- Tests of accuracy and performance.  
+  - `PlanetFactory/` (NOT READY DO NOT USE!) - Scripts for setting up and saving
+     custom planets.
   - `GenericCollisions/` - The basic planetary collision scenarios, to be
      customized with problem specific requirements.
   - `Analysis/` - Scripts to load and visualize simulation data.  

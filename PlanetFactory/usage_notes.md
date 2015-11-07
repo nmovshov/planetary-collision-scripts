@@ -1,4 +1,4 @@
-Planet building scripts
+Planet building scripts (NOT READY DO NOT USE!)
 =========================
 Random notes in no particular order.
 
