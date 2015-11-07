@@ -1,4 +1,4 @@
-Setting up a SciPy stack to work with Spheral's python
+Setting up a SciPy stack to work with SPHERAL's python
 ------------------------------------------------------
 
 SciPy (http://scipy.org) is a collection of useful enhancements to Python that
@@ -37,7 +37,7 @@ install them.
   works in a pinch. The Spheral build will install it if configured with the
   `--with-matplotlib` option. To install independently, use:
 
-        curl -k -L http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz/download         > matplotlib-1.3.1.tar.gz
+        curl -k -L http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz/download > matplotlib-1.3.1.tar.gz
         tar -xvzf matplotlib-1.3.1.tar.gz
         cd matplotlib-1.3.1
         /path/to/SPHERAL/bin/python setup.py install
@@ -50,11 +50,11 @@ install them.
 
         git clone https://github.com/ipython/ipython.git
         cd ipython
-        git checkout 0.13.x
+        git checkout 1.x
         /path/to/SPHERAL/bin/python setup.py install
 
   This will put an executable `ipython` file in the Spheral bin directory that 
-  you can launch from there, or better yer put a convenient shortcut to in your
+  you can launch from there. Or better yet put a convenient shortcut to in your
   rc file:
   
         alias spy "/path/to/SPHERAL/bin/python"

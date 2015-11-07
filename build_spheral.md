@@ -13,17 +13,17 @@ and is managed with Mercurial (http://mercurial.selenic.com/).
 
 Get spheral (read only, recommended):
 
-    hg clone http://hg.code.sf.net/p/spheral/code spheral
+    hg clone http://hg.code.sf.net/p/spheral/code
 
 Or (read-write):
 
-    hg clone ssh://username@hg.code.sf.net/p/spheral/code spheral
+    hg clone ssh://username@hg.code.sf.net/p/spheral/code
 
 Config spheral:
 
     cd code/src
     ./boot
-    ./configure --prefix=/path/to/SPHERAL --with-opt=2 --without-opensubdiv --with-scipy --with-matplotlib
+    ./configure --prefix=/path/to/SPHERAL --with-opt=2 --without-opensubdiv
 
 Or, with ANEOS support (BYOA):
 
@@ -47,7 +47,7 @@ For more config and build options, see the not-quite-up-to-date config manual:
     cd code/doc
     pdflatex Building.tex
 
-Test spheral:
+Test spheral (not all tests will pass):
 
     cd code/tests
     ../../bin/ats -e ../../bin/python integration.ats

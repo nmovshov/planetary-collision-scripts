@@ -9,7 +9,7 @@ setup:
 
 + Use your git client to download the scripts:  
         
-        git clone https://github.com/nmovshov/ucsc-spheral-scripts.git
+        git clone https://github.com/nmovshov/planetary-collision-scripts.git
         
 + We'll call this newly created, top-level directory `<pcs>`. Add the absolute 
   path to this directory to variable called `PCSBASE` in your `.bashrc` or 
@@ -32,5 +32,9 @@ setup:
         cd <pcs>
         git pull
   
-  and be sure to look in `build_spheral.md` and `build_scipy.md` for 
-  instructions on installing those (required) packages as well.
+  and be sure to look in `<pcs>/Help/build_spheral.md` for instructions on
+  installing `SPHERAL`.
+
+  In addition, to help with post processing and analysis you may want to integrate
+  the SciPy stack with the SPHERAL-built python. Look in
+  `<pcs>/Help/build_scipy.md` for instructions.
