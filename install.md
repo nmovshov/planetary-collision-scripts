@@ -32,7 +32,7 @@ setup:
         cd <pcs>
         git pull
   
-  and be sure to look in `<pcs>/Help/build_spheral.md` for instructions on
+  and be sure to look in `<pcs>/build_spheral.md` for instructions on
   installing `SPHERAL`.
 
   In addition, to help with post processing and analysis you may want to integrate
