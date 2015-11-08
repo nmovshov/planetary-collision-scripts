@@ -13,5 +13,5 @@ string. (Case does not matter.)
 | 'granite'     |  Tillotson parameters for granite
 | 'basalt'      |  Tillotson parameters for basalt
 | 'nylon'       |  Tillotson parameters for nylon (solid)
-| 'SiO2'        |  M/ANEOS SiO2 with Melosh (2007) correction
+| 'SiO2'        |  M/ANEOS SiO2 with Melosh (2007) correction (NOT YET WORKING)
 
