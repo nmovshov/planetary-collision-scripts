@@ -49,8 +49,8 @@ rhoPlanet = mPlanet/(4.0*pi/3.0*rPlanet**3)
 gravTime = 1/sqrt(MKS().G*rhoPlanet)
 
 # Cooldown mechanism
-cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
-cooldownPower = 0.1          # Dimensionless cooldown "strength" >=0
+cooldownMethod = 'stomp'     # ['dashpot'|'stomp'|'highq']
+cooldownPower = 0.01         # Dimensionless cooldown "strength" >=0
 cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
@@ -122,7 +122,8 @@ assert generator_type in ['hcp', 'shells', 'ico']
 HydroConstructor = ASPHHydro
 Qconstructor = MonaghanGingoldViscosity
 Cl = 1.0
-Cq = 1.0
+Cq = 2.0
+q_in_expansion = False
 Qlimiter = False
 balsaraCorrection = False
 epsilon2 = 1e-2
@@ -401,7 +402,11 @@ gravity = OctTreeGravity(G = G,
 WT = TableKernel(BSplineKernel(), 1000)
 
 # Create the artificial viscosity object.
-q = Qconstructor(Cl, Cq)
+if cooldownMethod is 'highq':
+    Cl *= cooldownPower
+    Cq *= cooldownPower
+    q_in_expansion = True
+q = Qconstructor(Cl, Cq, q_in_expansion, q_in_expansion)
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
 q.epsilon2 = epsilon2
