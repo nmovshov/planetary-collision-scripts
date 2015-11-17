@@ -33,7 +33,7 @@ import PlanetNodeGenerators # New experimental node generators
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = 'newcoremantle'
+jobName = 'coremantle'
 jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
