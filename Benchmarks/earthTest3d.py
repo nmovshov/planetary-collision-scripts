@@ -5,7 +5,8 @@ from findLastRestart import *
 from GenerateNodeDistribution3d import *
 from math import *
 import mpi
-import harmonic
+sys.path += ['..',os.getenv('PCSBASE','')]
+import shelpers # My module of some helper functions
 
 import SpheralVoronoiSiloDump
 from bisectFunction import bisectFunction
@@ -17,101 +18,6 @@ from bisectFunction import bisectFunction
 # if the companion star does in fact get shredded, but if it doesn't
 # having a variable mass distribution saves computing time
 #-------------------------------------------------------------------------------
-
-
-class calcHarmonic(object):
-    def __init__(self,nodeList,samples,rMax,densityProfile,nominalMass):
-        #print "sent in %d %f %f" % (samples,rMax,nominalMass)
-        self.nodeList = nodeList
-        self.harmonic = harmonic.Harmonic()
-        self.samples  = samples;
-        self.rMax     = rMax;
-        self.time     = []
-        self.radii    = []
-        self.harmonics= []
-    
-        self.bins     = []
-        self.binwidths= []
-        dr = rMax / samples;
-        for i in xrange(self.samples):
-            r = (i+1.0)*dr
-            self.bins.append(r)
-            rho = densityProfile(r)
-            self.binwidths.append(3.0*pow(nominalMass/rho,1.0/3.0))
-            #print "r,dr = %f, %f" %(r,2.0*pow(nominalMass/rho,1.0/3.0))
-    def __call__(self,cycle,time,dt):
-        self.time.append(time)
-
-        # first get the normalization at each bin
-        norm = []
-        thisHarm = []
-        # (0,0) (1,-1)(1,0)(1,1) (2,-2)(2,-1)(2,0)(2,1)(2,2)
-        for i in xrange(self.samples):
-            norm.append(0)
-            thisHarm.append([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-        for nodes in self.nodeList:
-            for i in xrange(nodes.numInternalNodes):
-                xi = nodes.positions()[i].x
-                yi = nodes.positions()[i].y
-                zi = nodes.positions()[i].z
-                ri = sqrt(xi*xi + yi*yi + zi*zi)
-                vxi= nodes.velocity()[i].x
-                vyi= nodes.velocity()[i].y
-                vzi= nodes.velocity()[i].z
-                vi = (1.0/ri)*(vxi*xi+vyi*yi+vzi*zi)
-                for j in xrange(self.samples):
-                    rj = self.bins[j]
-                    dr = self.binwidths[j]
-                    if (abs(ri-rj)<=dr):
-                        norm[j] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)
-                        thisHarm[j][0] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(0,0,xi,yi,zi)*vi
-                        
-                        thisHarm[j][1] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(1,-1,xi,yi,zi)*vi
-                        thisHarm[j][2] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(1,0,xi,yi,zi)*vi
-                        thisHarm[j][3] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(1,1,xi,yi,zi)*vi
-                        
-                        thisHarm[j][4] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(2,-2,xi,yi,zi)*vi
-                        thisHarm[j][5] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(2,-1,xi,yi,zi)*vi
-                        thisHarm[j][6] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(2,0,xi,yi,zi)*vi
-                        thisHarm[j][7] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(2,1,xi,yi,zi)*vi
-                        thisHarm[j][8] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(2,2,xi,yi,zi)*vi
-                        
-                        thisHarm[j][9] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(3,-3,xi,yi,zi)*vi
-                        thisHarm[j][10] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(3,-2,xi,yi,zi)*vi
-                        thisHarm[j][11] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(3,-1,xi,yi,zi)*vi
-                        thisHarm[j][12] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(3,0,xi,yi,zi)*vi
-                        thisHarm[j][13] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(3,1,xi,yi,zi)*vi
-                        thisHarm[j][14] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(3,2,xi,yi,zi)*vi
-                        thisHarm[j][15] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(3,3,xi,yi,zi)*vi
-                        
-                        thisHarm[j][16] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,-4,xi,yi,zi)*vi
-                        thisHarm[j][17] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,-3,xi,yi,zi)*vi
-                        thisHarm[j][18] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,-2,xi,yi,zi)*vi
-                        thisHarm[j][19] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,-1,xi,yi,zi)*vi
-                        thisHarm[j][20] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,0,xi,yi,zi)*vi
-                        thisHarm[j][21] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,1,xi,yi,zi)*vi
-                        thisHarm[j][22] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,2,xi,yi,zi)*vi
-                        thisHarm[j][23] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,3,xi,yi,zi)*vi
-                        thisHarm[j][24] += (1.0/ri)*pow(nodes.mass()[i]/nodes.massDensity()[i],2.0/3.0)*self.harmonic.Y(4,4,xi,yi,zi)*vi
-                        break
-            
-        for i in xrange(self.samples):
-            if(norm[i]>0):
-                norm[i] = 4.0*pi/norm[i]
-            for j in xrange(25):
-                thisHarm[i][j] = abs(thisHarm[i][j])*norm[i]
-        
-        collapse = []
-        for j in xrange(self.samples):
-            collapse.append([thisHarm[j][0],
-                             thisHarm[j][1]+thisHarm[j][2]+thisHarm[j][3],
-                             thisHarm[j][4]+thisHarm[j][5]+thisHarm[j][6]+thisHarm[j][7]+thisHarm[j][8],
-                             thisHarm[j][9]+thisHarm[j][10]+thisHarm[j][11]+thisHarm[j][12]+thisHarm[j][13]+thisHarm[j][14]+thisHarm[j][15],
-                             thisHarm[j][16]+thisHarm[j][17]+thisHarm[j][18]+thisHarm[j][19]+thisHarm[j][20]+thisHarm[j][21]+thisHarm[j][22]+thisHarm[j][23]+thisHarm[j][24]])
-            
-        print self.bins
-        print collapse
-        return
 
 
 #-------------------------------------------------------------------------------
@@ -532,10 +438,14 @@ control = SpheralController(integrator, WT,
                             SPH = True)
 output("control")
 
-harmonicCalculator = calcHarmonic(nodeSet,sampleBins,rPlanet,rhoProfile,genGranite.m0)
-
-if (checkEvery is not None):
-    control.appendPeriodicTimeWork(harmonicCalculator,checkEvery)
+jobName = 'earthTest'
+outDir = dataDir
+def mOutput(stepsSoFar,timeNow,dt):
+    mFileName="{0}-{1:05d}-{2:g}.{3}".format(
+              jobName, stepsSoFar, timeNow, 'fnl.gz')
+    shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
+    pass
+control.appendPeriodicWork(mOutput,1)
 
 
 #-------------------------------------------------------------------------------
@@ -554,11 +464,6 @@ control.advance(goalTime)
 control.doPeriodicWork(force=True)
 
 rank = mpi.rank
-if (checkEvery is not None and rank ==0):
-    f = open(dataDir + "/" + harmonicFile,'w')
-    for i in xrange(len(harmonicCalculator.time)):
-        f.write("{0}\n".format(harmonicCalculator.time[i]))
-    f.close()
 
 control.conserve.writeHistory(historyFileName)
 
