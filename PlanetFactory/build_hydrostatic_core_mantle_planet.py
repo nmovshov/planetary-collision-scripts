@@ -33,7 +33,7 @@ import PlanetNodeGenerators # New experimental node generators
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = 'coremantle'
+jobName = 'codycoremantle'
 jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
@@ -55,10 +55,10 @@ cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
+nxPlanet = 50                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 1*gravTime        # Time to advance to (sec)
-dtInit = 0.02                # Initial guess for time step (sec)
+goalTime = 100        # Time to advance to (sec)
+dtInit = 1.0                # Initial guess for time step (sec)
 vizTime = 0.1*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
 outTime = vizTime            # Time between running output routine (sec)
@@ -69,8 +69,8 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'hcp'       # Node generator class: 'hcp'|'ico'
-density_profile = 'qic'      # Initial density profile: 'qic'|'ple'
+generator_type = 'ico'       # Node generator class: 'hcp'|'ico'
+density_profile = 'ple'      # Initial density profile: 'qic'|'ple'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
@@ -84,7 +84,7 @@ G = MKS().G
 softLength *= nPerh*2*rPlanet/nxPlanet
 
 # More simulation parameters
-dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
+dtGrowth = 1.0               # Maximum growth factor for time step per cycle 
 dtMin = 0                    # Minimum allowed time step (sec)
 dtMax = 0.1*goalTime         # Maximum allowed time step (sec)
 verbosedt = False            # Verbose reporting of the time step criteria 
@@ -164,9 +164,9 @@ assert eosMantle is not None
 assert eosMantle.valid()
 
 # Optionally, provide non-default values to the following
-#eosCore.etamin_solid = 0.94 # default is 0.94
+#eosCore.etamin_solid = 0.0 # default is 0.94
 #eosCore.minimumPressure = 0.0 # default is -1e+200
-#eosMantle.etamin_solid = 0.94 # default is 0.94
+#eosMantle.etamin_solid = 0.0 # default is 0.94
 #eosMantle.minimumPressure = 0.0 # default is -1e+200
 
 #-------------------------------------------------------------------------------
@@ -290,9 +290,9 @@ if restoreCycle is None:
             sys.exit(1)
     elif generator_type == 'ico':
         if density_profile == 'ple':
-            from HydroStaticProfile import HydroStaticProfileConstantTemp3d
+            from HydroStaticProfile import EarthLikeProfileConstantTemp3d
             eostup = (eosCore, [0, rCore], eosMantle, [rCore, rPlanet])
-            rhoProfile = HydroStaticProfileConstantTemp3d(
+            rhoProfile = EarthLikeProfileConstantTemp3d(
                                             rho0 = eosMantle.referenceDensity,
                                             rMax = rPlanet,
                                             M0 = mPlanet,

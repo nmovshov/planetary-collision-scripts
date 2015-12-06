@@ -16,7 +16,7 @@ import mpi # Mike's simplified mpi wrapper
 from SolidSpheral3d import *
 from GenerateNodeDistribution3d import GenerateNodeDistribution3d
 from GenerateNodeDistribution3d import GenerateIcosahedronMatchingProfile3d
-from HydroStaticProfile import HydroStaticProfileConstantTemp3d
+from HydroStaticProfile import EarthLikeProfileConstantTemp3d
 pcsbase = '' # Edit this with full path to <pcs> if you see an ImportError.
 sys.path += ['..',pcsbase,os.getenv('PCSBASE','')]
 import shelpers # My module of some helper functions
@@ -81,7 +81,7 @@ print "surface rho*g - dP/dr = {:g} - {:g} = {:g}".format(
 eostup = (eosPlanet, [0, rPlanet])
 stdout = sys.stdout
 sys.stdout = open(os.devnull, 'w')
-rhoProfile = HydroStaticProfileConstantTemp3d(
+rhoProfile = EarthLikeProfileConstantTemp3d(
                                 rho0 = eosPlanet.referenceDensity,
                                 rMax = rPlanet,
                                 M0 = mPlanet,

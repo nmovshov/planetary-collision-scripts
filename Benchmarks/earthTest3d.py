@@ -87,9 +87,9 @@ commandLine(#distributor = VoronoiDistributeNodes.distributeNodes2d,
             timeStepChoice = AccelerationRatio,
             myIntegrator = CheapSynchronousRK2Integrator3d,
             steps = None,
-            goalTime = 200,
-            vizTime = 1e-3,
-            vizCycle = 100,
+            goalTime = 2000,
+            vizTime = 1e3,
+            vizCycle = 10,
             dt = 1e-6,
             dtMin = 1e-9,
             dtMax = 1e5,
@@ -181,10 +181,12 @@ if restoreCycle is None:
 eosGranite = TillotsonEquationOfState("basalt",
                                       etamin=etaMin,
                                       etamax=etaMax,
+                                      etamin_solid = 0.94,
                                       units=units)
 eosIron = TillotsonEquationOfState("iron 130pt",
                                    etamin=etaMin,
                                    etamax=etaMax,
+                                   etamin_solid = 0.94,
                                    units=units)
 
 rho0 = eosGranite.referenceDensity
@@ -445,7 +447,7 @@ def mOutput(stepsSoFar,timeNow,dt):
               jobName, stepsSoFar, timeNow, 'fnl.gz')
     shelpers.pflatten_node_list_list(nodeSet, outDir + '/' + mFileName)
     pass
-control.appendPeriodicWork(mOutput,1)
+control.appendPeriodicWork(mOutput,10)
 
 
 #-------------------------------------------------------------------------------
