@@ -20,7 +20,7 @@ def pressure(eos, rho, eps):
     """
 
     # Minimal assertions (uncomment for debugging)
-    assert isinstance(eos, sph.Spheral.SolidMaterial.TillotsonEquationOfState3d)
+    assert isinstance(eos, sph.EquationOfState3d)
     #assert np.isscalar(rho)
     #assert np.isscalar(eps)
     #assert np.isreal(rho)
@@ -39,6 +39,204 @@ pressure.nodes = sph.makeVoidNodeList('fakenodes',1)
 pressure.rhof = sph.ScalarField('rho',pressure.nodes)
 pressure.epsf = sph.ScalarField('eps',pressure.nodes)
 pressure.peef = sph.ScalarField('pee',pressure.nodes)
+
+class HydrostaticQIC1LayerDensityProfile():
+    """Callable hydrostatic quasi-incompressible density profile."""
+
+    #---------------------------------------------------------------------------
+    # The constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, R, eos, rho0=None, rmin=0, units=None, nbins=100):
+        """Class constructor for quasi-incompressible density profile.
+
+        Assuming a barely compressible, one-layer planet, a pressure profile in
+        hydrostatic equilibrium can be found by integrating the hydrostatic
+        equation with constant density. The equation of state can then be inverted
+        to provide a density profile consistent with this pressure profile.
+        Although the resulting pressure/density state is not strictly self
+        consistent, it may be used as a good approximation for small planets that
+        are not expected to be highly compressed.
+
+        This class generates, in the constructor, a density profile: a vector of
+        radii and a vector of corresponding densities. The __call__ method is used
+        to extract a density for an arbitrary radius by interpolation. This is to
+        provide the interface used by some of the existing node generators in
+        SPHERAL.
+
+        Parameters
+        ----------
+        R : float > 0
+            Radius of uncompressed planet.
+        eos : SolidSpheral3d.EquationOfState3d
+            Equation-of-state of planet material.
+        rho0 : float > 0, optional
+            Guess for density at surface. If not provided eos.referenceDensity
+            will be used.
+        rMin : float >=0, optional
+            Bottom of profile to be computed. Default is 0.
+        units : SolidSpheral3d.PhysicalConstants, optional
+            Units object if arguments are not in MKS. Must match constants member
+            of eos. Default is SolidSpheral3d.PhysicalConstants(1,1,1).
+        nbins : int >= 10, optional
+            Number of interpolation points in [rMin,R].
+        """
+
+        # Minimal input checking
+        assert np.isreal(R) and R > 0
+        assert np.isreal(rmin) and rmin < R
+        assert isinstance(eos, sph.EquationOfState3d)
+        assert type(nbins) is type(1) and nbins >= 10
+        if rho0 is None:
+            rho0 = eos.referenceDensity
+        assert type(rho0) is type(1.0) and rho0 > 0
+        if units is None:
+            units = sph.PhysicalConstants(1,1,1)
+        assert isinstance(units, sph.PhysicalConstants)
+        assert units.G == eos.constants.G
+        
+        # Local variables
+        rvec = np.linspace(rmin, R, num=nbins)
+        dvec = np.ones(rvec.size)*np.NaN
+        pvec = np.ones(rvec.size)*np.NaN
+
+        # Step one - calculate pressure profile
+        G = units.G
+        for k in range(rvec.size):
+            pvec[k] = 2*np.pi/3*G*rho0**2*(R**2 - rvec[k]**2)
+        assert np.all(np.isfinite(pvec))
+        
+        # Step two - lion hunt to invert eos and get a density
+        def f(x):
+            return pressure(eos,x,0) - p_hs
+        for k in range(pvec.size):
+            p_hs = pvec[k]
+            x_hi = eos.referenceDensity*2
+            x_lo = eos.referenceDensity/2
+            while (x_hi - x_lo) > 1e-12*eos.referenceDensity:
+                x_hs = (x_lo + x_hi)/2
+                if f(x_hs) > 0:
+                    x_hi = x_hs
+                else:
+                    x_lo = x_hs
+                    pass
+                pass
+            dvec[k] = x_hs
+        assert np.all(np.isfinite(dvec))
+        
+        # Store object data
+        self.rvec = rvec
+        self.dvec = dvec
+        self.pvec = pvec
+        self.units = units
+
+        # And Bob's our uncle.
+        return
+        # End constructor
+
+    def __call__(self, r):
+        """Return density at requested radius."""
+        assert np.isreal(r) and r >=self.rvec[0]
+
+        if r >= self.rvec[-1]:
+            return self.dvec[-1]
+        ind = np.nonzero(self.rvec > r)[0][0]
+        x0, x1 = self.rvec[ind-1], self.rvec[ind]
+        y0, y1 = self.dvec[ind-1], self.dvec[ind]
+        return y0 + (y1 - y0)/(x1 - x0)*(r - x0)
+        # End method __call__
+    
+    pass
+    # End class HydrostaticQIC1LayerDensityProfile
+
+class HydrostaticQIC2LayerDensityProfile():
+    """Callable hydrostatic quasi-incompressible, two-layer density profile."""
+
+    #---------------------------------------------------------------------------
+    # The constructor
+    #---------------------------------------------------------------------------
+    def __init__(self, R, rCore, eosMantle, eosCore, nbins = 100, units=None):
+        """Class constructor for quasi-incompressible two-layer density profile."""
+
+        # Minimal input checking
+        assert True
+        if units is None:
+            units = sph.PhysicalConstants(1,1,1)
+        assert isinstance(units, sph.PhysicalConstants)
+        assert units.G == eosMantle.constants.G == eosCore.constants.G
+
+        # Local variables
+        rvec = np.linspace(0, R, num=nbins)
+        dvec = np.ones(rvec.size)*np.NaN
+        pvec = np.ones(rvec.size)*np.NaN
+        rc = rCore
+        rhoc = eosCore.referenceDensity
+        rhom = eosMantle.referenceDensity
+        assert 0 < rc < R
+        assert rhom <= rhoc
+        r_inner = rvec[rvec <= rc]
+        r_outer = rvec[rvec > rc]
+
+        # Step one - calculate pressure profile
+        G = units.G
+        c2 = 4*np.pi/3*G*(0.5*rhom**2*R**2 - rhom*(rhoc - rhom)*rc**3/R)
+        c1 = 4*np.pi/3*G*(0.5*rhoc**2 - 1.5*rhom**2 + rhoc*rhom)*rc**2 + c2
+        p_inner = np.ones(r_inner.size)*np.NaN
+        p_outer = np.ones(r_outer.size)*np.NaN
+        for k in range(r_inner.size):
+            p_inner[k] = c1 - 4*np.pi/3*G*0.5*rhoc**2*r_inner[k]**2
+        for k in range(r_outer.size):
+            p_outer[k] = c2 - 4*np.pi/3*G*(0.5*rhom**2*r_outer[k]**2 - 
+                                           rhom*(rhoc - rhom)*rc**3/r_outer[k])
+        assert np.all(np.isfinite(p_inner))
+        assert np.all(np.isfinite(p_outer))
+        pvec = np.concatenate((p_inner, p_outer))
+
+        # Step two - lion hunt to invert eos and get a density
+        def f(x):
+            return pressure(eos,x,0) - p_hs
+        for k in range(rvec.size):
+            p_hs = pvec[k]
+            if rvec[k] <= rc:
+                eos = eosCore
+            else:
+                eos = eosMantle
+            x_hi = eos.referenceDensity*2
+            x_lo = eos.referenceDensity/2
+            while (x_hi - x_lo) > 1e-12*eos.referenceDensity:
+                x_hs = (x_lo + x_hi)/2
+                if f(x_hs) > 0:
+                    x_hi = x_hs
+                else:
+                    x_lo = x_hs
+                    pass
+                pass
+            dvec[k] = x_hs
+        assert np.all(np.isfinite(dvec))
+
+        # Store object data
+        self.rvec = rvec
+        self.dvec = dvec
+        self.pvec = pvec
+        self.units = units
+
+        # And Bob's our uncle.
+        return
+        # End constructor
+
+    def __call__(self, r):
+        """Return density at requested radius."""
+        assert np.isreal(r) and r >=self.rvec[0]
+
+        if r >= self.rvec[-1]:
+            return self.dvec[-1]
+        ind = np.nonzero(self.rvec > r)[0][0]
+        x0, x1 = self.rvec[ind-1], self.rvec[ind]
+        y0, y1 = self.dvec[ind-1], self.dvec[ind]
+        return y0 + (y1 - y0)/(x1 - x0)*(r - x0)
+        # End method __call__
+    
+    pass
+    # End class HydrostaticQIC2LayerDensityProfile
 
 def hydrostaticize_one_layer_planet(planet, G=6.674e-11):
     """Modify densities in node generator to approximate hydrostatic equilibrium.
@@ -181,7 +379,7 @@ def hydrostaticize_two_layer_planet(inner, outer, G=6.674e-11):
     # End function hydrostaticize_two_layer_planet
     
 
-def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
+def construct_eos_for_material(material_tag,units=None,etamin=0.94,etamax=100.0):
     """Return a spheral EOS object for a material identified by tag.
 
     construct_eos_for_material(mtag,units) calls the appropriate spheral eos
@@ -212,6 +410,8 @@ def construct_eos_for_material(material_tag,units,etamin=0.94,etamax=100.0):
     # Make sure we are not wasting our time.
     assert isinstance(material_tag,str)
     assert material_tag.lower() in material_dictionary.keys()
+    if units is None:
+        units = sph.PhysicalConstants(1,1,1)
     assert isinstance(units,sph.PhysicalConstants)
     assert isinstance(etamin,float)
     assert isinstance(etamax,float)
