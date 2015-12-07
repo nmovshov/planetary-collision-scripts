@@ -59,7 +59,7 @@ angleImpact = 2              # Impact angle to normal (degrees)
 crossTime = 2*rTarget/vImpact
 
 # Times, simulation control, and output
-nxTarget = 20                # Nodes across diameter of target (run "resolution")
+nxTarget = 40                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 2*gravTime        # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
@@ -187,9 +187,9 @@ assert eosImpactor.valid()
 
 # Optionally, provide non-default values to the following
 eosTarget.etamin_solid = 0.94 # default is 0.94
-eosTarget.minimumPressure = 0.0 # default is 1e-200
+eosTarget.minimumPressure = 0.0 # default is -1e+200
 eosImpactor.etamin_solid = 0.94 # default is 0.94
-eosImpactor.minimumPressure = 0.0 # default is 1e-200
+eosImpactor.minimumPressure = 0.0 # default is -1e+200
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
@@ -384,9 +384,16 @@ if restoreCycle is None:
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
     print "Total number of (internal) nodes in simulation: ", nGlobalNodes
-    print "Worst node mass ratio: {}".format(impactor.mass().max()/
-                                             target.mass().min())
-    
+    WMR = (max(impactor.mass().max(), target.mass().max())/
+           min(impactor.mass().min(), target.mass().min()))
+    if WMR < 1.5:
+        sys.stderr.write("\033[32m")
+    else:
+        sys.stderr.write("\033[31m")
+    print "Worst node mass ratio: {}".format(WMR)
+    sys.stderr.write("\033[0m")
+    assert WMR < 3, "Severe node mass imbalance: comment out assertion to ignore."
+
     # Launch the impactor
     vel = impactor.velocity()
     for k in range(impactor.numInternalNodes):
