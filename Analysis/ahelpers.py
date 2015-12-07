@@ -132,7 +132,7 @@ def load_multi_fnl(filename):
     else:
         return fnl[0]
 
-def plot_P_vs_r(fnl):
+def plot_P_vs_r(fnl, bblock=False):
     """Plot pressure of nodes against distance from origin."""
 
     import matplotlib as mpl
@@ -144,17 +144,43 @@ def plot_P_vs_r(fnl):
 
     fig = plt.figure()
     axe = plt.axes()
-    plt.xlabel('Radius [m]')
+    plt.xlabel('Radius [km]')
     plt.ylabel('Pressure [GPa]')
     plt.grid()
     for nl in fnl:
         assert isinstance(nl,FNLData)
-        plt.plot(nl.r,nl.P/1e9,'.')
+        x = np.sort(nl.r)
+        y = nl.P[np.argsort(nl.r)]
+        plt.plot(x/1e3, y/1e9)
         pass
-    plt.show(block=False)
+    plt.show(block=bblock)
     return (fig,axe)
 
-def plot_P_vs_r_output(dirname):
+def plot_rho_vs_r(fnl, bblock=False):
+    """Plot density of nodes against distance from origin."""
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+    assert isinstance(fnl,(FNLData,tuple))
+    if isinstance(fnl,FNLData):
+        fnl = (fnl,)
+
+    fig = plt.figure()
+    axe = plt.axes()
+    plt.xlabel('Radius [km]')
+    plt.ylabel('Mass density [kg/m^3]')
+    plt.grid()
+    for nl in fnl:
+        assert isinstance(nl,FNLData)
+        x = np.sort(nl.r)
+        y = nl.rho[np.argsort(nl.r)]
+        plt.plot(x/1e3, y)
+        pass
+    plt.show(block=bblock)
+    return (fig,axe)
+
+def plot_P_vs_r_output(dirname='.', bblock=False):
     """Plot P(r) for all fnl files in a directory."""
 
     import matplotlib as mpl
@@ -168,6 +194,9 @@ def plot_P_vs_r_output(dirname):
         fnl_files += [os.path.join(root,fn) for fn in files if 
                                                 fn.endswith(('.fnl','.fnl.gz'))]
     fnl_files.sort()
+    if len(fnl_files) == 0:
+        print "No .fnl or .fnl.gz files found in directory."
+        return
     all_fnls = [load_multi_fnl(f) for f in fnl_files]
 
     fig = plt.figure()
@@ -179,11 +208,52 @@ def plot_P_vs_r_output(dirname):
             fnl = (fnl,)
         plt.subplot(nb_rows,nb_cols,k+1)
         for nl in fnl:
-            plt.plot(nl.r,nl.P/1e9,'.')
+            assert isinstance(nl,FNLData)
+            x = np.sort(nl.r)
+            y = nl.P[np.argsort(nl.r)]
+            plt.plot(x/1e3, y/1e9)
             pass
         pass
 
-    plt.show(block=False)    
+    plt.show(block=bblock)    
+    return fig
+
+def plot_rho_vs_r_output(dirname='.', bblock=False):
+    """Plot rho(r) for all fnl files in a directory."""
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+    assert isinstance(dirname,str)
+    assert os.path.isdir(dirname)
+
+    fnl_files = []
+    for root, dirs, files in os.walk(dirname):
+        fnl_files += [os.path.join(root,fn) for fn in files if 
+                                                fn.endswith(('.fnl','.fnl.gz'))]
+    fnl_files.sort()
+    if len(fnl_files) == 0:
+        print "No .fnl or .fnl.gz files found in directory."
+        return
+    all_fnls = [load_multi_fnl(f) for f in fnl_files]
+
+    fig = plt.figure()
+    nb_rows = np.ceil(np.sqrt(len(all_fnls)))
+    nb_cols = np.ceil(len(all_fnls)/nb_rows)
+    for k in range(len(all_fnls)):
+        fnl = all_fnls[k]
+        if isinstance(fnl,FNLData):
+            fnl = (fnl,)
+        plt.subplot(nb_rows,nb_cols,k+1)
+        for nl in fnl:
+            assert isinstance(nl,FNLData)
+            x = np.sort(nl.r)
+            y = nl.rho[np.argsort(nl.r)]
+            plt.plot(x/1e3, y)
+            pass
+        pass
+
+    plt.show(block=bblock)    
     return fig
 
 def _test():
