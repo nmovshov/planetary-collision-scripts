@@ -181,12 +181,10 @@ if restoreCycle is None:
 eosGranite = TillotsonEquationOfState("basalt",
                                       etamin=etaMin,
                                       etamax=etaMax,
-                                      etamin_solid = 0.94,
                                       units=units)
 eosIron = TillotsonEquationOfState("iron 130pt",
                                    etamin=etaMin,
                                    etamax=etaMax,
-                                   etamin_solid = 0.94,
                                    units=units)
 
 rho0 = eosGranite.referenceDensity
