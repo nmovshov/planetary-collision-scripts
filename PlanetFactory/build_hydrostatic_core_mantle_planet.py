@@ -33,7 +33,7 @@ import PlanetNodeGenerators # New experimental node generators
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = 'codycoremantle'
+jobName = 'coremantle'
 jobDesc = "Hydrostatic equilibrium of a two-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
@@ -69,8 +69,8 @@ nPerh = 2.01                 # Nominal number of nodes per smoothing scale
 hmin = 1.0                   # Minimum smoothing length (fraction of nominal)
 hmax = 1.0                   # Maximum smoothing length (fraction of nominal)
 rhomax = 1e+1*rhoPlanet      # Upper bound on node density (kg/m^3)
-generator_type = 'ico'       # Node generator class: 'hcp'|'ico'
-density_profile = 'ple'      # Initial density profile: 'qic'|'ple'
+generator_type = 'hcp'       # Node generator class: 'hcp'|'ico'
+density_profile = 'qic'      # Initial density profile: 'qic'|'ple'
 hmin *= nPerh*2*rPlanet/nxPlanet
 hmax *= nPerh*2*rPlanet/nxPlanet
 rhomin = mPlanet/nxPlanet**3/hmax**3
