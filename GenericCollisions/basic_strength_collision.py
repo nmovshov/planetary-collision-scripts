@@ -5,8 +5,9 @@
 # This script launches a basic strength regime collision. Two spherical, solid
 # objects of arbitrary size and constant density collide with some specified
 # velocity and impact parameter. In spheral terms, the target and impactor are
-# of type ********. The only physics packages attached to the integrator are the
-# hydro package and the ***** package.
+# of type SolidNodeList3d. The only physics package attached to the integrator
+# is the hydro package. A damage model (GradyKippTensorDamageBenzAsphaug3d) is
+# attached to the target node list.
 #
 # This script can be used to model collision of small, homogeneous bodies. 
 #
@@ -38,16 +39,15 @@ jobDesc = "Simple collision of solid, homogeneous spheres."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
 # Target parameters
-rTarget = 1000e3             # Target radius (m)
-rhoTarget = 920.0            # Target approximate bulk density (kg/m^3)
-matTarget = 'h2oice'         # Target material (see <pcs>/MATERIALS.md for options)
+rTarget = 30e3               # Target radius (m)
+rhoTarget = 2700.0           # Target approximate bulk density (kg/m^3)
+matTarget = 'basalt'         # Target material (see <pcs>/MATERIALS.md for options)
 mTarget = 4.0/3.0*pi*rhoTarget*rTarget**3
-gravTime = 1/sqrt(MKS().G*rhoTarget)
 
 # Impactor parameters
-rImpactor = 500e3            # Impactor radius (m)
-rhoImpactor = 920.0          # Impactor approximate bulk density (kg/m^3)
-matImpactor = 'h2oice'       # Impactor material (see <pcs>/MATERIALS.md for options)
+rImpactor = 30e3             # Impactor radius (m)
+rhoImpactor = 2700.0         # Impactor approximate bulk density (kg/m^3)
+matImpactor = 'basalt'       # Impactor material (see <pcs>/MATERIALS.md for options)
 mImpactor = 4.0/3.0*pi*rhoImpactor*rImpactor**3
 
 # Collision parameters
@@ -55,10 +55,18 @@ vImpact = 3000               # Impact velocity (m/s)
 angleImpact = 2              # Impact angle to normal (degrees)
 crossTime = 2*rTarget/vImpact
 
+# Strength and damage parameters (TODO: bake into material choice!)
+muTarget   = 2.27e10         # Shear modulus (Pa)
+Y0Target   = 3.5e9           # Plastic yield stress (Pa)
+muImpactor = 7.3e5           # Shear modulus (Pa)
+Y0Impactor = 1.0e5           # Plastic yield stress (Pa)
+kWeibull   = 8.0e43
+mWeibull   = 9.5
+
 # Times, simulation control, and output
 nxTarget = 40                # Nodes across diameter of target (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
-goalTime = 2*gravTime        # Time to advance to (sec)
+goalTime = 2*crossTime       # Time to advance to (sec)
 dtInit = 0.02                # Initial guess for time step (sec)
 vizTime = 0.2*goalTime       # Time frequency for dropping viz files (sec)
 vizCycle = None              # Cycle frequency for dropping viz files
@@ -76,13 +84,6 @@ hmax *= nPerh*2*rTarget/nxTarget
 rhomin = mTarget/nxTarget**3/hmax**3
 universeEdge = 30*rTarget
 
-# Gravity parameters
-softLength = 1.0             # Gravity softening length (fraction of nominal H)
-opening = 1.0                # Opening parameter for gravity tree walk
-fdt = 0.1                    # Time step multiplier (dt=fdt*sqrt(softlength/a))
-G = MKS().G
-softLength *= nPerh*2*rTarget/nxTarget
-
 # More simulation parameters
 dtGrowth = 2.0               # Maximum growth factor for time step per cycle 
 dtMin = 0                    # Minimum allowed time step (sec)
@@ -94,6 +95,16 @@ redistributeStep = 80000     # Frequency to load balance problem from scratch
 restartStep = 200            # Frequency to drop restart files
 restoreCycle = None          # If None, latest available restart cycle is selected
 baseDir = jobName            # Base name for directory to store output in
+
+# Damage and strength modeling (TODO: understand this)
+DamageModelConstructor = GradyKippTensorDamageBenzAsphaug
+randomSeed = 78987265
+strainType = PseudoPlasticStrain
+damageType = Copy
+useDamageGradient = True
+minFlawsPerNode = 1
+effectiveFlawAlgorithm = SampledFlaws
+criticalDamageThreshold = 0.5
 
 # Cooldown mechanism (normally disabled, with cooldownFrequency = None)
 cooldownMethod = 'dashpot'   # 'dashpot' or 'stomp' 
@@ -138,7 +149,7 @@ if cullingFrequency is not None:
 # NAV Spheral hydro solver options
 # These options for spheral's hydro mechanism are normally left alone.
 #-------------------------------------------------------------------------------
-HydroConstructor = ASPHHydro
+HydroConstructor = SolidASPHHydro
 Qconstructor = MonaghanGingoldViscosity
 Cl = 1.0
 Cq = 1.0
@@ -181,6 +192,14 @@ assert eosTarget.valid()
 eosImpactor = shelpers.construct_eos_for_material(matImpactor,units)
 assert eosImpactor is not None
 assert eosImpactor.valid()
+
+#-------------------------------------------------------------------------------
+# NAV Prepare strength and damage models for target and impactor
+#-------------------------------------------------------------------------------
+strengthTarget =   ConstantStrength(muTarget,
+                                    Y0Target)
+strengthImpactor = ConstantStrength(muImpactor,
+                                    Y0Impactor)
 
 # Optionally, provide non-default values to the following
 eosTarget.etamin_solid = 0.94 # default is 0.94
@@ -245,7 +264,7 @@ shutil.copyfile(__file__,logDir+'/{}.ini.{}'.format(jobName,restoreCycle))
 #    will be used to fill values in the node list, and then discarded. 
 #-------------------------------------------------------------------------------
 # Create the node lists.
-target   = makeFluidNodeList('target', eosTarget, 
+target   = makeSolidNodeList('target', eosTarget, strengthTarget,
                              nPerh = nPerh, 
                              xmin = -universeEdge*Vector.one, # (probably unnecessary)
                              xmax =  universeEdge*Vector.one, # (probably unnecessary)
@@ -258,7 +277,7 @@ target   = makeFluidNodeList('target', eosTarget,
                              )
 target.eos_id = eosTarget.uid
 
-impactor = makeFluidNodeList('impactor', eosImpactor, 
+impactor = makeSolidNodeList('impactor', eosImpactor, strengthImpactor,
                              nPerh = nPerh, 
                              xmin = -universeEdge*Vector.one, # (probably unnecessary)
                              xmax =  universeEdge*Vector.one, # (probably unnecessary)
@@ -348,12 +367,6 @@ if restoreCycle is None:
         sys.exit(1)
         pass
 
-    # Tweak density profile if possible, to start closer to equilibrium.
-    targetGenerator.EOS = eosTarget
-    impactorGenerator.EOS = eosImpactor
-    shelpers.hydrostaticize_one_layer_planet(targetGenerator)
-    shelpers.hydrostaticize_one_layer_planet(impactorGenerator)
-
     # Place the impactor at the point of impact. It is coming from the 
     # positive x direction in the xy plane.
     displace = Vector((rTarget+rImpactor)*cos(pi/180.0*angleImpact),
@@ -413,12 +426,6 @@ del n
 #  * A time integrator of some flavor (usually a Runge-Kutta 2)
 #  * The simulation controller
 #-------------------------------------------------------------------------------
-# Create the gravity package.
-gravity = OctTreeGravity(G = G, 
-                         softeningLength = softLength, 
-                         opening = opening, 
-                         ftimestep = fdt)
-
 # Create the kernel function for SPH.
 WT = TableKernel(BSplineKernel(), 1000)
 
@@ -443,9 +450,22 @@ hydro = HydroConstructor(W = WT,
                          epsTensile = epsilonTensile,
                          nTensile = nTensile)
 
+# Construct a damage model. (TODO: understand this and modify to use material tag)
+damageModelTarget = DamageModelConstructor(target,
+                                           kWeibull = kWeibull,
+                                           mWeibull = mWeibull,
+                                           kernel = WT,
+                                           seed = randomSeed,
+                                           volume = 0.0,  # forces internal computation.
+                                           volumeStretchFactor = 1.0,
+                                           strainAlgorithm = strainType,
+                                           effectiveDamageAlgorithm = damageType,
+                                           useDamageGradient = useDamageGradient,
+                                           flawAlgorithm = effectiveFlawAlgorithm,
+                                           criticalDamageThreshold = criticalDamageThreshold)
+
 # Create the time integrator and attach the physics packages to it.
 integrator = CheapSynchronousRK2Integrator(db)
-integrator.appendPhysicsPackage(gravity)
 integrator.appendPhysicsPackage(hydro)
 integrator.lastDt = dtInit
 integrator.dtMin = dtMin
