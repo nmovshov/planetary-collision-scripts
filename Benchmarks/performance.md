@@ -11,6 +11,7 @@ km/s for 10 cycles.
 |  178048 (nx= 60, dt~3s) |   43    |   25    |   18    |   13     |
 |  422980 (nx= 80, dt~2s) |   90    |   49    |   40    |   31     |
 |  827630 (nx=100, dt~1s) |  222    |  131    |   87    |   70     |
+| 1102095 (nx=110, dt~1s) |  N/A    |  206    |  124    |   88     |
 | 1431728 (nx=120, dt~1s) |  418    |  244    |  167    |  114     |
 
 Values are average time interval as reported by the spheral controller at the
