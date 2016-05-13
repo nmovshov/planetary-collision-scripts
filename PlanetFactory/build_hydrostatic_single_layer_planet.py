@@ -153,7 +153,7 @@ assert eosPlanet.valid()
 
 # Optionally, provide non-default values to the following
 #eosPlanet.etamin_solid = 0.94 # default is 0.94
-#eosPlanet.minimumPressure = 0.0 # default is -1e+200
+#eosPlanet.minimumPressure = 0.0 # default is P(etamin_solid*rho0, 0)
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories

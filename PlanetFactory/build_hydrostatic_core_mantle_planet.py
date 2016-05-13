@@ -165,9 +165,9 @@ assert eosMantle.valid()
 
 # Optionally, provide non-default values to the following
 #eosCore.etamin_solid = 0.0 # default is 0.94
-#eosCore.minimumPressure = 0.0 # default is -1e+200
+#eosCore.minimumPressure = 0.0 # default is P(etamin_solid*rho0, 0)
 #eosMantle.etamin_solid = 0.0 # default is 0.94
-#eosMantle.minimumPressure = 0.0 # default is -1e+200
+#eosMantle.minimumPressure = 0.0 # default is P(etamin_solid*rho0, 0)
 
 #-------------------------------------------------------------------------------
 # NAV Restarts and output directories
