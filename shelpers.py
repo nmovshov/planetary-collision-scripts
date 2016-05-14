@@ -427,6 +427,10 @@ def construct_eos_for_material(material_tag,units=None,etamin=0.94,etamax=100.0)
                               1e-20, 1e20, units,
                               etamin_solid=etamin)
         eos.uid = mat_dict['eos_id']
+        # Fix for LLNL ignoring the min eta requirement of Tillotson
+        eos.minimumPressure = eos.pressure(
+                                    eos.etamin_solid*eos.referenceDensity, 0)
+        eos.minimumPressureType = 1 # 0: floor 1: zero
         pass
     else:
         print "EOS type {} not yet implemented".format(mat_dict['eos_type'])

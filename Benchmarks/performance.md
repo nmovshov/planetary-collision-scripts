@@ -16,4 +16,3 @@ km/s for 10 cycles.
 
 Values are average time interval as reported by the spheral controller at the
 end of the run.
-
