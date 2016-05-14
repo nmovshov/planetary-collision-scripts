@@ -32,7 +32,7 @@ import PlanetNodeGenerators # New experimental node generators
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = 'onelayer'
+jobName = 'ponelayer'
 jobDesc = "Hydrostatic equilibrium of a single-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
@@ -50,7 +50,7 @@ cooldownFrequency = None     # Cycles between application (use 1 with dashpot)
                              # * With 'stomp' method, 0<=power<=1
 
 # Times, simulation control, and output
-nxPlanet = 50                # Nodes across diameter of planet (run "resolution")
+nxPlanet = 40                # Nodes across diameter of planet (run "resolution")
 steps = None                 # None or number of steps to advance (overrides time)
 goalTime = 100        # Time to advance to (sec)
 dtInit = 1.0                # Initial guess for time step (sec)
@@ -113,7 +113,7 @@ assert generator_type in ['hcp', 'shells', 'ico']
 # NAV Spheral hydro solver options
 # These options for spheral's hydro mechanism are normally left alone.
 #-------------------------------------------------------------------------------
-HydroConstructor = ASPHHydro
+HydroConstructor = APSPHHydro
 Qconstructor = MonaghanGingoldViscosity
 Cl = 1.0
 Cq = 1.0
@@ -335,7 +335,8 @@ q.negligibleSoundSpeed = negligibleSoundSpeed
 q.csMultiplier = csMultiplier
 
 # Create the hydro package.
-hydro = HydroConstructor(W = WT,
+if HydroConstructor is ASPHHydro:
+    hydro = HydroConstructor(W = WT,
                          Q = q,
                          cfl = cfl,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -346,6 +347,16 @@ hydro = HydroConstructor(W = WT,
                          XSPH = XSPH,
                          epsTensile = epsilonTensile,
                          nTensile = nTensile)
+elif HydroConstructor is APSPHHydro:
+    hydro = HydroConstructor(W = WT,
+                         Q = q,
+                         cfl = cfl,
+                         useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                         compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         densityUpdate = densityUpdate,
+                         HUpdate = HEvolution,
+                         XSPH = XSPH)
+
 
 # Create the time integrator and attach the physics packages to it.
 integrator = CheapSynchronousRK2Integrator(db)
