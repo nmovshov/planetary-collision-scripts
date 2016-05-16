@@ -32,7 +32,7 @@ import PlanetNodeGenerators # New experimental node generators
 #-------------------------------------------------------------------------------
 
 # Job name and description
-jobName = 'ponelayer'
+jobName = 'hopculonelayer'
 jobDesc = "Hydrostatic equilibrium of a single-layer, fluid planet."
 print '\n', jobName.upper(), '-', jobDesc.upper()
 
@@ -133,6 +133,16 @@ HEvolution = IdealH
 densityUpdate = IntegrateDensity # (Sum|Integrate)Density
 compatibleEnergyEvolution = True
 rigorousBoundaries = False
+HopkinsConductivity = True
+boolHopkinsCorrection = True
+boolCullenViscosity = True
+cullenUseHydroDerivatives = True
+alphMax = 2.0
+alphMin = 0.02
+betaC = 0.7
+betaD = 0.05
+betaE = 1.0
+fKern = 1.0/3.0
 
 #-------------------------------------------------------------------------------
 # NAV Equation of state
@@ -353,10 +363,21 @@ elif HydroConstructor is APSPHHydro:
                          cfl = cfl,
                          useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                          compatibleEnergyEvolution = compatibleEnergyEvolution,
+                         HopkinsConductivity = HopkinsConductivity,
                          densityUpdate = densityUpdate,
                          HUpdate = HEvolution,
                          XSPH = XSPH)
 
+if boolCullenViscosity:
+    cullen = CullenDehnenViscosity(q,
+                                   WT,
+                                   alphMax,
+                                   alphMin,
+                                   betaC,
+                                   betaD,
+                                   betaE,
+                                   fKern,
+                                   boolHopkinsCorrection)
 
 # Create the time integrator and attach the physics packages to it.
 integrator = CheapSynchronousRK2Integrator(db)
@@ -368,6 +389,8 @@ integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
 integrator.verbose = verbosedt
 integrator.rigorousBoundaries = rigorousBoundaries
+if boolCullenViscosity:
+    integrator.appendPhysicsPackage(cullen)
 
 # Create the controller.
 control = SpheralController(integrator, WT,
