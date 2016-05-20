@@ -256,6 +256,44 @@ def plot_rho_vs_r_output(dirname='.', bblock=False):
     plt.show(block=bblock)    
     return fig
 
+def ejectify_fnl(fnl, method='naor1'):
+    """Quick-and-dirty detection of ejecta field from SPHERAL output fnl."""
+
+    # Minimal input control
+    assert isinstance(fnl, FNLData)
+    assert method in ('naor1', 'jutzi')
+
+    # Extract values from loaded fnl
+    pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
+    vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
+    m = fnl.m
+
+    # Detect largest bound mass to serve as primary
+    import bound_mass as bm
+    [M, ind] = bm.bound_mass(pos, vel, m, method=method)
+
+    # Move to primary rest CoM frame
+    V0 = np.array([sum(fnl.vx[ind]*m[ind]),
+                   sum(fnl.vy[ind]*m[ind]),
+                   sum(fnl.vz[ind]*m[ind])])/M
+    vel = vel - V0
+
+    # Remove primary
+    pos = pos[~ind]
+    vel = vel[~ind]
+    m = m[~ind]
+
+    # Return ejecta field as new fnl
+    ejecta = FNLData()
+    ejecta.x = pos[:,0]
+    ejecta.y = pos[:,1]
+    ejecta.z = pos[:,2]
+    ejecta.vx = vel[:,0]
+    ejecta.vy = vel[:,1]
+    ejecta.vz = vel[:,2]
+    ejecta.m = m
+    return ejecta
+
 def _test():
     print "alo"
     pass
