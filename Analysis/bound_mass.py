@@ -139,7 +139,7 @@ def _main():
         pass
     return
 
-def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None):
+def bound_mass(pos, vel, m, method, length_scale=0, units=[1,1,1], margs=None):
     """Given cloud of particles return largest gravitationally bound mass.
 
     This function looks at a cloud of point masses with known positions and
@@ -207,6 +207,10 @@ def bound_mass(pos, vel, m, method, length_scale=None, units=[1,1,1], margs=None
     assert len(pos) == len(vel) == len(m)
     assert method in ['kory1', 'kory2', 'jutzi', 'naor1', 'naor2', 'naor3']
     assert np.size(length_scale) == 1 and np.isreal(length_scale)
+    if margs is None:
+        class margs:
+            max_iter = 20
+            pass
 
     # Deal with units
     bigG = 6.67384e-11*units[0]**(-3)*units[1]*units[2]**2
