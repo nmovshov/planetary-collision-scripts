@@ -256,6 +256,32 @@ def plot_rho_vs_r_output(dirname='.', bblock=False):
     plt.show(block=bblock)    
     return fig
 
+def plot_XY_scatter(fnl, bblock=False):
+    """XY scatter plot of node positions with color density."""
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+    assert isinstance(fnl,(FNLData,tuple))
+    if isinstance(fnl,FNLData):
+        fnl = (fnl,)
+
+    fig = plt.figure()
+    axe = plt.axes()
+    plt.xlabel('X [km]')
+    plt.ylabel('Y [km]')
+    plt.grid()
+    for nl in fnl:
+        assert isinstance(nl,FNLData)
+        x = nl.x/1e3
+        y = nl.y/1e3
+        rho = nl.rho
+        h = nl.hmin
+        plt.scatter(x, y, s=20, c=rho)
+        pass
+    plt.show(block=bblock)
+    return (fig,axe)
+
 def ejectify_fnl(fnl, method='naor1'):
     """Quick-and-dirty detection of ejecta field from SPHERAL output fnl."""
 
@@ -281,7 +307,6 @@ def ejectify_fnl(fnl, method='naor1'):
     # Remove primary
     pos = pos[~ind]
     vel = vel[~ind]
-    m = m[~ind]
 
     # Return ejecta field as new fnl
     ejecta = FNLData()
@@ -291,7 +316,10 @@ def ejectify_fnl(fnl, method='naor1'):
     ejecta.vx = vel[:,0]
     ejecta.vy = vel[:,1]
     ejecta.vz = vel[:,2]
-    ejecta.m = m
+    ejecta.m = fnl.m[~ind]
+    ejecta.rho = fnl.rho[~ind]
+    ejecta.hmin = fnl.hmin[~ind]
+    ejecta.hmax = fnl.hmax[~ind]
     return ejecta
 
 def _test():
