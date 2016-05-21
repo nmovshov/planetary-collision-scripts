@@ -77,7 +77,72 @@ def load_fnl(filename):
 
     return fnl
 
+def unpack_fnl(fnl):
+    """Unpack fnl struct to rectangular array."""
+
+    # Minimal input control
+    assert isinstance(fnl, FNLData)
+
+    # Allocate array
+    data = np.zeros([fnl.nbNodes,FNLMeta.nb_columns])
+
+    # Unpack fnl struct
+    data[:,  FNLMeta.nl_id_col] = fnl.id
+    data[:, FNLMeta.eos_id_col] = fnl.eos
+    data[:,      FNLMeta.x_col] = fnl.x
+    data[:,      FNLMeta.y_col] = fnl.y
+    data[:,      FNLMeta.z_col] = fnl.z
+    data[:,     FNLMeta.vx_col] = fnl.vx
+    data[:,     FNLMeta.vy_col] = fnl.vy
+    data[:,     FNLMeta.vz_col] = fnl.vz
+    data[:,      FNLMeta.m_col] = fnl.m
+    data[:,    FNLMeta.rho_col] = fnl.rho
+    data[:,      FNLMeta.P_col] = fnl.P
+    data[:,      FNLMeta.T_col] = fnl.T
+    data[:,      FNLMeta.U_col] = fnl.U
+    data[:,   FNLMeta.hmin_col] = fnl.hmin
+    data[:,   FNLMeta.hmax_col] = fnl.hmax
+
+    # Return
+    return data
+
+def save_fnl(filename, fnl):
+    """Unpack fnl struct to array and save to ascii file."""
+
+    # Minimal input control
+    assert isinstance(fnl, FNLData)
+    assert isinstance(filename, str)
+
+    # Allocate array
+    data = np.zeros([fnl.nbNodes,FNLMeta.nb_columns])
+
+    # Unpack fnl struct
+    data[:,  FNLMeta.nl_id_col] = fnl.id
+    data[:, FNLMeta.eos_id_col] = fnl.eos
+    data[:,      FNLMeta.x_col] = fnl.x
+    data[:,      FNLMeta.y_col] = fnl.y
+    data[:,      FNLMeta.z_col] = fnl.z
+    data[:,     FNLMeta.vx_col] = fnl.vx
+    data[:,     FNLMeta.vy_col] = fnl.vy
+    data[:,     FNLMeta.vz_col] = fnl.vz
+    data[:,      FNLMeta.m_col] = fnl.m
+    data[:,    FNLMeta.rho_col] = fnl.rho
+    data[:,      FNLMeta.P_col] = fnl.P
+    data[:,      FNLMeta.T_col] = fnl.T
+    data[:,      FNLMeta.U_col] = fnl.U
+    data[:,   FNLMeta.hmin_col] = fnl.hmin
+    data[:,   FNLMeta.hmax_col] = fnl.hmax
+
+    # Write to file
+    head = fnl_header.format(fnl.nbNodes)
+    format = 2*['%2d'] + (FNLMeta.nb_columns - 2)*['%12.5e']
+    np.savetxt(filename, data, header=head, fmt=format)
+
+    # Return
+    return
+
 def load_multi_fnl(filename):
+
     """Load node list data from file and parse out to a struct.
     
     The file filename is assumed to contain data from one or more node lists that
@@ -326,3 +391,32 @@ def _test():
     print "alo"
     pass
 
+global fnl_header
+fnl_header = """\
+###############################################################################
+ This file contains output data from a Spheral++ simulation, including all
+ field variables as well as some diagnostic data and node meta data. This
+ file should contain {} data lines, one per SPH node used in the simulation.
+ Line order is not significant and is not guaranteed to match the node ordering
+ during the run, which itself is not significant. The columns contain field
+ values in whatever units where used in the simulation. Usually MKS.
+ Columns are:
+  | id | eos_id | x | y | z | vx | vy | vz | m | rho | p | T | U | hmin | hmax |
+
+ Column legend:
+
+        id - an integer identifier of the node list this node came from
+    eos_id - an integer identifier of the material eos used with this node list
+     x,y,z - node space coordinates
+  vx,vy,vz - node velocity components
+         m - node mass
+       rho - mass density
+         p - pressure
+         T - temperature
+         U - specific internal energy
+ hmin,hmax - smallest and largest half-axes of the smoothing ellipsoid
+
+ Tip: load table into python with np.loadtxt()
+
+###############################################################################
+"""
