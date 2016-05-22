@@ -385,36 +385,25 @@ def ejectify_fnl(fnl, method='naor1'):
     assert method in ('naor1', 'jutzi')
 
     # Extract values from loaded fnl
-    pos = np.vstack((fnl.x, fnl.y, fnl.z)).T
-    vel = np.vstack((fnl.vx, fnl.vy, fnl.vz)).T
-    m = fnl.m
+    data = unpack_fnl(fnl)
+    pos = data[:,FNLMeta.x_col:FNLMeta.z_col+1]
+    vel = data[:,FNLMeta.vx_col:FNLMeta.vz_col+1]
+    m = data[:,FNLMeta.m_col]
 
     # Detect largest bound mass to serve as primary
     import bound_mass as bm
     [M, ind] = bm.bound_mass(pos, vel, m, method=method)
 
     # Move to primary rest CoM frame
-    V0 = np.array([sum(fnl.vx[ind]*m[ind]),
-                   sum(fnl.vy[ind]*m[ind]),
-                   sum(fnl.vz[ind]*m[ind])])/M
-    vel = vel - V0
+    X = [sum(pos[ind,0]*m[ind]), sum(pos[ind,1]*m[ind]), sum(pos[ind,2]*m[ind])]/M
+    V = [sum(vel[ind,0]*m[ind]), sum(vel[ind,1]*m[ind]), sum(vel[ind,2]*m[ind])]/M
+    data[:,FNLMeta.x_col:FNLMeta.z_col+1] = pos - X
+    data[:,FNLMeta.vx_col:FNLMeta.vz_col+1] = vel - V
 
-    # Remove primary
-    pos = pos[~ind]
-    vel = vel[~ind]
+    # Remove primary and repack to fnl
+    data = data[~ind]
+    ejecta = pack_fnl(data)
 
-    # Return ejecta field as new fnl
-    ejecta = FNLData()
-    ejecta.x = pos[:,0]
-    ejecta.y = pos[:,1]
-    ejecta.z = pos[:,2]
-    ejecta.vx = vel[:,0]
-    ejecta.vy = vel[:,1]
-    ejecta.vz = vel[:,2]
-    ejecta.m = fnl.m[~ind]
-    ejecta.rho = fnl.rho[~ind]
-    ejecta.hmin = fnl.hmin[~ind]
-    ejecta.hmax = fnl.hmax[~ind]
     return ejecta
 
 def _test():
@@ -450,3 +439,7 @@ fnl_header = """\
 
 ###############################################################################
 """
+
+if __name__ == "__main__":
+    _test()
+    pass
