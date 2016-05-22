@@ -77,6 +77,36 @@ def load_fnl(filename):
 
     return fnl
 
+def pack_fnl(data):
+    """Pack fnl array to fnl struct."""
+
+    # Minimal input control
+    assert isinstance(data, np.ndarray)
+    assert data.ndim == 2 and data.shape[1] == FNLMeta.nb_columns
+
+    # Pack fnl
+    fnl = FNLData()
+    fnl.id   = data[:,  FNLMeta.nl_id_col]
+    fnl.eos  = data[:, FNLMeta.eos_id_col]
+    fnl.x    = data[:,      FNLMeta.x_col]
+    fnl.y    = data[:,      FNLMeta.y_col]
+    fnl.z    = data[:,      FNLMeta.z_col]
+    fnl.vx   = data[:,     FNLMeta.vx_col]
+    fnl.vy   = data[:,     FNLMeta.vy_col]
+    fnl.vz   = data[:,     FNLMeta.vz_col]
+    fnl.m    = data[:,      FNLMeta.m_col]
+    fnl.rho  = data[:,    FNLMeta.rho_col]
+    fnl.P    = data[:,      FNLMeta.P_col]
+    fnl.T    = data[:,      FNLMeta.T_col]
+    fnl.U    = data[:,      FNLMeta.U_col]
+    fnl.hmin = data[:,   FNLMeta.hmin_col]
+    fnl.hmax = data[:,   FNLMeta.hmax_col]
+    fnl.nbNodes = len(data)
+    fnl.r = np.hypot(fnl.x, np.hypot(fnl.y, fnl.z))
+
+    # Return
+    return fnl
+
 def unpack_fnl(fnl):
     """Unpack fnl struct to rectangular array."""
 
