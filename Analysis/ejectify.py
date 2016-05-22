@@ -53,7 +53,9 @@ def _main():
         sys.stdout.flush()
         tic = time()
         ejc = ahelpers.ejectify_fnl(fnl, method=args.method)
-        print "Ejecta field saved to file {}".format('mitzi.ejecta')
+        outname = os.path.join(dirname, 'ejecta_from_'+os.path.basename(onefile))
+        ahelpers.save_fnl(outname, ejc)
+        print "Ejecta field saved to file {}".format(os.path.relpath(outname))
         print "Elapsed time = {:g} sec.".format(time() - tic)
         print
 
