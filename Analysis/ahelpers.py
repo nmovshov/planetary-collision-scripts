@@ -77,7 +77,105 @@ def load_fnl(filename):
 
     return fnl
 
+def pack_fnl(data):
+    """Pack fnl array to fnl struct."""
+
+    # Minimal input control
+    assert isinstance(data, np.ndarray)
+    assert data.ndim == 2 and data.shape[1] == FNLMeta.nb_columns
+
+    # Pack fnl
+    fnl = FNLData()
+    fnl.id   = data[:,  FNLMeta.nl_id_col]
+    fnl.eos  = data[:, FNLMeta.eos_id_col]
+    fnl.x    = data[:,      FNLMeta.x_col]
+    fnl.y    = data[:,      FNLMeta.y_col]
+    fnl.z    = data[:,      FNLMeta.z_col]
+    fnl.vx   = data[:,     FNLMeta.vx_col]
+    fnl.vy   = data[:,     FNLMeta.vy_col]
+    fnl.vz   = data[:,     FNLMeta.vz_col]
+    fnl.m    = data[:,      FNLMeta.m_col]
+    fnl.rho  = data[:,    FNLMeta.rho_col]
+    fnl.P    = data[:,      FNLMeta.P_col]
+    fnl.T    = data[:,      FNLMeta.T_col]
+    fnl.U    = data[:,      FNLMeta.U_col]
+    fnl.hmin = data[:,   FNLMeta.hmin_col]
+    fnl.hmax = data[:,   FNLMeta.hmax_col]
+    fnl.nbNodes = len(data)
+    fnl.r = np.hypot(fnl.x, np.hypot(fnl.y, fnl.z))
+
+    # Return
+    return fnl
+
+def unpack_fnl(fnl):
+    """Unpack fnl struct to rectangular array."""
+
+    # Minimal input control
+    assert isinstance(fnl, FNLData)
+
+    # Allocate array
+    data = np.zeros([fnl.nbNodes,FNLMeta.nb_columns])
+
+    # Unpack fnl struct
+    data[:,  FNLMeta.nl_id_col] = fnl.id
+    data[:, FNLMeta.eos_id_col] = fnl.eos
+    data[:,      FNLMeta.x_col] = fnl.x
+    data[:,      FNLMeta.y_col] = fnl.y
+    data[:,      FNLMeta.z_col] = fnl.z
+    data[:,     FNLMeta.vx_col] = fnl.vx
+    data[:,     FNLMeta.vy_col] = fnl.vy
+    data[:,     FNLMeta.vz_col] = fnl.vz
+    data[:,      FNLMeta.m_col] = fnl.m
+    data[:,    FNLMeta.rho_col] = fnl.rho
+    data[:,      FNLMeta.P_col] = fnl.P
+    data[:,      FNLMeta.T_col] = fnl.T
+    data[:,      FNLMeta.U_col] = fnl.U
+    data[:,   FNLMeta.hmin_col] = fnl.hmin
+    data[:,   FNLMeta.hmax_col] = fnl.hmax
+
+    # Return
+    return data
+
+def save_fnl(filename, fnl, header=None):
+    """Unpack fnl struct to array and save to ascii file."""
+
+    # Minimal input control
+    assert isinstance(fnl, FNLData)
+    assert isinstance(filename, str)
+
+    # Allocate array
+    data = np.zeros([fnl.nbNodes,FNLMeta.nb_columns])
+
+    # Unpack fnl struct
+    data[:,  FNLMeta.nl_id_col] = fnl.id
+    data[:, FNLMeta.eos_id_col] = fnl.eos
+    data[:,      FNLMeta.x_col] = fnl.x
+    data[:,      FNLMeta.y_col] = fnl.y
+    data[:,      FNLMeta.z_col] = fnl.z
+    data[:,     FNLMeta.vx_col] = fnl.vx
+    data[:,     FNLMeta.vy_col] = fnl.vy
+    data[:,     FNLMeta.vz_col] = fnl.vz
+    data[:,      FNLMeta.m_col] = fnl.m
+    data[:,    FNLMeta.rho_col] = fnl.rho
+    data[:,      FNLMeta.P_col] = fnl.P
+    data[:,      FNLMeta.T_col] = fnl.T
+    data[:,      FNLMeta.U_col] = fnl.U
+    data[:,   FNLMeta.hmin_col] = fnl.hmin
+    data[:,   FNLMeta.hmax_col] = fnl.hmax
+
+    # Write to file
+    if header is None:
+        header = fnl_header_default.format(fnl.nbNodes)
+    else:
+        assert isinstance(header, str)
+    format = 2*['%2d'] + (FNLMeta.nb_columns - 2)*['%12.5e']
+    np.savetxt(filename, data, header=header, fmt=format)
+
+    # Return
+    return
+
 def load_multi_fnl(filename):
+
     """Load node list data from file and parse out to a struct.
     
     The file filename is assumed to contain data from one or more node lists that
@@ -256,7 +354,130 @@ def plot_rho_vs_r_output(dirname='.', bblock=False):
     plt.show(block=bblock)    
     return fig
 
+def plot_XY_scatter(fnl, bblock=False):
+    """XY scatter plot of node positions with color density."""
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+    assert isinstance(fnl,(FNLData,tuple))
+    if isinstance(fnl,FNLData):
+        fnl = (fnl,)
+
+    fig = plt.figure()
+    axe = plt.axes()
+    plt.xlabel('X [km]')
+    plt.ylabel('Y [km]')
+    plt.grid()
+    for nl in fnl:
+        assert isinstance(nl,FNLData)
+        x = nl.x/1e3
+        y = nl.y/1e3
+        rho = nl.rho
+        h = nl.hmin
+        plt.scatter(x, y, s=20, c=rho)
+        pass
+    plt.show(block=bblock)
+    return (fig,axe)
+
+def ejectify_fnl(fnl, method='naor1'):
+    """Quick-and-dirty detection of ejecta field from SPHERAL output fnl."""
+
+    # Minimal input control
+    assert isinstance(fnl, FNLData)
+    assert method in ('naor1', 'jutzi')
+
+    # Extract values from loaded fnl
+    data = unpack_fnl(fnl)
+    pos = data[:,FNLMeta.x_col:FNLMeta.z_col+1]
+    vel = data[:,FNLMeta.vx_col:FNLMeta.vz_col+1]
+    m = data[:,FNLMeta.m_col]
+
+    # Detect largest bound mass to serve as primary
+    import bound_mass as bm
+    [M, ind] = bm.bound_mass(pos, vel, m, method=method)
+
+    # Move to primary rest CoM frame
+    X = [sum(pos[ind,0]*m[ind]), sum(pos[ind,1]*m[ind]), sum(pos[ind,2]*m[ind])]/M
+    V = [sum(vel[ind,0]*m[ind]), sum(vel[ind,1]*m[ind]), sum(vel[ind,2]*m[ind])]/M
+    data[:,FNLMeta.x_col:FNLMeta.z_col+1] = pos - X
+    data[:,FNLMeta.vx_col:FNLMeta.vz_col+1] = vel - V
+
+    # Remove primary and repack to fnl
+    data = data[~ind]
+    ejecta = pack_fnl(data)
+
+    return ejecta
+
 def _test():
     print "alo"
     pass
 
+global fnl_header_default
+fnl_header_default = """\
+###############################################################################
+ This file contains output data from a Spheral++ simulation, including all
+ field variables as well as some diagnostic data and node meta data. This
+ file should contain {} data lines, one per SPH node used in the simulation.
+ Line order is not significant and is not guaranteed to match the node ordering
+ during the run, which itself is not significant. The columns contain field
+ values in whatever units where used in the simulation. Usually MKS.
+ Columns are:
+  | id | eos_id | x | y | z | vx | vy | vz | m | rho | p | T | U | hmin | hmax |
+
+ Column legend:
+
+        id - an integer identifier of the node list this node came from
+    eos_id - an integer identifier of the material eos used with this node list
+     x,y,z - node space coordinates
+  vx,vy,vz - node velocity components
+         m - node mass
+       rho - mass density
+         p - pressure
+         T - temperature
+         U - specific internal energy
+ hmin,hmax - smallest and largest half-axes of the smoothing ellipsoid
+
+ Tip: load table into python with np.loadtxt()
+
+###############################################################################
+"""
+
+global fnl_header_ejecta
+fnl_header_ejecta = """\
+###############################################################################
+ This file contains the ejecta field from an impact simulation. Included are
+ field variables as well as some diagnostic data and node meta data. Original
+ simulation had M={:0.4g} kg in {} nodes.
+ This file was generated by identifying the largest gravitationally bound
+ fragment, with M_lb={:0.4g} kg, moving to that fragment's center of mass
+ frame, and then removing all nodes belonging to the largest fragment.
+ This file should contain {} data lines, one per SPH node identified
+ as ejecta. Line order is not significant and is not guaranteed to match the
+ node ordering during the run. The columns contain field values in whatever
+ units where used in the simulation, hopefully MKS.
+ Columns are:
+  | id | eos_id | x | y | z | vx | vy | vz | m | rho | p | T | U | hmin | hmax |
+
+ Column legend:
+
+        id - an integer identifier of the node list this node came from
+    eos_id - an integer identifier of the material eos used with this node list
+     x,y,z - node space coordinates
+  vx,vy,vz - node velocity components
+         m - node mass
+       rho - mass density
+         p - pressure
+         T - temperature
+         U - specific internal energy
+ hmin,hmax - smallest and largest half-axes of the smoothing ellipsoid
+
+ Tip: load table into python with np.loadtxt()
+ Note on eos_id: 2=h2oice (tillotson), 5=basalt (tillotson)
+
+###############################################################################
+"""
+
+if __name__ == "__main__":
+    _test()
+    pass
