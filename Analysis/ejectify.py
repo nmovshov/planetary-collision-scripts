@@ -53,8 +53,16 @@ def _main():
         sys.stdout.flush()
         tic = time()
         ejc = ahelpers.ejectify_fnl(fnl, method=args.method)
+
+        # Write header and save to file
+        M_T = fnl.m.sum()
+        M_LB = fnl.m.sum() - ejc.m.sum()
+        head = ahelpers.fnl_header_ejecta.format(M_T,
+                                                 fnl.nbNodes,
+                                                 M_LB,
+                                                 ejc.nbNodes)
         outname = os.path.join(dirname, 'ejecta_from_'+os.path.basename(onefile))
-        ahelpers.save_fnl(outname, ejc)
+        ahelpers.save_fnl(outname, ejc, head)
         print "Ejecta field saved to file {}".format(os.path.relpath(outname))
         print "Elapsed time = {:g} sec.".format(time() - tic)
         print
