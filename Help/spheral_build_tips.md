@@ -173,9 +173,8 @@ This is a supercomputer cluster ar SwRI.
 
 ###### Environment (after applying tricks if any)
 
-##### Cholla
-This is the planetary group cluster ar ASU.
-THIS IS A TEST
+##### Cholla (This is the planetary group cluster ar ASU.)
+
 ###### System
 
 ###### Special vars/hacks/tricks
