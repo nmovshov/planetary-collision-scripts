@@ -407,7 +407,7 @@ def ejectify_fnl(fnl, method='naor1'):
     data = data[~ind]
     ejecta = pack_fnl(data)
 
-    return ejecta
+    return ejecta, ~ind
 
 def _test():
     print "alo"

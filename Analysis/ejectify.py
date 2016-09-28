@@ -52,7 +52,7 @@ def _main():
         print "Ejectifying using algorithm {}...".format(args.method),
         sys.stdout.flush()
         tic = time()
-        ejc = ahelpers.ejectify_fnl(fnl, method=args.method)
+        ejc, ind = ahelpers.ejectify_fnl(fnl, method=args.method)
 
         # Write header and save to file
         M_T = fnl.m.sum()
