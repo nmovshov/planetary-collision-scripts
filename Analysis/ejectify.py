@@ -89,6 +89,9 @@ def _main():
         R_ini = R_ini[ind,None] # the None makes it n-by-1
         ejc_arr = np.hstack((ejc_arr,R_ini))
 
+        # Delete useless hmax column
+        ejc_arr = np.delete(ejc_arr, ahelpers.FNLMeta.hmax_col, 1)
+
         # Write header and save to file
         M_T = fnl.m.sum()
         M_LB = fnl.m.sum() - ejc.m.sum()
@@ -97,7 +100,7 @@ def _main():
                                                  M_LB,
                                                  ejc.nbNodes)
         outname = os.path.join(dirname, 'ejecta_from_'+os.path.basename(onefile))
-        format = 2*['%2d'] + (ahelpers.FNLMeta.nb_columns - 1)*['%12.5e']
+        format = 2*['%2d'] + (ahelpers.FNLMeta.nb_columns - 2)*['%12.5e']
         np.savetxt(outname, ejc_arr, header=head, fmt=format)
         #ahelpers.save_fnl(outname, ejc, head)
         print "Ejecta field saved to file {}".format(os.path.relpath(outname))

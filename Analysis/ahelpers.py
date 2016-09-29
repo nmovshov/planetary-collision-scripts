@@ -453,11 +453,10 @@ fnl_header_ejecta = """\
  fragment, with M_lb={:0.4g} kg, moving to that fragment's center of mass
  frame, and then removing all nodes belonging to the largest fragment.
  This file should contain {} data lines, one per SPH node identified
- as ejecta. Line order is not significant and is not guaranteed to match the
- node ordering during the run. The columns contain field values in whatever
- units where used in the simulation, hopefully MKS.
+ as ejecta. Line order is not significant. The columns contain field values in
+ whatever units where used in the simulation, hopefully MKS.
  Columns are:
-  | id | eos_id | x | y | z | vx | vy | vz | m | rho | p | T | U | hmin | hmax |
+ | id | eos_id | x | y | z | vx | vy | vz | m | rho | p | T | U | h | R_ini |
 
  Column legend:
 
@@ -470,7 +469,8 @@ fnl_header_ejecta = """\
          p - pressure
          T - temperature
          U - specific internal energy
- hmin,hmax - smallest and largest half-axes of the smoothing ellipsoid
+         h - smoothing length
+     R_ini - pre-impact radius from center of parent body (normalized)
 
  Tip: load table into python with np.loadtxt()
  Note on eos_id: 2=h2oice (tillotson), 5=basalt (tillotson)
