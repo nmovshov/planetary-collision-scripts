@@ -52,7 +52,21 @@ def _main():
         print "Ejectifying using algorithm {}...".format(args.method),
         sys.stdout.flush()
         tic = time()
-        ejc = ahelpers.ejectify_fnl(fnl, method=args.method)
+        ejc, ind = ahelpers.ejectify_fnl(fnl, method=args.method)
+
+        # Now we try to find original depth of ejecta particles
+        origfile = os.path.basename(onefile)
+        origfile = origfile[:origfile.find('-')] + '-00000-0.fnl'
+        origfile = os.path.join(dirname, origfile)
+        print "Looking for matching pre-impact file in {}.".format(dirname)
+        try:
+            orig_fnl = ahelpers.load_fnl(origfile)
+        except StandardError:
+            try:
+                orig_fnl = ahelpers.load_fnl(origfile + '.gz')
+            except StandardError:
+                print ("Could not find valid pre-impact data;" +
+                    " skipping initial depth calculation.")
 
         # Write header and save to file
         M_T = fnl.m.sum()
