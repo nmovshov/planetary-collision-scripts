@@ -67,6 +67,15 @@ def _main():
             except StandardError:
                 print ("Could not find valid pre-impact data;" +
                     " skipping initial depth calculation.")
+        for n in np.unique(orig_fnl.id):
+            body = ahelpers.unpack_fnl(orig_fnl)[orig_fnl.id == n]
+            pos = body[:,ahelpers.FNLMeta.x_col:ahelpers.FNLMeta.x_col+3]
+            m = body[:,ahelpers.FNLMeta.m_col]
+            X = [pos[:,0].dot(m), pos[:,1].dot(m), pos[:,2].dot(m)]/sum(m)
+            pos = pos - X
+            r = np.sqrt(pos[:,0]**2 + pos[:,1]**2 + pos[:,2]**2)
+            pass
+
 
         # Write header and save to file
         M_T = fnl.m.sum()
