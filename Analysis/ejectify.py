@@ -52,7 +52,45 @@ def _main():
         print "Ejectifying using algorithm {}...".format(args.method),
         sys.stdout.flush()
         tic = time()
-        ejc = ahelpers.ejectify_fnl(fnl, method=args.method)
+        ejc, ind = ahelpers.ejectify_fnl(fnl, method=args.method)
+
+        # Now we try to find original depth of ejecta particles
+        orig_fnl = None
+        origfile = os.path.basename(onefile)
+        origfile = origfile[:origfile.find('-')] + '-00000-0.fnl'
+        origfile = os.path.join(dirname, origfile)
+        print "Looking for matching pre-impact file in {}.".format(dirname)
+        try:
+            orig_fnl = ahelpers.load_fnl(origfile)
+            assert orig_fnl.nbNodes == fnl.nbNodes
+        except (StandardError, AssertionError):
+            try:
+                orig_fnl = ahelpers.load_fnl(origfile + '.gz')
+                assert orig_fnl.nbNodes == fnl.nbNodes
+            except (StandardError, AssertionError):
+                orig_fnl = None
+                print ("Could not find valid pre-impact data;" +
+                    " skipping calculation of initial depth.")
+
+        R_ini = np.zeros(fnl.nbNodes)
+        if orig_fnl is not None:
+            for n in np.unique(orig_fnl.id):
+                body = ahelpers.unpack_fnl(orig_fnl)[orig_fnl.id == n]
+                pos = body[:,ahelpers.FNLMeta.x_col:ahelpers.FNLMeta.x_col+3]
+                m = body[:,ahelpers.FNLMeta.m_col]
+                X = [pos[:,0].dot(m), pos[:,1].dot(m), pos[:,2].dot(m)]/sum(m)
+                pos = pos - X
+                r = np.sqrt(pos[:,0]**2 + pos[:,1]**2 + pos[:,2]**2)
+                R_ini[orig_fnl.id == n] = r/max(r)
+                pass
+
+        # Tack R_ini of ejecta to right of unpacked ejc
+        ejc_arr = ahelpers.unpack_fnl(ejc)
+        R_ini = R_ini[ind,None] # the None makes it n-by-1
+        ejc_arr = np.hstack((ejc_arr,R_ini))
+
+        # Delete useless hmax column
+        ejc_arr = np.delete(ejc_arr, ahelpers.FNLMeta.hmax_col, 1)
 
         # Write header and save to file
         M_T = fnl.m.sum()
@@ -62,7 +100,9 @@ def _main():
                                                  M_LB,
                                                  ejc.nbNodes)
         outname = os.path.join(dirname, 'ejecta_from_'+os.path.basename(onefile))
-        ahelpers.save_fnl(outname, ejc, head)
+        format = 2*['%2d'] + (ahelpers.FNLMeta.nb_columns - 2)*['%12.5e']
+        np.savetxt(outname, ejc_arr, header=head, fmt=format)
+        #ahelpers.save_fnl(outname, ejc, head)
         print "Ejecta field saved to file {}".format(os.path.relpath(outname))
         print "Elapsed time = {:g} sec.".format(time() - tic)
         print
